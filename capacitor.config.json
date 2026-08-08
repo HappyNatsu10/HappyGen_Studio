@@ -1,0 +1,10 @@
+{
+  "appId": "com.happynatsu.aiimagegenerator",
+  "appName": "OmniGen AI Studio",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true
+  }
+}

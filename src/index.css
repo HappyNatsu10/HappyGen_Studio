@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #080811;
+    color: #f1f5f9;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0f19;
+}
+::-webkit-scrollbar-thumb {
+  background: #262a40;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b4266;
+}
+
+/* Aceternity Style Background Grids & Beams */
+.bg-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.18) 0%, rgba(13, 15, 25, 0) 70%);
+}
+
+.bg-adult-gradient {
+  background: radial-gradient(circle at 50% 20%, rgba(225, 29, 72, 0.22) 0%, rgba(13, 5, 9, 0) 70%);
+}
+
+/* Glassmorphism Card */
+.glass-panel {
+  background: rgba(18, 20, 32, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-adult {
+  background: rgba(30, 8, 16, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.glass-input {
+  background: rgba(10, 12, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-input:focus {
+  border-color: rgba(99, 102, 241, 0.8);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+  outline: none;
+}
+
+/* Aceternity Animated Gradient Border */
+.border-gradient-container {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1px;
+  overflow: hidden;
+}
+
+.border-gradient-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    transparent,
+    rgba(99, 102, 241, 0.8),
+    rgba(168, 85, 247, 0.8),
+    transparent 30%
+  );
+  animation: borderSpin 4s linear infinite;
+}
+
+@keyframes borderSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.border-gradient-adult::before {
+  background: conic-gradient(
+    transparent,
+    rgba(225, 29, 72, 0.9),
+    rgba(244, 114, 182, 0.9),
+    transparent 30%
+  );
+}
+
+.border-gradient-content {
+  position: relative;
+  background: #0d0e17;
+  border-radius: calc(1rem - 1px);
+  z-index: 1;
+}
+
+/* Shimmer Button */
+.btn-shimmer {
+  background: linear-gradient(110deg, #4f46e5 45%, #818cf8 55%, #4f46e5);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+.btn-shimmer-adult {
+  background: linear-gradient(110deg, #e11d48 45%, #fb7185 55%, #e11d48);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Large Model weights & checkpoints (Never commit 6GB+ weights to GitHub)
+Models/
+*.safetensors
+*.ckpt
+*.bin
+*.pt
+*.pth
+*.onnx
+
+# Build artifacts & outputs
+dist/
+build/
+output/
+release/
+*.apk
+*.exe
+*.zip
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment and Local configs
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and databases
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.tempmediaStorage/
+
+# OS specific
+.DS_Store
+Thumbs.db

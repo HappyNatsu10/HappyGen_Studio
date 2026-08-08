@@ -1,0 +1,53 @@
+{
+  "name": "omnigen-ai-studio",
+  "version": "1.0.0",
+  "description": "AI Image & Video Generation Suite with Multi-Style & Adult Mode",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server:models": "python scripts/local_inference_server.py",
+    "electron:start": "electron .",
+    "build:win": "vite build && electron-builder --win nsis",
+    "build:portable": "vite build && electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.happynatsu.aiimagegenerator",
+    "productName": "OmniGen AI Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    }
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.1",
+    "canvas-confetti": "^1.9.4",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.4.10",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.1",
+    "@capacitor/cli": "^7.0.1",
+    "@tailwindcss/postcss": "^4.0.5",
+    "@tailwindcss/vite": "^4.0.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^4.0.5",
+    "vite": "^6.1.0"
+  }
+}
