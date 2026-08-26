@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Edit3, Eraser, Brush, Download, Upload, Zap, Layers, RefreshCw, Scissors, Sparkles } from 'lucide-react';
 
-export default function CanvasEditor({ initialImageUrl, isAdultMode }) {
+import useAppStore from '../store/useAppStore';
+import useWorkspaceStore from '../store/useWorkspaceStore';
+
+export default function CanvasEditor() {
+  const { isAdultMode } = useAppStore();
+  const { canvasTargetImage: initialImageUrl } = useWorkspaceStore();
   const [imageUrl, setImageUrl] = useState(initialImageUrl || null);
   const [brushSize, setBrushSize] = useState(25);
   const [tool, setTool] = useState('brush'); // 'brush' | 'eraser'

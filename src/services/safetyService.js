@@ -89,7 +89,7 @@ export const classifyOutputAsset = (assetUrl, prompt, isAdultMode) => {
     nsfwDetected: isAdultMode,
     c2paManifest: {
       claim: "urn:c2pa:happynatsu:omnigen:claim:v1",
-      generator: "OmniGen AI Studio 1.0",
+      generator: "HappyGen AI Studio 1.0",
       assertions: [
         { label: "c2pa.actions", data: { action: "c2pa.created", digitalSourceType: "trainedAlgorithmicMedia" } },
         { label: "c2pa.hash", data: { alg: "sha256", value: "a8f9c0e7b6d5a4321..." } },

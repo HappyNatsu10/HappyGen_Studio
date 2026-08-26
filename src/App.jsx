@@ -1,147 +1,166 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
-import SidebarNav from './components/SidebarNav';
-import ImageStudio from './components/ImageStudio';
+import Sidebar from './components/layout/Sidebar';
+import TopBar from './components/layout/TopBar';
+import GeneratePage from './components/generate/GeneratePage';
+import ModelExplorer from './components/models/ModelExplorer';
+import GalleryProjects from './components/GalleryProjects';
 import VideoStudio from './components/VideoStudio';
 import CanvasEditor from './components/CanvasEditor';
-import SafetyDashboard from './components/SafetyDashboard';
-import GalleryProjects from './components/GalleryProjects';
-import AdultVerificationModal from './components/AdultVerificationModal';
-import AppExportModal from './components/AppExportModal';
 import BackendConfigModal from './components/BackendConfigModal';
 import AuthModal from './components/AuthModal';
 import UserProfileModal from './components/UserProfileModal';
+import MobileTabBar from './components/layout/MobileTabBar';
+import ModelSelectionModal from './components/models/ModelSelectionModal';
+import InpaintStudio from './components/InpaintStudio';
+import useAppStore from './store/useAppStore';
 
-function MainAppContent() {
-  const { currentUser, isAuthenticated, consumeCredits, openAuth } = useAuth();
-  const [activeTab, setActiveTab] = useState('image');
-  const [isAdultMode, setIsAdultMode] = useState(false);
-  const [isVerifiedAdult, setIsVerifiedAdult] = useState(false);
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showBackendModal, setShowBackendModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [generatedAssets, setGeneratedAssets] = useState([]);
-  const [safetyLogs, setSafetyLogs] = useState([]);
-  const [canvasTargetImage, setCanvasTargetImage] = useState(null);
+const TAB_TITLES = {
+  generate: 'Generate',
+  models: 'Model Explorer',
+  gallery: 'Gallery',
+  settings: 'Settings',
+  video: 'Video Suite',
+  canvas: 'Canvas',
+  inpaint: 'Inpaint Studio',
+};
 
-  const handleImageGenerated = (newImages) => {
-    setGeneratedAssets(prev => [...newImages, ...prev]);
-    consumeCredits(newImages.length * 2);
-  };
+function MainApp() {
+  const { currentUser, isAuthenticated, openAuth } = useAuth();
+  
+  const {
+    activeTab,
+    sidebarCollapsed,
+    mode,
+    showBackendModal,
+    showProfileModal,
+    showModelModal,
+    setShowBackendModal,
+  } = useAppStore();
 
-  const handleAddSafetyLog = (logItem) => {
-    setSafetyLogs(prev => [logItem, ...prev]);
-  };
-
-  const handleSendToCanvas = (url) => {
-    setCanvasTargetImage(url);
-    setActiveTab('canvas');
-  };
-
-  const handleVerificationComplete = () => {
-    setIsVerifiedAdult(true);
-    setIsAdultMode(true);
-  };
+  const sidebarWidth = sidebarCollapsed ? 60 : 220;
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 font-sans ${
-      isAdultMode 
-        ? 'bg-[#0b0306] text-rose-50 bg-adult-gradient' 
-        : 'bg-[#080811] text-slate-100 bg-radial-gradient'
-    } bg-grid relative pb-24 md:pb-12`}>
+    <div className="min-h-screen flex" style={{ background: 'var(--surface-0)' }}>
+      {/* Sidebar */}
+      <Sidebar />
 
-      {/* Header Bar */}
-      <Navbar
-        isAdultMode={isAdultMode}
-        onToggleAdultMode={setIsAdultMode}
-        isVerifiedAdult={isVerifiedAdult}
-        onOpenVerifyModal={() => setShowVerifyModal(true)}
-        onOpenExportModal={() => setShowExportModal(true)}
-        onOpenBackendModal={() => setShowBackendModal(true)}
-        onOpenProfileModal={() => setShowProfileModal(true)}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col transition-all duration-200 w-full md:w-auto pb-[60px] md:pb-0"
+           style={{ marginLeft: 'var(--sidebar-width, 0px)' }}>
 
-      {/* Main View Area */}
-      <main className="transition-all duration-300">
-        {activeTab === 'image' && (
-          <ImageStudio
-            isAdultMode={isAdultMode}
-            onImageGenerated={handleImageGenerated}
-            onAddSafetyLog={handleAddSafetyLog}
-            onSendToCanvas={handleSendToCanvas}
-          />
+        <style dangerouslySetInnerHTML={{__html: `
+          @media (min-width: 768px) {
+            :root { --sidebar-width: ${sidebarWidth}px; }
+          }
+        `}} />
+
+        <TopBar
+          title={TAB_TITLES[activeTab] || 'HappyGen'}
+          onOpenBackendModal={() => setShowBackendModal(true)}
+        />
+
+        {activeTab === 'inpaint' && (
+          <div className="flex-1 flex flex-col h-full">
+            <InpaintStudio />
+          </div>
+        )}
+        {activeTab === 'generate' && (
+          <GeneratePage />
         )}
 
-        {activeTab === 'video' && (
-          <VideoStudio
-            isAdultMode={isAdultMode}
-            onAddSafetyLog={handleAddSafetyLog}
-          />
-        )}
-
-        {activeTab === 'canvas' && (
-          <CanvasEditor
-            initialImageUrl={canvasTargetImage}
-            isAdultMode={isAdultMode}
-          />
+        {activeTab === 'models' && (
+          <ModelExplorer />
         )}
 
         {activeTab === 'gallery' && (
-          <GalleryProjects
-            generatedAssets={generatedAssets}
-            isAdultMode={isAdultMode}
-            isVerifiedAdult={isVerifiedAdult}
-          />
+          <div className="flex-1 overflow-y-auto p-5 pb-24 md:pb-5">
+            <GalleryProjects />
+          </div>
         )}
 
-        {activeTab === 'safety' && (
-          <SafetyDashboard
-            safetyLogs={safetyLogs}
-            isAdultMode={isAdultMode}
-          />
+        {activeTab === 'video' && (
+          <div className="flex-1 flex flex-col h-full pb-20 md:pb-0 overflow-y-auto">
+            <VideoStudio />
+          </div>
         )}
-      </main>
 
-      {/* Mobile Dock */}
-      <SidebarNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isAdultMode={isAdultMode}
-        onOpenExportModal={() => setShowExportModal(true)}
-      />
+        {activeTab === 'canvas' && (
+          <div className="flex-1 overflow-y-auto p-5 pb-24 md:pb-5">
+            <CanvasEditor />
+          </div>
+        )}
 
-      {/* User Authentication Modal */}
+        {activeTab === 'settings' && (
+          <div className="flex-1 overflow-y-auto p-5 pb-24 md:pb-5">
+            <SettingsPage />
+          </div>
+        )}
+      </div>
+
+      <MobileTabBar />
+
+      {/* Modals */}
+      <ModelSelectionModal />
       <AuthModal />
+      <UserProfileModal />
+      <BackendConfigModal />
+    </div>
+  );
+}
 
-      {/* User Profile & Account Modal */}
-      <UserProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-      />
+// Simple settings page connected to Zustand
+function SettingsPage() {
+  const { isAdultMode, setIsAdultMode, setShowBackendModal } = useAppStore();
 
-      {/* Adult Verification Modal */}
-      <AdultVerificationModal
-        isOpen={showVerifyModal}
-        onClose={() => setShowVerifyModal(false)}
-        onVerificationComplete={handleVerificationComplete}
-      />
+  return (
+    <div className="max-w-lg space-y-6">
+      <div>
+        <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Settings</h2>
+        <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>Configure your HappyGen Studio experience.</p>
+      </div>
 
-      {/* App Export Download Modal (.EXE & .APK) */}
-      <AppExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-      />
+      <div className="card p-4 space-y-4">
+        {/* Backend */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>Backend Server</div>
+            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Configure Local or Cloud GPU</div>
+          </div>
+          <button onClick={() => setShowBackendModal(true)} className="btn btn-secondary text-[12px]">
+            Configure
+          </button>
+        </div>
 
-      {/* Backend API Configuration Modal */}
-      <BackendConfigModal
-        isOpen={showBackendModal}
-        onClose={() => setShowBackendModal(false)}
-      />
+        {/* 18+ Mode */}
+        <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div>
+            <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>18+ Content</div>
+            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Show NSFW models & disable content filter</div>
+          </div>
+          <button
+            onClick={() => setIsAdultMode(!isAdultMode)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+              isAdultMode ? 'bg-red-500' : ''
+            }`}
+            style={{ background: isAdultMode ? undefined : 'var(--surface-4)' }}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              isAdultMode ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+      </div>
 
+      {/* About */}
+      <div className="card p-4">
+        <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>About</div>
+        <div className="text-[11px] space-y-0.5" style={{ color: 'var(--text-tertiary)' }}>
+          <p>HappyGen Studio v2.0</p>
+          <p>Built by HappyNatsu10</p>
+          <p>Powered by CivitAI API & Stable Diffusion</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -149,7 +168,7 @@ function MainAppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainAppContent />
+      <MainApp />
     </AuthProvider>
   );
 }

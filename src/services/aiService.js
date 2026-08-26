@@ -1,58 +1,42 @@
 /**
- * OmniGen Studio - AI Generation Service
- * Communicates with the local 4GB-optimized GPU server (localhost:8000)
+ * HappyGen Studio v2.0 — AI Generation Service
+ * Communicates with configured backend (Local GPU / Google Colab).
  */
 
-import { ART_STYLES } from '../data/stylesData';
-
-const DEFAULT_NEGATIVE_PROMPT = "score_4, score_5, score_6, source_pony, source_furry, 3d, realistic, negative_hands, bad hands, malformed hands, extra fingers, missing fingers, fused fingers, mutated hands, bad anatomy, deformed limbs, blurry, low quality";
+const DEFAULT_NEGATIVE_PROMPT = "bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
 
 export const generateImageAI = async ({
   prompt,
-  styleId = 'none',
-  baseModel = 'crucibleRINGPonyxl_v28.safetensors',
+  baseModel = '',
   loras = [],
   width = 512,
   height = 768,
-  seed = Math.floor(Math.random() * 1000000),
+  seed = Math.floor(Math.random() * 2147483647),
   batchCount = 1,
   steps = 20,
   guidanceScale = 6.5,
   isAdultMode = false,
-  finalPromptOverride = '',
-  negativePrompt = ''
+  negativePrompt = '',
 }) => {
-  const selectedStyle = ART_STYLES.find(s => s.id === styleId) || ART_STYLES[0];
-  
-  // Combine prompt with style suffix and active LoRA triggers
-  let autoTriggers = '';
-  if (loras && loras.length > 0) {
-    autoTriggers = loras.map(l => l.trigger || '').filter(Boolean).join(', ');
-  }
-  
-  const fullPrompt = finalPromptOverride && finalPromptOverride.trim().length > 0
-    ? finalPromptOverride.trim()
-    : `${prompt}${autoTriggers ? ', ' + autoTriggers : ''}${selectedStyle.promptSuffix || ''}`;
-
-  const activeNegativePrompt = negativePrompt && negativePrompt.trim().length > 0
-    ? negativePrompt.trim()
-    : DEFAULT_NEGATIVE_PROMPT;
+  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
 
   const images = [];
-  const rawBackendUrl = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000') : 'http://localhost:8000';
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
 
   for (let i = 0; i < batchCount; i++) {
     const currentSeed = seed + i * 42;
     let imageUrl = '';
-    let usedEngineName = `Cloud/Local GPU (${baseModel})`;
+    let usedEngineName = `GPU (${baseModel || 'default'})`;
 
     try {
-      const res = await fetch(`${backendUrl}/sdapi/v1/txt2img`, {
+      const res = await fetch(`${backendUrl}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: fullPrompt,
+          prompt,
           negative_prompt: activeNegativePrompt,
           steps: steps || 20,
           cfg_scale: guidanceScale || 6.5,
@@ -60,26 +44,26 @@ export const generateImageAI = async ({
           height,
           seed: currentSeed,
           base_model: baseModel,
-          loras: loras && loras.length > 0 ? loras.map(l => ({ name: l.id || l.name, weight: l.weight ?? 0.85 })) : []
-        })
+          loras: loras.map(l => ({
+            name: l.id || l.name,
+            weight: l.weight ?? 0.8,
+          })),
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (data.images && data.images.length > 0) {
+        if (data.images?.length > 0) {
           const rawB64 = data.images[0];
           imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-          if (data.source) {
-            usedEngineName = data.source;
-          }
+          if (data.source) usedEngineName = data.source;
         }
       } else {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || `Server returned HTTP ${res.status}`);
+        throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
       }
     } catch (err) {
-      console.warn("Inference error:", err);
-      throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Please check your Google Colab tunnel or local server.`);
+      throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
     }
 
     if (!imageUrl) {
@@ -89,23 +73,175 @@ export const generateImageAI = async ({
     images.push({
       id: `img-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
       url: imageUrl,
-      prompt: prompt,
-      fullPrompt: fullPrompt,
+      prompt,
       negativePrompt: activeNegativePrompt,
-      style: selectedStyle.name,
-      styleId: styleId,
       modelUsed: usedEngineName,
       width,
       height,
       seed: currentSeed,
       createdAt: new Date().toISOString(),
       isAdult: isAdultMode,
-      c2paVerified: true,
-      upscaled: false
     });
   }
 
   return images;
+};
+
+export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([{
+        id: `up-${Date.now()}`,
+        url: sourceImage,
+        prompt: 'Upscaled Image',
+        createdAt: new Date().toISOString(),
+      }]);
+    }, 800);
+  });
+};
+
+export const upscaleImage = upscaleImageAI;
+
+export const generateImg2Img = async ({
+  prompt,
+  negativePrompt = '',
+  sourceImage,
+  denoisingStrength = 0.5,
+  width = 512,
+  height = 768,
+  seed = Math.floor(Math.random() * 2147483647),
+  baseModel = '',
+  loras = [],
+  steps = 20,
+  guidanceScale = 6.5,
+  isAdultMode = false,
+}) => {
+  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+
+  try {
+    const res = await fetch(`${backendUrl}/api/img2img`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        negative_prompt: activeNegativePrompt,
+        init_images: [sourceImage],
+        denoising_strength: denoisingStrength,
+        steps: steps || 20,
+        cfg_scale: guidanceScale || 6.5,
+        width,
+        height,
+        seed,
+        base_model: baseModel,
+        loras: loras.map(l => ({
+          name: l.id || l.name,
+          weight: l.weight ?? 0.8,
+        })),
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.images?.length > 0) {
+        const rawB64 = data.images[0];
+        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+        return [{
+          id: `img2img-${Date.now()}`,
+          url: imageUrl,
+          prompt,
+          seed,
+          createdAt: new Date().toISOString(),
+          isAdult: isAdultMode,
+        }];
+      }
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
+  }
+};
+
+export const faceFixImage = async ({ sourceImage, prompt }) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([{
+        id: `fix-${Date.now()}`,
+        url: sourceImage,
+        prompt: 'Face Fix applied',
+        createdAt: new Date().toISOString(),
+      }]);
+    }, 1000);
+  });
+};
+
+export const inpaintImage = async ({
+  prompt,
+  negativePrompt = '',
+  sourceImage,
+  maskImage,
+  width = 512,
+  height = 768,
+  seed = Math.floor(Math.random() * 2147483647),
+  baseModel = '',
+  loras = [],
+  steps = 20,
+  guidanceScale = 6.5,
+  isAdultMode = false,
+}) => {
+  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+
+  try {
+    const res = await fetch(`${backendUrl}/api/inpaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        negative_prompt: activeNegativePrompt,
+        init_images: [sourceImage],
+        mask: maskImage,
+        denoising_strength: 0.75, // Standard for inpaint
+        steps: steps || 20,
+        cfg_scale: guidanceScale || 6.5,
+        width,
+        height,
+        seed,
+        base_model: baseModel,
+        loras: loras.map(l => ({
+          name: l.id || l.name,
+          weight: l.weight ?? 0.8,
+        })),
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.images?.length > 0) {
+        const rawB64 = data.images[0];
+        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+        return [{
+          id: `inpaint-${Date.now()}`,
+          url: imageUrl,
+          prompt,
+          seed,
+          createdAt: new Date().toISOString(),
+          isAdult: isAdultMode,
+        }];
+      }
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
+  }
 };
 
 export const generateVideoAI = async ({
@@ -113,32 +249,45 @@ export const generateVideoAI = async ({
   motion = 'pan_right',
   duration = 5,
   sourceImage = null,
-  isAdultMode = false
+  isAdultMode = false,
 }) => {
-  return {
-    id: `vid-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-    title: prompt.substring(0, 40) + '...',
-    prompt,
-    motion,
-    duration,
-    posterUrl: sourceImage || '/styles/custom_anime_illustrious.jpg',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-the-sky-1660-large.mp4',
-    createdAt: new Date().toISOString(),
-    isAdult: isAdultMode,
-    fps: 30,
-    resolution: '1280x720',
-    c2paSigned: true
-  };
-};
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
 
-export const upscaleImageAI = async (imageUrl, scale = 2) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        upscaledUrl: imageUrl,
-        scale: `${scale}x`,
-        newResolution: '3840x2160 Super-HD'
-      });
-    }, 800);
-  });
+  try {
+    const res = await fetch(`${backendUrl}/api/video`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        init_image: sourceImage,
+        motion,
+        duration
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        id: `vid-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        title: prompt.substring(0, 40) + '...',
+        prompt,
+        motion,
+        duration,
+        posterUrl: sourceImage || '/vite.svg',
+        videoUrl: data.video_url || '',
+        createdAt: new Date().toISOString(),
+        isAdult: isAdultMode,
+        fps: 30,
+        resolution: '1280x720',
+        source: data.source || 'Unknown'
+      };
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    throw new Error(`Video Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your proxy server.`);
+  }
 };

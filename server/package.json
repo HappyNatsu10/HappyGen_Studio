@@ -1,0 +1,17 @@
+{
+  "name": "omnigen-proxy-server",
+  "version": "1.0.0",
+  "description": "Cloud API Proxy Server for OmniGen AI Studio",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@fal-ai/serverless-client": "^0.15.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

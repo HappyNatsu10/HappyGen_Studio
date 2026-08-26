@@ -12,11 +12,12 @@ import base64
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
+from PIL import Image
 
 import torch
 from safetensors.torch import load_file
 from safetensors import safe_open
-from diffusers import StableDiffusionXLPipeline, EulerAncestralDiscreteScheduler
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, StableDiffusionXLInpaintPipeline, EulerAncestralDiscreteScheduler
 
 # Configuration & Paths
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -96,6 +97,23 @@ def get_pipeline():
     active_pipeline = pipe
     return active_pipeline
 
+active_img2img_pipeline = None
+active_inpaint_pipeline = None
+
+def get_img2img_pipeline():
+    global active_img2img_pipeline
+    base = get_pipeline()
+    if active_img2img_pipeline is None:
+        active_img2img_pipeline = StableDiffusionXLImg2ImgPipeline(**base.components)
+    return active_img2img_pipeline
+
+def get_inpaint_pipeline():
+    global active_inpaint_pipeline
+    base = get_pipeline()
+    if active_inpaint_pipeline is None:
+        active_inpaint_pipeline = StableDiffusionXLInpaintPipeline(**base.components)
+    return active_inpaint_pipeline
+
 def apply_loras(pipe, loras_list):
     """Apply verified SDXL LoRAs safely"""
     global active_loras_signature
@@ -154,10 +172,23 @@ def apply_loras(pipe, loras_list):
         print(f"[WARN] LoRA merge note: {e}")
         active_loras_signature = None
 
-def generate_image_core(prompt, negative_prompt, width, height, seed, loras_list=None, steps=20, guidance_scale=6.5):
-    """Core image generation workflow"""
+def decode_b64_image(b64_str):
+    if not b64_str: return None
+    if "," in b64_str:
+        b64_str = b64_str.split(",")[1]
+    image_data = base64.b64decode(b64_str)
+    return Image.open(io.BytesIO(image_data)).convert("RGB")
+
+def generate_image_core(mode, prompt, negative_prompt, width, height, seed, loras_list=None, steps=20, guidance_scale=6.5, source_image_b64=None, mask_image_b64=None, denoising_strength=0.5):
+    """Core image generation workflow supporting txt2img, img2img, and inpaint"""
     with pipe_lock:
-        pipe = get_pipeline()
+        if mode == "img2img":
+            pipe = get_img2img_pipeline()
+        elif mode == "inpaint":
+            pipe = get_inpaint_pipeline()
+        else:
+            pipe = get_pipeline()
+
         if loras_list:
             apply_loras(pipe, loras_list)
 
@@ -189,18 +220,30 @@ def generate_image_core(prompt, negative_prompt, width, height, seed, loras_list
         num_steps = max(4, min(int(steps or 20), 35))
         cfg = float(guidance_scale or 6.5)
 
-        print(f"[RUN] Generating {render_w}x{render_h} | Steps: {num_steps} | CFG: {cfg} | Seed: {seed}")
+        print(f"[RUN] Generating [{mode}] {render_w}x{render_h} | Steps: {num_steps} | CFG: {cfg} | Seed: {seed}")
+        
+        kwargs = {
+            "prompt": full_prompt,
+            "negative_prompt": full_neg,
+            "num_inference_steps": num_steps,
+            "guidance_scale": cfg,
+            "generator": torch.Generator(device="cpu").manual_seed(seed)
+        }
+
+        if mode == "img2img":
+            kwargs["image"] = decode_b64_image(source_image_b64).resize((render_w, render_h))
+            kwargs["strength"] = float(denoising_strength)
+        elif mode == "inpaint":
+            kwargs["image"] = decode_b64_image(source_image_b64).resize((render_w, render_h))
+            kwargs["mask_image"] = decode_b64_image(mask_image_b64).resize((render_w, render_h))
+            kwargs["strength"] = float(denoising_strength)
+        else:
+            kwargs["width"] = render_w
+            kwargs["height"] = render_h
+
         t0 = time.time()
         with torch.inference_mode():
-            result = pipe(
-                prompt=full_prompt,
-                negative_prompt=full_neg,
-                width=render_w,
-                height=render_h,
-                num_inference_steps=num_steps,
-                guidance_scale=cfg,
-                generator=torch.Generator(device="cpu").manual_seed(seed)
-            )
+            result = pipe(**kwargs)
         t1 = time.time()
         print(f"[RUN COMPLETE] Generated in {t1 - t0:.2f}s!")
 
@@ -273,9 +316,14 @@ class StudioInferenceHandler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
-        if parsed.path in ("/sdapi/v1/txt2img", "/api/generate"):
+        if parsed.path in ("/sdapi/v1/txt2img", "/api/generate", "/sdapi/v1/img2img", "/sdapi/v1/inpaint"):
             try:
+                mode = "txt2img"
+                if "img2img" in parsed.path: mode = "img2img"
+                elif "inpaint" in parsed.path: mode = "inpaint"
+                
                 b64_image = generate_image_core(
+                    mode=mode,
                     prompt=body.get("prompt", "1girl, solo, anime girl, masterpiece"),
                     negative_prompt=body.get("negative_prompt", ""),
                     width=body.get("width", 512),
@@ -283,7 +331,10 @@ class StudioInferenceHandler(BaseHTTPRequestHandler):
                     seed=body.get("seed", 42),
                     loras_list=body.get("loras", []),
                     steps=body.get("steps", 20),
-                    guidance_scale=body.get("cfg_scale") or body.get("guidance_scale", 6.5)
+                    guidance_scale=body.get("cfg_scale") or body.get("guidance_scale", 6.5),
+                    source_image_b64=body.get("init_images", [None])[0] if "init_images" in body else body.get("source_image"),
+                    mask_image_b64=body.get("mask"),
+                    denoising_strength=body.get("denoising_strength", 0.5)
                 )
                 self._send_cors(200)
                 self.wfile.write(json.dumps({

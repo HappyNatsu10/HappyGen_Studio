@@ -23,7 +23,7 @@ export default function AppExportModal({ isOpen, onClose }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold text-white font-display">
-              OmniGen AI Studio — Binary Applications
+              HappyGen AI Studio — Binary Applications
             </h2>
             <p className="text-xs text-slate-400">Desktop & Mobile Standalone Build Distribution</p>
           </div>
@@ -48,15 +48,15 @@ export default function AppExportModal({ isOpen, onClose }) {
                 Standalone 64-bit installer for Windows 10/11 laptops and PCs. Includes GPU acceleration & offline caching.
               </p>
               <div className="text-[11px] font-mono text-indigo-300 bg-slate-950 p-2 rounded border border-white/5 space-y-0.5">
-                <div>File: <span className="text-white font-bold">OmniGen-AI-Studio-Setup-1.0.0.exe</span></div>
+                <div>File: <span className="text-white font-bold">HappyGen-AI-Studio-Setup-1.0.0.exe</span></div>
                 <div>Size: <span className="text-white">68.4 MB</span></div>
                 <div>Target: <span className="text-white">Windows x64</span></div>
               </div>
             </div>
 
             <a
-              href="./release/OmniGen-AI-Studio-Setup-1.0.0.exe"
-              download="OmniGen-AI-Studio-Setup-1.0.0.exe"
+              href="./release/HappyGen-AI-Studio-Setup-1.0.0.exe"
+              download="HappyGen-AI-Studio-Setup-1.0.0.exe"
               className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all hover:scale-[1.02]"
             >
               <Download className="w-4 h-4" />
@@ -80,15 +80,15 @@ export default function AppExportModal({ isOpen, onClose }) {
                 Native APK package for Android devices & tablets. Responsive touch UI with mobile hardware optimization.
               </p>
               <div className="text-[11px] font-mono text-pink-300 bg-slate-950 p-2 rounded border border-white/5 space-y-0.5">
-                <div>File: <span className="text-white font-bold">OmniGen-AI-Studio-1.0.0.apk</span></div>
+                <div>File: <span className="text-white font-bold">HappyGen-AI-Studio-1.0.0.apk</span></div>
                 <div>Size: <span className="text-white">34.2 MB</span></div>
                 <div>Target: <span className="text-white">Android 8.0+ (ARM64)</span></div>
               </div>
             </div>
 
             <a
-              href="./release/OmniGen-AI-Studio-1.0.0.apk"
-              download="OmniGen-AI-Studio-1.0.0.apk"
+              href="./release/HappyGen-AI-Studio-1.0.0.apk"
+              download="HappyGen-AI-Studio-1.0.0.apk"
               className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-extrabold text-xs shadow-lg shadow-pink-600/30 flex items-center justify-center space-x-2 transition-all hover:scale-[1.02]"
             >
               <Download className="w-4 h-4" />

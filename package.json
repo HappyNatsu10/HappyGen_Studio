@@ -1,7 +1,7 @@
 {
   "name": "omnigen-ai-studio",
-  "version": "1.0.0",
-  "description": "AI Image & Video Generation Suite with Multi-Style & Adult Mode",
+  "version": "2.0.0",
+  "description": "OmniGen AI Studio — Premium image generation workstation with live CivitAI model explorer",
   "main": "electron/main.js",
   "type": "module",
   "scripts": {
@@ -24,7 +24,10 @@
       "electron/**/*"
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     }
   },
   "dependencies": {
@@ -32,10 +35,13 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.10",
+    "gsap": "^3.15.0",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.0.1"
+    "react-router-dom": "^7.18.2",
+    "tailwind-merge": "^3.0.1",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@capacitor/android": "^7.0.1",
