@@ -104,7 +104,7 @@ function MainApp() {
       <ModelSelectionModal />
       <AuthModal />
       <UserProfileModal />
-      <BackendConfigModal />
+      <BackendConfigModal isOpen={showBackendModal} onClose={() => setShowBackendModal(false)} />
     </div>
   );
 }
