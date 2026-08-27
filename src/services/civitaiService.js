@@ -118,17 +118,20 @@ function normalizeModel(raw) {
         : 0,
     },
     // Latest version info
-    version: latestVersion ? {
-      id: latestVersion.id,
-      name: latestVersion.name,
-      baseModel: latestVersion.baseModel,
-      trainedWords: latestVersion.trainedWords || [],
-      downloadUrl: latestVersion.files?.[0]?.downloadUrl || null,
-      fileSize: latestVersion.files?.[0]?.sizeKB
-        ? Math.round(latestVersion.files[0].sizeKB / 1024)
-        : null,
-      fileName: latestVersion.files?.[0]?.name || null,
-    } : null,
+    version: latestVersion ? (() => {
+      const primaryFile = latestVersion.files?.find(f => f.primary) || latestVersion.files?.find(f => f.type === 'Model') || latestVersion.files?.[0];
+      return {
+        id: latestVersion.id,
+        name: latestVersion.name,
+        baseModel: latestVersion.baseModel,
+        trainedWords: latestVersion.trainedWords || [],
+        downloadUrl: primaryFile?.downloadUrl || null,
+        fileSize: primaryFile?.sizeKB
+          ? Math.round(primaryFile.sizeKB / 1024)
+          : null,
+        fileName: primaryFile?.name || null,
+      };
+    })() : null,
     // All versions
     versions: (raw.modelVersions || []).map(normalizeVersion),
     // Preview
@@ -145,16 +148,17 @@ function normalizeModel(raw) {
 }
 
 function normalizeVersion(v) {
+  const primaryFile = v.files?.find(f => f.primary) || v.files?.find(f => f.type === 'Model') || v.files?.[0];
   return {
     id: v.id,
     name: v.name,
     baseModel: v.baseModel,
     trainedWords: v.trainedWords || [],
-    downloadUrl: v.files?.[0]?.downloadUrl || null,
-    fileSize: v.files?.[0]?.sizeKB
-      ? Math.round(v.files[0].sizeKB / 1024)
+    downloadUrl: primaryFile?.downloadUrl || null,
+    fileSize: primaryFile?.sizeKB
+      ? Math.round(primaryFile.sizeKB / 1024)
       : null,
-    fileName: v.files?.[0]?.name || null,
+    fileName: primaryFile?.name || null,
     images: (v.images || []).slice(0, 6).map(img => ({
       url: getImageUrl(img.url, 512),
       nsfwLevel: img.nsfwLevel || 1,
