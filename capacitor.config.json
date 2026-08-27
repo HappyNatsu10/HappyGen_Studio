@@ -1,10 +1,13 @@
 {
-  "appId": "com.happynatsu.aiimagegenerator",
-  "appName": "OmniGen AI Studio",
+  "appId": "com.happynatsu.happygenstudio",
+  "appName": "HappyGen Studio",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "android": {
     "allowMixedContent": true,
     "captureInput": true
+  },
+  "server": {
+    "androidScheme": "https"
   }
 }

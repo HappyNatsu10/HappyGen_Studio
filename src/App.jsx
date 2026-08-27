@@ -125,7 +125,7 @@ function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>Backend Server</div>
-            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Configure Local or Cloud GPU</div>
+            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Configure Local GPU or Google Colab</div>
           </div>
           <button onClick={() => setShowBackendModal(true)} className="btn btn-secondary text-[12px]">
             Configure

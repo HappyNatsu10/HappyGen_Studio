@@ -82,14 +82,14 @@ export default function BackendConfigModal({ isOpen, onClose }) {
               className={`mode-toggle-option flex-1 ${backendType === 'colab' ? 'active' : ''}`}
             >
               <Globe className="inline w-3 h-3 mr-1" style={{ verticalAlign: 'middle' }} />
-              Cloud Proxy
+              Google Colab
             </button>
           </div>
 
           {/* URL Input */}
           <div>
             <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-              {backendType === 'colab' ? 'Cloud Proxy URL' : 'Local Server URL'}
+              {backendType === 'colab' ? 'Google Colab Tunnel URL' : 'Local Server URL'}
             </label>
             {backendType === 'colab' ? (
               <input
@@ -109,9 +109,20 @@ export default function BackendConfigModal({ isOpen, onClose }) {
               />
             )}
             {backendType === 'colab' && (
-              <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
-                Enter your Cloud Proxy Server URL. Run <code>npm run dev</code> in the server/ directory to start it.
-              </p>
+              <div className="mt-2 space-y-2">
+                <a 
+                  href="https://colab.research.google.com/github/HappyNatsu10/HappyGen_Studio/blob/main/colab_server.ipynb"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary w-full text-[12px] flex items-center justify-center gap-2 border border-[#a855f7]"
+                >
+                  <Globe className="w-3.5 h-3.5 text-[#a855f7]" /> 
+                  <span className="text-[#a855f7]">Open Google Colab Notebook (Free GPU)</span>
+                </a>
+                <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                  Run the notebook in Google Colab and paste the generated public Tunnel URL (e.g., ngrok or cloudflare) here.
+                </p>
+              </div>
             )}
           </div>
 

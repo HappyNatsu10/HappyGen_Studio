@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createHashRouter, RouterProvider } from 'react-router-dom';
 import App from './App.jsx';
 import MarketingLayout from './components/marketing/MarketingLayout.jsx';
 import LandingPage from './pages/marketing/LandingPage.jsx';
@@ -13,7 +13,8 @@ import PrivacyPage from './pages/marketing/PrivacyPage.jsx';
 import TermsPage from './pages/marketing/TermsPage.jsx';
 import './index.css';
 
-const router = createBrowserRouter([
+// Using HashRouter for cross-platform compatibility (Electron file://, Capacitor, and web)
+const router = createHashRouter([
   {
     path: "/",
     element: <MarketingLayout />,
@@ -26,7 +27,6 @@ const router = createBrowserRouter([
       { path: "walkthrough", element: <WalkthroughPage /> },
       { path: "privacy", element: <PrivacyPage /> },
       { path: "terms", element: <TermsPage /> },
-      // I'll leave a simple features placeholder mapped to LandingPage for now
       { path: "features", element: <LandingPage /> },
     ]
   },

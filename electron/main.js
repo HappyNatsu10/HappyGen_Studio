@@ -11,8 +11,9 @@ function createWindow() {
     height: 900,
     minWidth: 1000,
     minHeight: 700,
-    title: "OmniGen AI Studio",
+    title: "HappyGen Studio",
     backgroundColor: "#080811",
+    icon: path.join(__dirname, '../public/icon.svg'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -24,9 +25,10 @@ function createWindow() {
 
   const isDev = process.env.NODE_ENV === 'development';
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:5173/#/studio');
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // Load the built index.html, then navigate to the studio hash route
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { hash: '/studio' });
   }
 
   mainWindow.once('ready-to-show', () => {
