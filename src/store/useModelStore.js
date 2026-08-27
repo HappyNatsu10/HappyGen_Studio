@@ -21,10 +21,17 @@ const useModelStore = create((set, get) => ({
     }
   })(),
   setBaseModel: (model) => {
+    const currentBase = get().baseModel;
     if (model) {
       localStorage.setItem(STORAGE_KEY_BASE, JSON.stringify(model));
+      const oldArch = currentBase?.version?.baseModel;
+      const newArch = model.version?.baseModel;
+      if (oldArch && newArch && oldArch !== newArch) {
+        get().clearLoras();
+      }
     } else {
       localStorage.removeItem(STORAGE_KEY_BASE);
+      get().clearLoras();
     }
     set({ baseModel: model });
   },

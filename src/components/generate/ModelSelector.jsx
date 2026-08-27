@@ -6,7 +6,8 @@ export default function ModelSelector({
   baseModel,
   loras,
   mode,
-  onOpenExplorer,
+  onOpenExplorerBase,
+  onOpenExplorerLora,
   onRemoveLora,
   onUpdateLoraWeight,
   onClearLoras,
@@ -21,11 +22,11 @@ export default function ModelSelector({
           onRemoveLora={onRemoveLora}
           onUpdateWeight={onUpdateLoraWeight}
           onClearLoras={onClearLoras}
-          onChangeModel={onOpenExplorer}
+          onChangeModel={onOpenExplorerBase}
         />
       ) : (
         <button
-          onClick={onOpenExplorer}
+          onClick={onOpenExplorerBase}
           className="w-full bg-[var(--surface-0)] border border-dashed border-purple-500/30 hover:border-purple-500/80 hover:bg-purple-500/10 flex flex-col items-center justify-center gap-3 py-10 rounded-2xl cursor-pointer transition-all duration-300 group shadow-inner"
         >
           <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -40,7 +41,7 @@ export default function ModelSelector({
       {/* Add LoRA Button — Advanced */}
       {mode === 'advanced' && baseModel && (
         <button
-          onClick={onOpenExplorer}
+          onClick={onOpenExplorerLora}
           className="btn btn-ghost w-full text-[12px]"
         >
           <Plus className="w-3.5 h-3.5" />

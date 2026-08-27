@@ -28,7 +28,7 @@ const useAppStore = create((set) => ({
 
   showModelModal: false,
   modalEngineContext: null,
-  openModelModal: (engineId) => set({ showModelModal: true, modalEngineContext: engineId }),
+  openModelModal: (context) => set({ showModelModal: true, modalEngineContext: context }),
   closeModelModal: () => set({ showModelModal: false, modalEngineContext: null }),
 }));
 

@@ -216,7 +216,8 @@ export default function GeneratePage() {
               baseModel={baseModel}
               loras={loras}
               mode={mode}
-              onOpenExplorer={() => openModelModal(imageEngine)}
+              onOpenExplorerBase={() => openModelModal({ intent: 'base' })}
+              onOpenExplorerLora={() => openModelModal({ intent: 'lora', arch: baseModel?.version?.baseModel })}
               onRemoveLora={removeLora}
               onUpdateLoraWeight={updateLoraWeight}
               onClearLoras={clearLoras}
