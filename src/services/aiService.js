@@ -47,7 +47,8 @@ export const generateImageAI = async ({
           base_model: typeof baseModel === 'object' && baseModel ? {
             name: baseModel.name,
             fileName: baseModel.version?.fileName || baseModel.fileName,
-            downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+            downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
+            architecture: baseModel.version?.baseModel || "SDXL 1.0"
           } : baseModel,
           loras: loras.map(l => ({
             name: l.id || l.name,
@@ -151,7 +152,8 @@ export const generateImg2Img = async ({
         base_model: typeof baseModel === 'object' && baseModel ? {
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,
-          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
+          architecture: baseModel.version?.baseModel || "SDXL 1.0"
         } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
@@ -240,7 +242,8 @@ export const inpaintImage = async ({
         base_model: typeof baseModel === 'object' && baseModel ? {
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,
-          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
+          architecture: baseModel.version?.baseModel || "SDXL 1.0"
         } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
