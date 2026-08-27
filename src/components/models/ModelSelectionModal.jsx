@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Cpu } from 'lucide-react';
+import { X, Cpu, AlertTriangle } from 'lucide-react';
 import ModelExplorer from './ModelExplorer';
 // removed import
 
@@ -10,6 +10,7 @@ export default function ModelSelectionModal() {
   const { showModelModal: isOpen, closeModelModal: onClose, isAdultMode, modalEngineContext: engineContext } = useAppStore();
   const { setBaseModel, addLora } = useModelStore();
   const [animationClass, setAnimationClass] = useState('opacity-0 scale-95');
+  const [validationError, setValidationError] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -111,7 +112,10 @@ export default function ModelSelectionModal() {
                 const normLoraArch = normalize(loraArch);
                 
                 if (normLoraArch && normArch && normLoraArch !== normArch) {
-                  alert(`Incompatible LoRA Architecture!\n\nYour current Base Model is [${arch}].\nThis LoRA is designed for [${loraArch}].\n\nPlease choose a LoRA that matches your Base Model.`);
+                  setValidationError({
+                    title: 'Incompatible LoRA Architecture',
+                    message: `Your current Base Model is ${arch}. This LoRA is designed for ${loraArch}. Please choose a LoRA that matches your Base Model.`
+                  });
                   return;
                 }
               }
@@ -121,6 +125,29 @@ export default function ModelSelectionModal() {
             isModal={true}
           />
         </div>
+
+        {/* Validation Error Dialog Overlay */}
+        {validationError && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl p-4">
+            <div className="bg-[var(--surface-1)] border border-red-500/30 rounded-xl max-w-sm w-full p-5 shadow-2xl">
+              <div className="flex items-center gap-3 text-red-400 mb-3">
+                <AlertTriangle className="w-6 h-6" />
+                <h3 className="font-semibold text-white">{validationError.title}</h3>
+              </div>
+              <p className="text-sm text-slate-300 leading-relaxed mb-5">
+                {validationError.message}
+              </p>
+              <div className="flex justify-end">
+                <button 
+                  onClick={() => setValidationError(null)}
+                  className="btn btn-primary bg-red-500 hover:bg-red-600 border-none"
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
