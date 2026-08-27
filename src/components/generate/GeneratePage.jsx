@@ -103,7 +103,7 @@ export default function GeneratePage() {
         guidanceScale: cfg,
         isAdultMode,
         engine: imageEngine,
-        baseModel: baseModel?.version?.fileName || baseModel?.name || '',
+        baseModel: baseModel,
         loras: loras,
       };
 
