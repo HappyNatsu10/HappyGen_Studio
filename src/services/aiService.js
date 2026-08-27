@@ -61,6 +61,9 @@ export const generateImageAI = async ({
 
       if (res.ok) {
         const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
         if (data.images?.length > 0) {
           const rawB64 = data.images[0];
           imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
@@ -162,6 +165,9 @@ export const generateImg2Img = async ({
 
     if (res.ok) {
       const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
       if (data.images?.length > 0) {
         const rawB64 = data.images[0];
         const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
@@ -248,6 +254,9 @@ export const inpaintImage = async ({
 
     if (res.ok) {
       const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
       if (data.images?.length > 0) {
         const rawB64 = data.images[0];
         const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
