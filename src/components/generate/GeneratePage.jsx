@@ -104,12 +104,7 @@ export default function GeneratePage() {
         isAdultMode,
         engine: imageEngine,
         baseModel: baseModel?.version?.fileName || baseModel?.name || '',
-        loras: loras.map(l => ({
-          id: l.fileName || l.name,
-          name: l.name,
-          weight: l.weight,
-          trigger: (l.triggerWords || []).join(', '),
-        })),
+        loras: loras,
       };
 
       let images = [];
