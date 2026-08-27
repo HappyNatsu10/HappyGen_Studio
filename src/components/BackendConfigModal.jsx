@@ -5,6 +5,7 @@ export default function BackendConfigModal({ isOpen, onClose }) {
   const [backendType, setBackendType] = useState(() => localStorage.getItem('omnigen_backend_type') || 'local');
   const [colabUrl, setColabUrl] = useState(() => localStorage.getItem('omnigen_colab_url') || '');
   const [localIp, setLocalIp] = useState(() => localStorage.getItem('omnigen_local_url') || 'http://127.0.0.1:8000');
+  const [civitaiKey, setCivitaiKey] = useState(() => localStorage.getItem('omnigen_civitai_key') || '');
   const [isChecking, setIsChecking] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
 
@@ -17,7 +18,8 @@ export default function BackendConfigModal({ isOpen, onClose }) {
     }
     localStorage.setItem('omnigen_colab_url', colabUrl);
     localStorage.setItem('omnigen_local_url', localIp);
-  }, [backendType, colabUrl, localIp]);
+    localStorage.setItem('omnigen_civitai_key', civitaiKey);
+  }, [backendType, colabUrl, localIp, civitaiKey]);
 
   if (!isOpen) return null;
 
@@ -124,6 +126,23 @@ export default function BackendConfigModal({ isOpen, onClose }) {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* API Key */}
+          <div>
+            <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+              CivitAI API Key (Required for model downloads)
+            </label>
+            <input
+              type="password"
+              value={civitaiKey}
+              onChange={e => setCivitaiKey(e.target.value)}
+              placeholder="Enter your CivitAI API Key"
+              className="input w-full text-[13px]"
+            />
+            <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+              Get your API key from your <a href="https://civitai.com/user/account" target="_blank" rel="noopener noreferrer" className="text-[#a855f7] hover:underline">CivitAI Account Settings</a>.
+            </p>
           </div>
 
           {/* Health Check */}

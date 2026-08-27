@@ -25,11 +25,12 @@ export const generateImageAI = async ({
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
   for (let i = 0; i < batchCount; i++) {
     const currentSeed = seed + i * 42;
     let imageUrl = '';
-    let usedEngineName = `GPU (${baseModel || 'default'})`;
+    let usedEngineName = `GPU (${baseModel?.name || baseModel || 'default'})`;
 
     try {
       const res = await fetch(`${backendUrl}/api/generate`, {
@@ -43,11 +44,18 @@ export const generateImageAI = async ({
           width,
           height,
           seed: currentSeed,
-          base_model: baseModel,
+          base_model: typeof baseModel === 'object' && baseModel ? {
+            name: baseModel.name,
+            fileName: baseModel.version?.fileName || baseModel.fileName,
+            downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+          } : baseModel,
           loras: loras.map(l => ({
             name: l.id || l.name,
             weight: l.weight ?? 0.8,
+            downloadUrl: l.version?.downloadUrl || l.downloadUrl,
+            fileName: l.version?.fileName || l.fileName
           })),
+          civitai_api_key: civitaiApiKey,
         }),
       });
 
@@ -121,6 +129,7 @@ export const generateImg2Img = async ({
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
   try {
     const res = await fetch(`${backendUrl}/api/img2img`, {
@@ -136,11 +145,18 @@ export const generateImg2Img = async ({
         width,
         height,
         seed,
-        base_model: baseModel,
+        base_model: typeof baseModel === 'object' && baseModel ? {
+          name: baseModel.name,
+          fileName: baseModel.version?.fileName || baseModel.fileName,
+          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+        } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
           weight: l.weight ?? 0.8,
+          downloadUrl: l.version?.downloadUrl || l.downloadUrl,
+          fileName: l.version?.fileName || l.fileName
         })),
+        civitai_api_key: civitaiApiKey,
       }),
     });
 
@@ -198,6 +214,7 @@ export const inpaintImage = async ({
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
   try {
     const res = await fetch(`${backendUrl}/api/inpaint`, {
@@ -214,11 +231,18 @@ export const inpaintImage = async ({
         width,
         height,
         seed,
-        base_model: baseModel,
+        base_model: typeof baseModel === 'object' && baseModel ? {
+          name: baseModel.name,
+          fileName: baseModel.version?.fileName || baseModel.fileName,
+          downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl
+        } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
           weight: l.weight ?? 0.8,
+          downloadUrl: l.version?.downloadUrl || l.downloadUrl,
+          fileName: l.version?.fileName || l.fileName
         })),
+        civitai_api_key: civitaiApiKey,
       }),
     });
 
