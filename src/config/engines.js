@@ -93,6 +93,12 @@ export const VIDEO_ENGINES = [
 
 export const IMAGE_ENGINES = [
   {
+    provider: 'CUSTOM MODELS',
+    models: [
+      { id: 'civitai_models', name: 'CivitAI Base Models (SD, XL, Pony, etc)' }
+    ]
+  },
+  {
     provider: 'ALIBABA',
     models: [
       { id: 'wan_image', name: 'Wan Image' },
@@ -112,16 +118,6 @@ export const IMAGE_ENGINES = [
     isClosed: true,
     models: [
       { id: 'ernie', name: 'Ernie' }
-    ]
-  },
-  {
-    provider: 'BLACK FOREST LABS',
-    models: [
-      { id: 'flux_1', name: 'Flux.1' },
-      { id: 'flux_1_krea', name: 'Flux.1 Krea' },
-      { id: 'flux_1_kontext', name: 'Flux.1 Kontext' },
-      { id: 'flux_2', name: 'Flux.2' },
-      { id: 'flux_2_klein', name: 'Flux.2 Klein' }
     ]
   },
   {
@@ -175,30 +171,9 @@ export const IMAGE_ENGINES = [
     ]
   },
   {
-    provider: 'PONY DIFFUSION',
-    models: [
-      { id: 'pony_diffusion', name: 'Pony Diffusion' },
-      { id: 'pony_diffusion_v7', name: 'Pony Diffusion V7' }
-    ]
-  },
-  {
     provider: 'REVE AI',
     models: [
       { id: 'reve', name: 'Reve' }
-    ]
-  },
-  {
-    provider: 'SDXL COMMUNITY',
-    models: [
-      { id: 'illustrious', name: 'Illustrious' },
-      { id: 'noobai', name: 'NoobAI' }
-    ]
-  },
-  {
-    provider: 'STABILITY AI',
-    models: [
-      { id: 'sd_1_x', name: 'Stable Diffusion 1.x' },
-      { id: 'sdxl', name: 'Stable Diffusion XL' }
     ]
   },
   {
@@ -206,14 +181,6 @@ export const IMAGE_ENGINES = [
     isClosed: true,
     models: [
       { id: 'grok', name: 'Grok' }
-    ]
-  },
-  {
-    provider: 'OTHER',
-    models: [
-      { id: 'anima', name: 'Anima' },
-      { id: 'chroma', name: 'Chroma' },
-      { id: 'lens', name: 'Lens' }
     ]
   }
 ];
