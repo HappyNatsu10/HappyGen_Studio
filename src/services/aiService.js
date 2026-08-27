@@ -33,7 +33,7 @@ export const generateImageAI = async ({
     let usedEngineName = `GPU (${baseModel?.name || baseModel || 'default'})`;
 
     try {
-      const res = await fetch(`${backendUrl}/api/generate`, {
+      const res = await fetch(`${backendUrl}/sdapi/v1/txt2img`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
