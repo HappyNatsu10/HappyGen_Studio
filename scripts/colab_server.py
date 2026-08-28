@@ -18,8 +18,9 @@ def run_cmd(cmd):
     print(f"Running: {cmd}")
     os.system(cmd)
 
-# Cell 1: Install Dependencies
-run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch realesrgan gfpgan basicsr")
+run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch")
+run_cmd("pip install -q git+https://github.com/xinntao/BasicSR.git")
+run_cmd("pip install -q realesrgan gfpgan")
 
 # Cell 2: Download Models & SDXL Lightning Accelerator
 os.makedirs("/content/Models", exist_ok=True)
