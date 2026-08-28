@@ -10,7 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Union
 import uvicorn
-from pycloudflared import try_cloudflare
 import requests
 import gc
 
@@ -18,9 +17,10 @@ def run_cmd(cmd):
     print(f"Running: {cmd}")
     os.system(cmd)
 
-run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch")
+run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic nest_asyncio python-multipart peft open_clip_torch")
 run_cmd("pip install -q git+https://github.com/xinntao/BasicSR.git")
 run_cmd("pip install -q realesrgan gfpgan")
+run_cmd("npm install -g localtunnel")
 
 # Cell 2: Download Models & SDXL Lightning Accelerator
 os.makedirs("/content/Models", exist_ok=True)
@@ -188,7 +188,10 @@ def download_civitai_model(download_url, dest_path, api_key):
                 return False
             return True
         return False
-    except:
+    except Exception as e:
+        if os.path.exists(dest_path):
+            try: os.remove(dest_path)
+            except: pass
         return False
 
 @app.get("/")
@@ -232,23 +235,45 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
                 raise HTTPException(status_code=400, detail=f"Model {req_base_model_file} not found locally.")
 
         if 'pipe' in globals() and pipe is not None:
-            del pipe, pipe_img2img
+            try: del pipe
+            except: pass
+        if 'pipe_img2img' in globals() and pipe_img2img is not None:
+            try: del pipe_img2img
+            except: pass
+        global _upscaler, _face_restorer, _clip_model, _clip_preprocess
+        if '_upscaler' in globals() and _upscaler is not None:
+            try: del _upscaler
+            except: pass
+            _upscaler = None
+        if '_face_restorer' in globals() and _face_restorer is not None:
+            try: del _face_restorer
+            except: pass
+            _face_restorer = None
+        if '_clip_model' in globals() and _clip_model is not None:
+            try: del _clip_model
+            except: pass
+            _clip_model = None
+        if '_clip_preprocess' in globals() and _clip_preprocess is not None:
+            try: del _clip_preprocess
+            except: pass
+            _clip_preprocess = None
+            
         gc.collect()
         torch.cuda.empty_cache()
 
         if "SD 1.5" in req_architecture or "SD 1.4" in req_architecture:
             from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
-            pipe = StableDiffusionPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True).to("cuda")
+            pipe = StableDiffusionPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer, unet=pipe.unet, scheduler=pipe.scheduler)
         elif "Flux" in req_architecture:
             from diffusers import FluxPipeline
-            pipe = FluxPipeline.from_single_file(model_path, torch_dtype=torch.bfloat16).to("cuda")
+            pipe = FluxPipeline.from_single_file(model_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).to("cuda")
             pipe.enable_model_cpu_offload()
             pipe_img2img = None
         else:
             from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
-            pipe = StableDiffusionXLPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True).to("cuda")
+            pipe = StableDiffusionXLPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionXLImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2, tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler)
 
@@ -348,5 +373,11 @@ def face_fix(req: FaceFixRequest):
 
 threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning"), daemon=True).start()
 time.sleep(2)
-tunnel = try_cloudflare(port=8000)
-print(f"\n🎉 COPY THIS URL: {tunnel.tunnel}\n")
+print("\n🌐 Starting Localtunnel (No Timeouts)...")
+lt_process = subprocess.Popen(["lt", "--port", "8000"], stdout=subprocess.PIPE)
+for line in lt_process.stdout:
+    decoded = line.decode('utf-8')
+    if "your url is:" in decoded:
+        url = decoded.split("is:")[1].strip()
+        print(f"\n🎉 COPY THIS URL: {url} \n")
+        break
