@@ -5,6 +5,43 @@
 
 const DEFAULT_NEGATIVE_PROMPT = "bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
 
+let lastUsedModelName = null;
+
+const flushMemoryIfModelChanged = async (backendUrl, targetModelName) => {
+  if (targetModelName && lastUsedModelName && targetModelName !== lastUsedModelName) {
+    try {
+      console.log(`[AI Service] Model changed from ${lastUsedModelName} to ${targetModelName}. Flushing VRAM...`);
+      await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      // Pause briefly to allow backend garbage collection to run
+      await new Promise(r => setTimeout(r, 1500));
+    } catch (e) {
+      console.warn("[AI Service] Failed to flush VRAM:", e);
+    }
+  }
+  if (targetModelName) lastUsedModelName = targetModelName;
+};
+
+export const flushVRAM = async () => {
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  
+  try {
+    const res = await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    throw new Error(`Failed to flush VRAM: ${err.message}`);
+  }
+};
+
 export const generateImageAI = async ({
   prompt,
   baseModel = '',
@@ -26,6 +63,9 @@ export const generateImageAI = async ({
     : 'http://localhost:8000';
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
+
+  const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
+  await flushMemoryIfModelChanged(backendUrl, currentModelName);
 
   for (let i = 0; i < batchCount; i++) {
     const currentSeed = seed + i * 42;
@@ -75,7 +115,11 @@ export const generateImageAI = async ({
         throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
       }
     } catch (err) {
-      throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
+      let errorMessage = err.message || "Connection failed";
+      if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+        errorMessage = "Connection dropped. If you just changed models, the backend might still be downloading it. Cloudflare/proxies often timeout after 100s. Please wait 1-2 minutes and try again.";
+      }
+      throw new Error(`Backend Error (${backendUrl}): ${errorMessage}`);
     }
 
     if (!imageUrl) {
@@ -99,17 +143,82 @@ export const generateImageAI = async ({
   return images;
 };
 
+export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+
+  // Send image as-is (backend handles stripping the data URI prefix)
+  const imagePayload = sourceImage;
+
+  try {
+    const res = await fetch(`${backendUrl}/sdapi/v1/interrogate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: imagePayload,
+        model: model,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.caption) {
+        return data.caption;
+      }
+      throw new Error('No caption returned from the server.');
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    let errorMessage = err.message || "Connection failed";
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      errorMessage = "Connection dropped. The interrogation may take a while on the first run as the model loads. Please try again.";
+    }
+    throw new Error(`Backend Error (${backendUrl}): ${errorMessage}`);
+  }
+};
+
 export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([{
-        id: `up-${Date.now()}`,
-        url: sourceImage,
-        prompt: 'Upscaled Image',
-        createdAt: new Date().toISOString(),
-      }]);
-    }, 800);
-  });
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+
+  try {
+    const res = await fetch(`${backendUrl}/sdapi/v1/extra-single-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: sourceImage,
+        upscaling_resize: scale,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.images?.length > 0) {
+        const rawB64 = data.images[0];
+        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+        return [{
+          id: `up-${Date.now()}`,
+          url: imageUrl,
+          prompt: 'Upscaled Image',
+          modelUsed: data.source || 'Real-ESRGAN',
+          createdAt: new Date().toISOString(),
+        }];
+      }
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.detail || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    let errorMessage = err.message || "Connection failed";
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      errorMessage = "Connection dropped. Upscaling may take a while on first use as the model loads. Please try again.";
+    }
+    throw new Error(`Backend Error (${backendUrl}): ${errorMessage}`);
+  }
 };
 
 export const upscaleImage = upscaleImageAI;
@@ -135,8 +244,11 @@ export const generateImg2Img = async ({
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
+  const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
+  await flushMemoryIfModelChanged(backendUrl, currentModelName);
+
   try {
-    const res = await fetch(`${backendUrl}/api/img2img`, {
+    const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -186,21 +298,53 @@ export const generateImg2Img = async ({
     const errData = await res.json().catch(() => ({}));
     throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
   } catch (err) {
-    throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
+    let errorMessage = err.message || "Connection failed";
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      errorMessage = "Connection dropped. If you just changed models, the backend might still be downloading it. Cloudflare/proxies often timeout after 100s. Please wait 1-2 minutes and try again.";
+    }
+    throw new Error(`Backend Error (${backendUrl}): ${errorMessage}`);
   }
 };
 
 export const faceFixImage = async ({ sourceImage, prompt }) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([{
-        id: `fix-${Date.now()}`,
-        url: sourceImage,
-        prompt: 'Face Fix applied',
-        createdAt: new Date().toISOString(),
-      }]);
-    }, 1000);
-  });
+  const rawBackendUrl = typeof window !== 'undefined'
+    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
+    : 'http://localhost:8000';
+  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+
+  try {
+    const res = await fetch(`${backendUrl}/sdapi/v1/face-fix`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: sourceImage,
+        prompt: prompt || '',
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.images?.length > 0) {
+        const rawB64 = data.images[0];
+        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+        return [{
+          id: `fix-${Date.now()}`,
+          url: imageUrl,
+          prompt: 'Face Fix applied',
+          modelUsed: data.source || 'GFPGAN',
+          createdAt: new Date().toISOString(),
+        }];
+      }
+    }
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.detail || `Server returned HTTP ${res.status}`);
+  } catch (err) {
+    let errorMessage = err.message || "Connection failed";
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      errorMessage = "Connection dropped. Face fix may take a while on first use as the model loads. Please try again.";
+    }
+    throw new Error(`Backend Error (${backendUrl}): ${errorMessage}`);
+  }
 };
 
 export const inpaintImage = async ({
@@ -224,8 +368,11 @@ export const inpaintImage = async ({
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
+  const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
+  await flushMemoryIfModelChanged(backendUrl, currentModelName);
+
   try {
-    const res = await fetch(`${backendUrl}/api/inpaint`, {
+    const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

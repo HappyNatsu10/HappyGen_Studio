@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image as ImageIcon, Zap, Copy, ImagePlus, ArrowUpCircle, UserCircle, Maximize, Brush } from 'lucide-react';
+import { Image as ImageIcon, Zap, Copy, ImagePlus, ArrowUpCircle, UserCircle, Maximize, Brush, FileSearch } from 'lucide-react';
 
 export const GENERATION_MODES = [
   { id: 'create', label: 'Create Image', icon: ImageIcon, desc: 'Generate an AI image from text' },
   { id: 'draft', label: 'Draft', icon: Zap, desc: 'Fast generation for quick iterations' },
+  { id: 'interrogate', label: 'Image to Prompt', icon: FileSearch, desc: 'Extract a text prompt from an image' },
   { id: 'variations', label: 'Image Variations', icon: Copy, desc: 'Generate a variation of an existing image' },
   { id: 'img2img', label: 'Image to Image', icon: ImagePlus, desc: 'Generate or edit using reference images' },
   { id: 'upscale', label: 'Upscale', icon: ArrowUpCircle, desc: 'Increase image resolution' },

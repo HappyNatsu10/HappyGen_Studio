@@ -1,11 +1,11 @@
 import React from 'react';
-import { Layers, Plus } from 'lucide-react';
+import { Layers, Plus, HelpCircle } from 'lucide-react';
 import ActiveModelBar from '../models/ActiveModelBar';
+import Tooltip from '../common/Tooltip';
 
 export default function ModelSelector({
   baseModel,
   loras,
-  mode,
   onOpenExplorerBase,
   onOpenExplorerLora,
   onRemoveLora,
@@ -18,7 +18,7 @@ export default function ModelSelector({
       {baseModel ? (
         <ActiveModelBar
           baseModel={baseModel}
-          loras={mode === 'advanced' ? loras : []}
+          loras={loras}
           onRemoveLora={onRemoveLora}
           onUpdateWeight={onUpdateLoraWeight}
           onClearLoras={onClearLoras}
@@ -32,21 +32,29 @@ export default function ModelSelector({
           <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Layers className="w-6 h-6 text-purple-400" />
           </div>
-          <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">
+          <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors flex items-center gap-1.5">
             Select a Base Model
+            <Tooltip text="The core AI brain that determines the overall style and capabilities of the generation.">
+              <HelpCircle className="w-4 h-4 text-slate-500 cursor-help" />
+            </Tooltip>
           </span>
         </button>
       )}
 
-      {/* Add LoRA Button — Advanced */}
-      {mode === 'advanced' && baseModel && (
-        <button
-          onClick={onOpenExplorerLora}
-          className="btn btn-ghost w-full text-[12px]"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Browse & Add LoRAs
-        </button>
+      {/* Add LoRA Button */}
+      {baseModel && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenExplorerLora}
+            className="btn btn-ghost flex-1 text-[12px] flex items-center justify-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Browse & Add LoRAs
+          </button>
+          <Tooltip text="Low-Rank Adaptations. Mini-models that sit on top of the base model to add specific characters, concepts, or styles.">
+            <HelpCircle className="w-4 h-4 text-slate-500 cursor-help flex-shrink-0 mr-1" />
+          </Tooltip>
+        </div>
       )}
     </div>
   );

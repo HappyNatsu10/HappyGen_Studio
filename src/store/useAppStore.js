@@ -10,11 +10,6 @@ const useAppStore = create((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   
   // App Settings
-  mode: localStorage.getItem('omnigen_mode') || 'basic',
-  setMode: (mode) => {
-    localStorage.setItem('omnigen_mode', mode);
-    set({ mode });
-  },
   
   isAdultMode: false,
   setIsAdultMode: (isAdult) => set({ isAdultMode: isAdult }),

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Cpu } from 'lucide-react';
+import { ChevronDown, Cpu, HelpCircle } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 export default function EngineSelector({ engines, selectedEngineId, onSelectEngine, label = "AI Engine" }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,8 +26,11 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <label className="text-[12px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+      <label className="text-[12px] font-medium flex items-center gap-1.5 mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
         {label}
+        <Tooltip text="The backend provider or hardware powering the generation.">
+          <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+        </Tooltip>
       </label>
       
       {/* Selector Button */}

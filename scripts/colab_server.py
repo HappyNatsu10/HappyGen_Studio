@@ -1,12 +1,9 @@
-# ==============================================================================
-# 🚀 OmniGen AI Studio - Google Colab 16GB Cloud GPU Server
-# Free Tesla T4 / A100 VRAM • 0% Laptop Load • Multi-Model & Multi-LoRA Engine
-# ==============================================================================
-
-# @title 1. Install Dependencies & Fast GPU Acceleration
-!pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft
-
-import os, sys, time, json, io, base64, torch, threading, nest_asyncio
+import os
+import subprocess
+import torch
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, EulerAncestralDiscreteScheduler
+import io, base64, time, json, threading, nest_asyncio
+import numpy as np
 from PIL import Image
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,178 +11,348 @@ from pydantic import BaseModel
 from typing import List, Optional, Union
 import uvicorn
 from pycloudflared import try_cloudflare
-from safetensors.torch import load_file
+import requests
+import gc
 
-nest_asyncio.apply()
+def run_cmd(cmd):
+    print(f"Running: {cmd}")
+    os.system(cmd)
 
-# @title 2. Setup Model Storage (Google Drive or Local Colab SSD)
-# @markdown Choose whether to mount your Google Drive or download directly to Colab.
-USE_GOOGLE_DRIVE = False # @param {type:"boolean"}
-MODELS_DIR = "/content/drive/MyDrive/OmniGen_Models" if USE_GOOGLE_DRIVE else "/content/Models"
+# Cell 1: Install Dependencies
+run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch realesrgan gfpgan basicsr")
 
-if USE_GOOGLE_DRIVE:
-    from google.colab import drive
-    print("📁 Mounting Google Drive...")
-    drive.mount('/content/drive')
+# Cell 2: Download Models & SDXL Lightning Accelerator
+os.makedirs("/content/Models", exist_ok=True)
+os.makedirs("/content/LoRAs", exist_ok=True)
 
-os.makedirs(MODELS_DIR, exist_ok=True)
-print(f"📂 Active Models Directory: {MODELS_DIR}")
+BASE_MODEL_PATH = "/content/Models/crucibleRINGPonyxl_v28.safetensors"
+LIGHTNING_PATH = "/content/LoRAs/sdxl_lightning_4step_lora.safetensors"
 
-# 📥 Download Core Models if not already present
-BASE_MODEL_PATH = os.path.join(MODELS_DIR, "crucibleRINGPonyxl_v28.safetensors")
-LIGHTNING_PATH = os.path.join(MODELS_DIR, "sdxl_lightning_4step_lora.safetensors")
-NEGATIVE_HANDS_PATH = os.path.join(MODELS_DIR, "NEGATIVE_HANDS.safetensors")
+CIVITAI_API_KEY = None
+try:
+    from google.colab import userdata
+    CIVITAI_API_KEY = userdata.get('CIVITAI_API_KEY')
+except:
+    pass
+
+def civitai_download_url(model_version_id):
+    base_url = f"https://civitai.com/api/download/models/{model_version_id}"
+    if CIVITAI_API_KEY:
+        return f"{base_url}?token={CIVITAI_API_KEY}"
+    return base_url
+
+if os.path.exists(BASE_MODEL_PATH) and os.path.getsize(BASE_MODEL_PATH) < 1024 * 1024:
+    os.remove(BASE_MODEL_PATH)
 
 if not os.path.exists(BASE_MODEL_PATH):
-    print("📥 Downloading CrucibleRING PonyXL v28 (~6.6GB)...")
-    !wget -c "https://huggingface.co/Lies/crucibleRINGPonyxl_v28/resolve/main/crucibleRINGPonyxl_v28.safetensors" -O {BASE_MODEL_PATH}
+    run_cmd(f'wget -c "{civitai_download_url("1979291")}" -O {BASE_MODEL_PATH}')
 
 if not os.path.exists(LIGHTNING_PATH):
-    print("⚡ Downloading SDXL Lightning 4-Step Accelerator...")
-    !wget -c "https://huggingface.co/ByteDance/SDXL-Lightning/resolve/main/sdxl_lightning_4step_lora.safetensors" -O {LIGHTNING_PATH}
+    run_cmd(f'wget -c "https://huggingface.co/ByteDance/SDXL-Lightning/resolve/main/sdxl_lightning_4step_lora.safetensors" -O {LIGHTNING_PATH}')
 
-# @title 3. Initialize Stable Diffusion XL Pipeline on 16GB GPU
-from diffusers import StableDiffusionXLPipeline, EulerAncestralDiscreteScheduler
-
-print(f"🚀 Loading SDXL Pipeline onto {torch.cuda.get_device_name(0)} (16GB VRAM)...")
+# Cell 3: Load Model into 16GB Cloud VRAM
+CURRENT_BASE_MODEL_FILE = os.path.basename(BASE_MODEL_PATH)
+global pipe, pipe_img2img
 pipe = StableDiffusionXLPipeline.from_single_file(
-    BASE_MODEL_PATH,
-    torch_dtype=torch.float16,
-    use_safetensors=True
+    BASE_MODEL_PATH, torch_dtype=torch.float16, use_safetensors=True
 ).to("cuda")
-
 pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
 
-# 1. SDXL Lightning 4-Step Acceleration
-if os.path.exists(LIGHTNING_PATH):
-    print("⚡ Fusing SDXL Lightning accelerator into 16GB VRAM...")
-    pipe.load_lora_weights(MODELS_DIR, weight_name=os.path.basename(LIGHTNING_PATH))
-    pipe.fuse_lora()
-    pipe.unload_lora_weights()
-    print("✅ Acceleration active! 20 steps denoise in ~3.5 seconds!")
-
-# 2. NEGATIVE_HANDS Dual-CLIP Inversion
-if os.path.exists(NEGATIVE_HANDS_PATH):
-    try:
-        sd = load_file(NEGATIVE_HANDS_PATH)
-        if "clip_l" in sd and "clip_g" in sd:
-            pipe.load_textual_inversion(sd["clip_l"], token="negative_hands", text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer)
-            pipe.load_textual_inversion(sd["clip_g"], token="negative_hands", text_encoder=pipe.text_encoder_2, tokenizer=pipe.tokenizer_2)
-            print("✅ NEGATIVE_HANDS Dual-CLIP embeddings active!")
-    except Exception as e:
-        print(f"Note: {e}")
-
-# @title 4. Launch Cloudflare Tunnel & FastAPI API Server
-app = FastAPI(title="OmniGen Colab Server")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+pipe_img2img = StableDiffusionXLImg2ImgPipeline(
+    vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2,
+    tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler,
 )
+
+# Cell 4: Launch FastAPI Server
+nest_asyncio.apply()
+app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+_clip_model = _clip_preprocess = _clip_tokenizer = _upscaler = _face_restorer = None
+
+def _load_clip():
+    global _clip_model, _clip_preprocess, _clip_tokenizer
+    if _clip_model is not None: return
+    import open_clip
+    model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
+    _clip_model = model.to("cuda").eval()
+    _clip_preprocess = preprocess
+    _clip_tokenizer = open_clip.get_tokenizer('ViT-B-32')
+
+def _unload_clip():
+    global _clip_model, _clip_preprocess, _clip_tokenizer
+    if _clip_model is not None:
+        _clip_model = _clip_model.to("cpu")
+        del _clip_model, _clip_preprocess, _clip_tokenizer
+        _clip_model = _clip_preprocess = _clip_tokenizer = None
+        gc.collect()
+        torch.cuda.empty_cache()
+
+def _load_upscaler():
+    global _upscaler
+    if _upscaler is not None: return
+    from realesrgan import RealESRGANer
+    from basicsr.archs.rrdbnet_arch import RRDBNet
+    model_path = "/content/Models/RealESRGAN_x4plus.pth"
+    if not os.path.exists(model_path):
+        run_cmd(f'wget -q -c "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth" -O {model_path}')
+    rrdb_model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+    _upscaler = RealESRGANer(scale=4, model_path=model_path, model=rrdb_model, tile=256, tile_pad=10, pre_pad=0, half=True, gpu_id=0)
+
+def _unload_upscaler():
+    global _upscaler
+    if _upscaler is not None:
+        del _upscaler
+        _upscaler = None
+        gc.collect()
+        torch.cuda.empty_cache()
+
+def _load_face_restorer():
+    global _face_restorer
+    if _face_restorer is not None: return
+    from gfpgan import GFPGANer
+    model_path = "/content/Models/GFPGANv1.4.pth"
+    if not os.path.exists(model_path):
+        run_cmd(f'wget -q -c "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth" -O {model_path}')
+    _face_restorer = GFPGANer(model_path=model_path, upscale=1, arch='clean', channel_multiplier=2, bg_upsampler=None)
+
+def _unload_face_restorer():
+    global _face_restorer
+    if _face_restorer is not None:
+        del _face_restorer
+        _face_restorer = None
+        gc.collect()
+        torch.cuda.empty_cache()
+
+def _decode_base64_image(b64_string):
+    if "," in b64_string:
+        b64_string = b64_string.split(",", 1)[1]
+    return Image.open(io.BytesIO(base64.b64decode(b64_string))).convert("RGB")
+
+def _encode_image_to_base64(pil_image):
+    buffered = io.BytesIO()
+    pil_image.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 class Txt2ImgRequest(BaseModel):
     prompt: str
-    negative_prompt: Optional[str] = "score_4, score_5, score_6, negative_hands, bad hands, blurry, low quality"
+    negative_prompt: Optional[str] = "score_4, score_5, score_6, bad hands, blurry, low quality"
     steps: Optional[int] = 20
     cfg_scale: Optional[float] = 6.5
     width: Optional[int] = 832
     height: Optional[int] = 1216
     seed: Optional[int] = -1
-    base_model: Optional[str] = "crucibleRINGPonyxl_v28.safetensors"
+    base_model: Optional[Union[dict, str]] = "crucibleRINGPonyxl_v28.safetensors"
     loras: Optional[List[Union[dict, str]]] = []
+    civitai_api_key: Optional[str] = ""
+
+class Img2ImgRequest(BaseModel):
+    prompt: str
+    negative_prompt: Optional[str] = "score_4, score_5, score_6, bad hands, blurry, low quality"
+    init_images: List[str]
+    denoising_strength: Optional[float] = 0.5
+    steps: Optional[int] = 20
+    cfg_scale: Optional[float] = 6.5
+    width: Optional[int] = 832
+    height: Optional[int] = 1216
+    seed: Optional[int] = -1
+    mask: Optional[str] = None
+    base_model: Optional[Union[dict, str]] = None
+    loras: Optional[List[Union[dict, str]]] = []
+    civitai_api_key: Optional[str] = ""
+
+class InterrogateRequest(BaseModel):
+    image: str
+    model: Optional[str] = "clip"
+
+class UpscaleRequest(BaseModel):
+    image: str
+    upscaling_resize: Optional[int] = 2
+
+class FaceFixRequest(BaseModel):
+    image: str
+    prompt: Optional[str] = ""
+
+def download_civitai_model(download_url, dest_path, api_key):
+    if os.path.exists(dest_path): return True
+    active_key = api_key if api_key else CIVITAI_API_KEY
+    headers = {}
+    if active_key: headers["Authorization"] = f"Bearer {active_key}"
+    try:
+        response = requests.get(download_url, headers=headers, stream=True)
+        if response.status_code == 200:
+            with open(dest_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            if os.path.getsize(dest_path) < 1024 * 1024:
+                os.remove(dest_path)
+                return False
+            return True
+        return False
+    except:
+        return False
 
 @app.get("/")
 def health():
-    return {
-        "status": "online",
-        "gpu": torch.cuda.get_device_name(0),
-        "vram_total": f"{torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f} GB",
-        "models_count": len([f for f in os.listdir(MODELS_DIR) if f.endswith('.safetensors')]),
-        "base_model": "CrucibleRING PonyXL v28 (16GB Cloud GPU)"
-    }
+    return {"status": "online", "gpu": torch.cuda.get_device_name(0), "base_model": CURRENT_BASE_MODEL_FILE}
 
-@app.get("/api/models")
-def list_models():
-    all_files = [f for f in os.listdir(MODELS_DIR) if f.endswith('.safetensors')]
-    return {
-        "count": len(all_files),
-        "models": [{"id": f, "name": f.replace(".safetensors", "")} for f in all_files]
-    }
+@app.post("/sdapi/v1/unload-checkpoint")
+def unload_checkpoint():
+    gc.collect()
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+    vram_free = torch.cuda.mem_get_info()[0] / (1024**3)
+    return {"status": "ok", "vram_free_gb": round(vram_free, 2)}
+
+def _switch_model_if_needed(req_base_model, civitai_api_key):
+    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img
+    req_base_model_file = CURRENT_BASE_MODEL_FILE
+    req_base_model_url = None
+    req_architecture = "SDXL 1.0"
+    if isinstance(req_base_model, dict):
+        req_architecture = req_base_model.get("architecture", "SDXL 1.0")
+        req_base_model_file = req_base_model.get("fileName", req_base_model_file)
+        req_base_model_url = req_base_model.get("downloadUrl")
+    elif isinstance(req_base_model, str) and req_base_model:
+        req_base_model_file = req_base_model
+
+    if req_base_model_file != CURRENT_BASE_MODEL_FILE:
+        model_path = os.path.join("/content/Models", req_base_model_file)
+        if not os.path.exists(model_path):
+            if req_base_model_url:
+                success = download_civitai_model(req_base_model_url, model_path, civitai_api_key)
+                if not success: raise HTTPException(status_code=400, detail=f"Failed to download {req_base_model_file}")
+            else:
+                raise HTTPException(status_code=400, detail=f"Model {req_base_model_file} not found locally.")
+
+        if 'pipe' in globals() and pipe is not None:
+            del pipe, pipe_img2img
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        if "SD 1.5" in req_architecture or "SD 1.4" in req_architecture:
+            from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
+            pipe = StableDiffusionPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True).to("cuda")
+            pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
+            pipe_img2img = StableDiffusionImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer, unet=pipe.unet, scheduler=pipe.scheduler)
+        elif "Flux" in req_architecture:
+            from diffusers import FluxPipeline
+            pipe = FluxPipeline.from_single_file(model_path, torch_dtype=torch.bfloat16).to("cuda")
+            pipe.enable_model_cpu_offload()
+            pipe_img2img = None
+        else:
+            from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
+            pipe = StableDiffusionXLPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True).to("cuda")
+            pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
+            pipe_img2img = StableDiffusionXLImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2, tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler)
+
+        CURRENT_BASE_MODEL_FILE = req_base_model_file
+
+def _apply_loras(target_pipe, loras, api_key):
+    loaded_adapters = []
+    loaded_weights = []
+    if not loras or not target_pipe: return loaded_adapters
+    for item in loras:
+        name = item if isinstance(item, str) else item.get("fileName") or item.get("name")
+        weight = 0.85 if isinstance(item, str) else float(item.get("weight", 0.85))
+        if not name: continue
+        lora_file = name if name.endswith(".safetensors") else f"{name}.safetensors"
+        lora_path = os.path.join("/content/LoRAs", lora_file)
+        lora_url = item.get("downloadUrl") if isinstance(item, dict) else None
+        if not os.path.exists(lora_path) and lora_url:
+            download_civitai_model(lora_url, lora_path, api_key)
+        if os.path.exists(lora_path) and lora_file != CURRENT_BASE_MODEL_FILE and lora_file != os.path.basename(LIGHTNING_PATH):
+            try:
+                adapter_id = f"lora_{len(loaded_adapters)}"
+                target_pipe.load_lora_weights("/content/LoRAs", weight_name=lora_file, adapter_name=adapter_id)
+                loaded_weights.append(weight)
+                loaded_adapters.append(adapter_id)
+            except:
+                pass
+    if loaded_adapters:
+        target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
+    return loaded_adapters
 
 @app.post("/sdapi/v1/txt2img")
 def txt2img(req: Txt2ImgRequest):
-    t0 = time.time()
+    _switch_model_if_needed(req.base_model, req.civitai_api_key)
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
-    
-    # 1. Apply Dynamic LoRAs on 16GB VRAM if present
-    loaded_adapters = []
-    if req.loras:
-        for item in req.loras:
-            name = item if isinstance(item, str) else item.get("name")
-            weight = 0.85 if isinstance(item, str) else float(item.get("weight", 0.85))
-            if not name:
-                continue
-            lora_file = name if name.endswith(".safetensors") else f"{name}.safetensors"
-            lora_path = os.path.join(MODELS_DIR, lora_file)
-            if os.path.exists(lora_path) and lora_file != os.path.basename(BASE_MODEL_PATH) and lora_file != os.path.basename(LIGHTNING_PATH):
-                try:
-                    adapter_id = f"lora_{len(loaded_adapters)}"
-                    pipe.load_lora_weights(MODELS_DIR, weight_name=lora_file, adapter_name=adapter_id)
-                    pipe.set_adapters([adapter_id], adapter_weights=[weight])
-                    loaded_adapters.append(adapter_id)
-                except Exception as e:
-                    print(f"[WARN] LoRA {lora_file} load: {e}")
+    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
+    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
-    # 2. Quality Prompt Formulation
-    prompt_str = req.prompt
-    if "score_" not in prompt_str:
-        prompt_str = f"score_9, score_8_up, score_7_up, source_anime, {prompt_str}"
-        
-    print(f"[GEN] Rendering: {prompt_str[:60]}... | Steps: {req.steps} | Seed: {seed}")
-    
     with torch.inference_mode():
-        image = pipe(
-            prompt=prompt_str,
-            negative_prompt=req.negative_prompt,
-            num_inference_steps=req.steps,
-            guidance_scale=req.cfg_scale,
-            width=req.width,
-            height=req.height,
-            generator=generator
-        ).images[0]
+        if "Flux" in str(type(pipe)):
+            image = pipe(prompt=prompt_str, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, width=req.width, height=req.height, generator=generator).images[0]
+        else:
+            image = pipe(prompt=prompt_str, negative_prompt=req.negative_prompt, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, width=req.width, height=req.height, generator=generator).images[0]
 
-    # Clean up dynamic adapters
     if loaded_adapters:
-        try:
-            pipe.delete_adapters(loaded_adapters)
-        except Exception:
-            pass
+        try: pipe.delete_adapters(loaded_adapters)
+        except: pass
+    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
 
-    buffered = io.BytesIO()
-    image.save(buffered, format="PNG")
-    b64_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    
-    print(f"[DONE] Generated in {time.time() - t0:.2f}s!")
-    return {
-        "images": [b64_str],
-        "info": json.dumps({"seed": seed, "steps": req.steps, "prompt": prompt_str}),
-        "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"
-    }
+@app.post("/sdapi/v1/img2img")
+def img2img(req: Img2ImgRequest):
+    _switch_model_if_needed(req.base_model, req.civitai_api_key)
+    if not pipe_img2img: raise HTTPException(status_code=400, detail="img2img is not supported on this model architecture yet.")
+    seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
+    generator = torch.Generator("cuda").manual_seed(seed)
+    init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
+    loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
+    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
-def run_server():
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
+    with torch.inference_mode():
+        image = pipe_img2img(prompt=prompt_str, negative_prompt=req.negative_prompt, image=init_image, strength=req.denoising_strength, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, generator=generator).images[0]
+    if loaded_adapters:
+        try: pipe_img2img.delete_adapters(loaded_adapters)
+        except: pass
+    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
 
-threading.Thread(target=run_server, daemon=True).start()
+@app.post("/sdapi/v1/interrogate")
+def interrogate(req: InterrogateRequest):
+    _load_clip()
+    image = _decode_base64_image(req.image)
+    image_tensor = _clip_preprocess(image).unsqueeze(0).to("cuda")
+    with torch.no_grad(), torch.cuda.amp.autocast():
+        image_features = _clip_model.encode_image(image_tensor)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+    candidate_labels = ["1girl", "1boy", "2girls", "solo", "anime", "realistic", "masterpiece", "highly detailed", "long hair", "short hair", "blonde hair", "black hair", "blue eyes", "red eyes", "smile", "serious", "school uniform", "dress", "outdoors", "indoors", "city", "close-up", "full body", "cinematic lighting"]
+    text_tokens = _clip_tokenizer(candidate_labels).to("cuda")
+    with torch.no_grad(), torch.cuda.amp.autocast():
+        text_features = _clip_model.encode_text(text_tokens)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+    similarity = (image_features @ text_features.T).squeeze(0)
+    scores = similarity.cpu().numpy()
+    top_indices = scores.argsort()[::-1]
+    caption_parts = []
+    for idx in top_indices:
+        if scores[idx] > 0.20 and len(caption_parts) < 8:
+            caption_parts.append(candidate_labels[idx])
+    _unload_clip()
+    return {"caption": ", ".join(caption_parts)}
+
+@app.post("/sdapi/v1/extra-single-image")
+def upscale(req: UpscaleRequest):
+    _load_upscaler()
+    image = _decode_base64_image(req.image)
+    img_bgr = np.array(image)[:, :, ::-1]
+    output, _ = _upscaler.enhance(img_bgr, outscale=req.upscaling_resize)
+    result_image = Image.fromarray(output[:, :, ::-1])
+    _unload_upscaler()
+    return {"images": [_encode_image_to_base64(result_image)], "source": "Real-ESRGAN"}
+
+@app.post("/sdapi/v1/face-fix")
+def face_fix(req: FaceFixRequest):
+    _load_face_restorer()
+    image = _decode_base64_image(req.image)
+    img_bgr = np.array(image)[:, :, ::-1]
+    _, _, output = _face_restorer.enhance(img_bgr, has_aligned=False, only_center_face=False, paste_back=True)
+    result_image = Image.fromarray(output[:, :, ::-1])
+    _unload_face_restorer()
+    return {"images": [_encode_image_to_base64(result_image)], "source": "GFPGAN"}
+
+threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning"), daemon=True).start()
 time.sleep(2)
-
-print("\n" + "="*70)
-print("🌐 STARTING PUBLIC CLOUDFLARE TUNNEL...")
-tunnel_url = try_cloudflare(port=8000)
-print("="*70)
-print("🎉 COPY THIS URL AND PASTE IT INTO OMNIGEN APP SETTINGS:")
-print(f"👉  {tunnel_url.tunnel}  👈")
-print("="*70 + "\n")
+tunnel = try_cloudflare(port=8000)
+print(f"\n🎉 COPY THIS URL: {tunnel.tunnel}\n")

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Server, Check, X, Wifi, RefreshCw, Globe, Terminal } from 'lucide-react';
+import { Server, Check, X, Wifi, RefreshCw, Globe, Terminal, Trash2 } from 'lucide-react';
+import { flushVRAM } from '../services/aiService';
 
 export default function BackendConfigModal({ isOpen, onClose }) {
   const [backendType, setBackendType] = useState(() => localStorage.getItem('omnigen_backend_type') || 'local');
@@ -7,6 +8,7 @@ export default function BackendConfigModal({ isOpen, onClose }) {
   const [localIp, setLocalIp] = useState(() => localStorage.getItem('omnigen_local_url') || 'http://127.0.0.1:8000');
   const [civitaiKey, setCivitaiKey] = useState(() => localStorage.getItem('omnigen_civitai_key') || '');
   const [isChecking, setIsChecking] = useState(false);
+  const [isFlushing, setIsFlushing] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
 
   useEffect(() => {
@@ -51,6 +53,24 @@ export default function BackendConfigModal({ isOpen, onClose }) {
       setStatusResult({ error: `Cannot connect to ${targetUrl}. Ensure the server is running.` });
     } finally {
       setIsChecking(false);
+    }
+  };
+
+  const handleFlush = async () => {
+    setIsFlushing(true);
+    setStatusResult(null);
+    try {
+      const data = await flushVRAM();
+      setStatusResult({ 
+        online: true, 
+        latencyMs: 0,
+        gpu: 'GPU Detected', 
+        baseModel: `VRAM Flushed! Free: ${data.vram_free_gb || '?'} GB` 
+      });
+    } catch (err) {
+      setStatusResult({ error: err.message });
+    } finally {
+      setIsFlushing(false);
     }
   };
 
@@ -145,18 +165,31 @@ export default function BackendConfigModal({ isOpen, onClose }) {
             </p>
           </div>
 
-          {/* Health Check */}
-          <button
-            onClick={handleHealthCheck}
-            disabled={isChecking}
-            className="btn btn-secondary w-full text-[12px]"
-          >
-            {isChecking ? (
-              <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Checking...</>
-            ) : (
-              <><Wifi className="w-3.5 h-3.5" /> Test Connection</>
-            )}
-          </button>
+          {/* Actions */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleHealthCheck}
+              disabled={isChecking || isFlushing}
+              className="btn btn-secondary flex-1 text-[12px]"
+            >
+              {isChecking ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Checking...</>
+              ) : (
+                <><Wifi className="w-3.5 h-3.5" /> Test Connection</>
+              )}
+            </button>
+            <button
+              onClick={handleFlush}
+              disabled={isChecking || isFlushing}
+              className="btn btn-secondary flex-1 text-[12px] border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 text-red-400"
+            >
+              {isFlushing ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Flushing...</>
+              ) : (
+                <><Trash2 className="w-3.5 h-3.5" /> Flush VRAM</>
+              )}
+            </button>
+          </div>
 
           {/* Status Result */}
           {statusResult && (

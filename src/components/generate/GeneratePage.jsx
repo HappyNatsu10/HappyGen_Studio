@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PromptEditor from './PromptEditor';
@@ -8,7 +8,7 @@ import OutputGallery from './OutputGallery';
 import GenerationModeSelector from './GenerationModeSelector';
 import ImageUploadZone from './ImageUploadZone';
 import InpaintCanvas from './InpaintCanvas';
-import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage } from '../../services/aiService';
+import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage } from '../../services/aiService';
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
 import useAppStore from '../../store/useAppStore';
@@ -31,7 +31,7 @@ const itemVariants = {
 };
 
 export default function GeneratePage() {
-  const { mode, isAdultMode, openModelModal } = useAppStore();
+  const { isAdultMode, openModelModal } = useAppStore();
   const { 
     imageEngine, setImageEngine, 
     baseModel, loras, 
@@ -46,6 +46,7 @@ export default function GeneratePage() {
   const [sourceImage, setSourceImage] = useState(null);
   const [maskImage, setMaskImage] = useState(null);
   const [prompt, setPrompt] = useState('');
+  const [loraPrompt, setLoraPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState(DEFAULT_NEGATIVE);
   const [aspectRatio, setAspectRatio] = useState(ASPECT_RATIOS[0]);
   const [qualityPreset, setQualityPreset] = useState('quality');
@@ -59,6 +60,50 @@ export default function GeneratePage() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
 
+  const prevLorasRef = useRef(loras);
+
+  useEffect(() => {
+    const prevLoras = prevLorasRef.current;
+    const addedLoras = loras.filter(l => !prevLoras.find(pl => pl.id === l.id));
+    const removedLoras = prevLoras.filter(pl => !loras.find(l => l.id === pl.id));
+
+    if (addedLoras.length > 0 || removedLoras.length > 0) {
+      setLoraPrompt(currentPrompt => {
+        let newPrompt = currentPrompt;
+        
+        removedLoras.forEach(lora => {
+          if (lora.triggerWords && lora.triggerWords.length > 0) {
+            lora.triggerWords.filter(Boolean).forEach(tw => {
+              const escapedTw = tw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const regex = new RegExp(`(^|\\s*,\\s*|\\s+)${escapedTw}(?=\\s*,|\\s+|$)`, 'gi');
+              newPrompt = newPrompt.replace(regex, '');
+            });
+          }
+        });
+
+        // Clean up stray commas left over from removals
+        newPrompt = newPrompt.replace(/^,[\s]*/, '').replace(/,[\s]*$/, '').replace(/,[\s]*,/g, ', ').trim();
+
+        addedLoras.forEach(lora => {
+          if (lora.triggerWords && lora.triggerWords.length > 0) {
+            const triggers = lora.triggerWords.filter(Boolean).join(', ');
+            if (triggers) {
+              if (newPrompt.length > 0 && !newPrompt.endsWith(',')) {
+                newPrompt += ', ';
+              } else if (newPrompt.endsWith(',')) {
+                newPrompt += ' ';
+              }
+              newPrompt += triggers;
+            }
+          }
+        });
+
+        return newPrompt.trim();
+      });
+    }
+    prevLorasRef.current = loras;
+  }, [loras]);
+
   const handleModeSelect = (newMode) => {
     setGenerationMode(newMode);
     if (newMode === 'draft') {
@@ -69,8 +114,8 @@ export default function GeneratePage() {
   };
 
   const handleGenerate = async () => {
-    if ((generationMode !== 'upscale' && generationMode !== 'facefix') && !prompt.trim()) return;
-    if (['variations', 'img2img', 'upscale', 'facefix'].includes(generationMode) && !sourceImage) {
+    if ((generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate') && !prompt.trim()) return;
+    if (['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && !sourceImage) {
       setError('Please upload a source image for this mode.');
       return;
     }
@@ -78,14 +123,24 @@ export default function GeneratePage() {
     setIsGenerating(true);
     setError(null);
 
+    // Handle interrogate separately — it returns a prompt string, not images
+    if (generationMode === 'interrogate') {
+      try {
+        const caption = await interrogateImage({ sourceImage });
+        setPrompt(caption);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+
     try {
       let fullPrompt = prompt.trim();
-      if (loras.length > 0) {
-        const triggers = loras
-          .flatMap(l => l.triggerWords || [])
-          .filter(Boolean)
-          .join(', ');
-        if (triggers) fullPrompt += ', ' + triggers;
+      if (loraPrompt.trim()) {
+        fullPrompt += (fullPrompt ? ', ' : '') + loraPrompt.trim();
       }
 
       const parsedSeed = seed === '-1' || !seed.trim()
@@ -151,10 +206,10 @@ export default function GeneratePage() {
         </motion.div>
 
         {/* Upload Zone (conditionally shown) */}
-        {['variations', 'img2img', 'upscale', 'facefix'].includes(generationMode) && (
+        {['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && (
           <motion.div variants={itemVariants}>
             <ImageUploadZone 
-              label={generationMode === 'upscale' ? 'Image to Upscale' : (generationMode === 'facefix' ? 'Image to Fix' : 'Source Image')} 
+              label={generationMode === 'upscale' ? 'Image to Upscale' : (generationMode === 'facefix' ? 'Image to Fix' : (generationMode === 'interrogate' ? 'Image to Analyze' : 'Source Image'))} 
               value={sourceImage} 
               onChange={setSourceImage} 
             />
@@ -192,8 +247,8 @@ export default function GeneratePage() {
           </motion.div>
         )}
 
-        {/* Engine Selection (Hidden in basic mode) */}
-        {mode !== 'basic' && !['upscale', 'facefix'].includes(generationMode) && (
+        {/* Engine Selection */}
+        {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && (
           <motion.div variants={itemVariants}>
             <EngineSelector 
               engines={IMAGE_ENGINES} 
@@ -205,12 +260,11 @@ export default function GeneratePage() {
         )}
 
         {/* Model Selection (hidden for upscale/facefix and closed engines) */}
-        {!['upscale', 'facefix'].includes(generationMode) && !isEngineClosed(imageEngine) && (
+        {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && !isEngineClosed(imageEngine) && (
           <motion.div variants={itemVariants}>
             <ModelSelector
               baseModel={baseModel}
               loras={loras}
-              mode={mode}
               onOpenExplorerBase={() => openModelModal({ intent: 'base' })}
               onOpenExplorerLora={() => openModelModal({ intent: 'lora', arch: baseModel?.version?.baseModel })}
               onRemoveLora={removeLora}
@@ -221,23 +275,23 @@ export default function GeneratePage() {
         )}
 
         {/* Prompt (hidden for upscale) */}
-        {generationMode !== 'upscale' && (
+        {generationMode !== 'upscale' && generationMode !== 'interrogate' && (
           <motion.div variants={itemVariants}>
             <PromptEditor
               prompt={prompt}
               setPrompt={setPrompt}
+              loraPrompt={loraPrompt}
+              setLoraPrompt={setLoraPrompt}
               negativePrompt={negativePrompt}
               setNegativePrompt={setNegativePrompt}
-              mode={mode}
             />
           </motion.div>
         )}
 
         {/* Settings */}
-        {!['upscale', 'facefix'].includes(generationMode) && (
+        {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && (
           <motion.div variants={itemVariants}>
             <GenerationSettings
-              mode={mode}
               aspectRatio={aspectRatio}
               setAspectRatio={setAspectRatio}
               qualityPreset={qualityPreset}
@@ -267,7 +321,7 @@ export default function GeneratePage() {
         <motion.div variants={itemVariants} className="sticky bottom-0 z-20 -mx-0 pt-3 pb-1 md:static md:pt-0 md:pb-0" style={{ background: 'linear-gradient(to top, var(--surface-1) 70%, transparent)' }}>
           <button
             onClick={handleGenerate}
-            disabled={isGenerating || (generationMode !== 'upscale' && generationMode !== 'facefix' && !prompt.trim())}
+            disabled={isGenerating || (generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate' && !prompt.trim())}
             className="btn btn-primary btn-primary-glow w-full py-4 rounded-xl text-[15px] font-bold tracking-wide disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-purple-500/20"
         >
           {isGenerating ? (
@@ -278,7 +332,7 @@ export default function GeneratePage() {
           ) : (
             <>
               <ImageIcon className="w-5 h-5" />
-              {generationMode === 'upscale' ? 'Upscale Image' : (generationMode === 'facefix' ? 'Fix Faces' : 'Generate')}
+              {generationMode === 'upscale' ? 'Upscale Image' : (generationMode === 'facefix' ? 'Fix Faces' : (generationMode === 'interrogate' ? 'Extract Prompt' : 'Generate'))}
             </>
           )}
           </button>
@@ -291,7 +345,6 @@ export default function GeneratePage() {
           isGenerating={isGenerating}
           results={results}
           error={error}
-          mode={mode}
           onCreateVariant={handleCreateVariant}
           onSendToCanvas={onSendToCanvas}
         />

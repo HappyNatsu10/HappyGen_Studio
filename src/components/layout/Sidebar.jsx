@@ -38,8 +38,6 @@ export default function Sidebar() {
     setActiveTab,
     sidebarCollapsed: collapsed,
     toggleSidebar: onToggleCollapse,
-    mode,
-    setMode: onSetMode,
     setShowProfileModal
   } = useAppStore();
 
@@ -67,27 +65,6 @@ export default function Sidebar() {
           </span>
         )}
       </div>
-
-      {/* Mode Toggle */}
-      {!collapsed && (
-        <div className="px-3 pt-3 pb-1">
-          <div className="mode-toggle">
-            <button
-              className={`mode-toggle-option flex-1 ${mode === 'basic' ? 'active' : ''}`}
-              onClick={() => onSetMode('basic')}
-            >
-              Basic
-            </button>
-            <button
-              className={`mode-toggle-option flex-1 ${mode === 'advanced' ? 'active' : ''}`}
-              onClick={() => onSetMode('advanced')}
-            >
-              <Zap className="inline w-3 h-3 mr-1" style={{ verticalAlign: 'middle' }} />
-              Advanced
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-4 overflow-y-auto">

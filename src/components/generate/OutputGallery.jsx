@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus } from 'lucide-react';
 
-export default function OutputGallery({ results, isGenerating, mode, onSendToCanvas, onCreateVariant }) {
+export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -105,9 +105,8 @@ export default function OutputGallery({ results, isGenerating, mode, onSendToCan
             </div>
           </div>
 
-          {/* Meta — Advanced Mode */}
-          {mode === 'advanced' && (
-            <div className="px-3 py-2 flex items-center gap-3 flex-wrap border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+          {/* Meta */}
+          <div className="px-3 py-2 flex items-center gap-3 flex-wrap border-t" style={{ borderColor: 'var(--border-subtle)' }}>
               {activeImage.width && (
                 <span className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>
                   {activeImage.width}×{activeImage.height}
@@ -129,7 +128,6 @@ export default function OutputGallery({ results, isGenerating, mode, onSendToCan
                 </span>
               )}
             </div>
-          )}
         </div>
       )}
 
