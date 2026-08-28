@@ -13,7 +13,7 @@ const flushMemoryIfModelChanged = async (backendUrl, targetModelName) => {
       console.log(`[AI Service] Model changed from ${lastUsedModelName} to ${targetModelName}. Flushing VRAM...`);
       await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' }
       });
       // Pause briefly to allow backend garbage collection to run
       await new Promise(r => setTimeout(r, 1500));
@@ -33,7 +33,7 @@ export const flushVRAM = async () => {
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' }
     });
     if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
     return await res.json();
@@ -75,7 +75,7 @@ export const generateImageAI = async ({
     try {
       const res = await fetch(`${backendUrl}/sdapi/v1/txt2img`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
         body: JSON.stringify({
           prompt,
           negative_prompt: activeNegativePrompt,
@@ -155,7 +155,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/interrogate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         image: imagePayload,
         model: model,
@@ -189,7 +189,7 @@ export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/extra-single-image`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         image: sourceImage,
         upscaling_resize: scale,
@@ -250,7 +250,7 @@ export const generateImg2Img = async ({
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         prompt,
         negative_prompt: activeNegativePrompt,
@@ -315,7 +315,7 @@ export const faceFixImage = async ({ sourceImage, prompt }) => {
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/face-fix`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         image: sourceImage,
         prompt: prompt || '',
@@ -374,7 +374,7 @@ export const inpaintImage = async ({
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         prompt,
         negative_prompt: activeNegativePrompt,
@@ -442,7 +442,7 @@ export const generateVideoAI = async ({
   try {
     const res = await fetch(`${backendUrl}/api/video`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Bypass-Tunnel-Reminder': 'true' },
       body: JSON.stringify({
         prompt,
         init_image: sourceImage,
