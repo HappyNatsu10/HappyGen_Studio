@@ -278,7 +278,7 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
 
         if "SD 1.5" in req_architecture or "SD 1.4" in req_architecture:
             from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
-            pipe = StableDiffusionPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
+            pipe = StableDiffusionPipeline.from_single_file(model_path, config="runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer, unet=pipe.unet, scheduler=pipe.scheduler)
         elif "Flux" in req_architecture:
@@ -288,7 +288,7 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
             pipe_img2img = None
         else:
             from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
-            pipe = StableDiffusionXLPipeline.from_single_file(model_path, torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
+            pipe = StableDiffusionXLPipeline.from_single_file(model_path, config="stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionXLImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2, tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler)
 
