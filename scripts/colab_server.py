@@ -2,7 +2,7 @@ import os
 import subprocess
 import torch
 from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, EulerAncestralDiscreteScheduler
-import io, base64, time, json, threading, nest_asyncio
+import io, base64, time, json, threading, nest_asyncio, uuid
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, HTTPException
@@ -70,6 +70,21 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 _clip_model = _clip_preprocess = _upscaler = _face_restorer = None
+
+tasks = {}
+def _bg_runner(task_id, func, *args, **kwargs):
+    try:
+        res = func(*args, **kwargs)
+        tasks[task_id]['status'] = 'completed'
+        tasks[task_id]['result'] = res
+    except Exception as e:
+        tasks[task_id]['status'] = 'failed'
+        tasks[task_id]['error'] = str(e)
+
+@app.get("/async/status/{task_id}")
+def async_status(task_id: str):
+    if task_id not in tasks: return {"status": "not_found"}
+    return tasks[task_id]
 
 def _load_clip():
     global _clip_model, _clip_preprocess
@@ -304,8 +319,7 @@ def _apply_loras(target_pipe, loras, api_key):
         target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
     return loaded_adapters
 
-@app.post("/sdapi/v1/txt2img")
-def txt2img(req: Txt2ImgRequest):
+def _do_txt2img(req: Txt2ImgRequest):
     _switch_model_if_needed(req.base_model, req.civitai_api_key)
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
@@ -323,8 +337,14 @@ def txt2img(req: Txt2ImgRequest):
         except: pass
     return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
 
-@app.post("/sdapi/v1/img2img")
-def img2img(req: Img2ImgRequest):
+@app.post("/sdapi/v1/txt2img")
+def txt2img(req: Txt2ImgRequest):
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    threading.Thread(target=_bg_runner, args=(task_id, _do_txt2img, req)).start()
+    return {"task_id": task_id}
+
+def _do_img2img(req: Img2ImgRequest):
     _switch_model_if_needed(req.base_model, req.civitai_api_key)
     if not pipe_img2img: raise HTTPException(status_code=400, detail="img2img is not supported on this model architecture yet.")
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
@@ -340,8 +360,14 @@ def img2img(req: Img2ImgRequest):
         except: pass
     return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
 
-@app.post("/sdapi/v1/interrogate")
-def interrogate(req: InterrogateRequest):
+@app.post("/sdapi/v1/img2img")
+def img2img(req: Img2ImgRequest):
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    threading.Thread(target=_bg_runner, args=(task_id, _do_img2img, req)).start()
+    return {"task_id": task_id}
+
+def _do_interrogate(req: InterrogateRequest):
     _load_clip()
     image = _decode_base64_image(req.image)
     inputs = _clip_preprocess(image, return_tensors="pt").to("cuda", torch.float16)
@@ -351,8 +377,14 @@ def interrogate(req: InterrogateRequest):
     _unload_clip()
     return {"caption": caption}
 
-@app.post("/sdapi/v1/extra-single-image")
-def upscale(req: UpscaleRequest):
+@app.post("/sdapi/v1/interrogate")
+def interrogate(req: InterrogateRequest):
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    threading.Thread(target=_bg_runner, args=(task_id, _do_interrogate, req)).start()
+    return {"task_id": task_id}
+
+def _do_upscale(req: UpscaleRequest):
     _load_upscaler()
     image = _decode_base64_image(req.image)
     img_bgr = np.array(image)[:, :, ::-1]
@@ -361,8 +393,14 @@ def upscale(req: UpscaleRequest):
     _unload_upscaler()
     return {"images": [_encode_image_to_base64(result_image)], "source": "Real-ESRGAN"}
 
-@app.post("/sdapi/v1/face-fix")
-def face_fix(req: FaceFixRequest):
+@app.post("/sdapi/v1/extra-single-image")
+def upscale(req: UpscaleRequest):
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    threading.Thread(target=_bg_runner, args=(task_id, _do_upscale, req)).start()
+    return {"task_id": task_id}
+
+def _do_face_fix(req: FaceFixRequest):
     _load_face_restorer()
     image = _decode_base64_image(req.image)
     img_bgr = np.array(image)[:, :, ::-1]
@@ -370,6 +408,13 @@ def face_fix(req: FaceFixRequest):
     result_image = Image.fromarray(output[:, :, ::-1])
     _unload_face_restorer()
     return {"images": [_encode_image_to_base64(result_image)], "source": "GFPGAN"}
+
+@app.post("/sdapi/v1/face-fix")
+def face_fix(req: FaceFixRequest):
+    task_id = str(uuid.uuid4())
+    tasks[task_id] = {"status": "processing"}
+    threading.Thread(target=_bg_runner, args=(task_id, _do_face_fix, req)).start()
+    return {"task_id": task_id}
 
 threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning"), daemon=True).start()
 time.sleep(2)

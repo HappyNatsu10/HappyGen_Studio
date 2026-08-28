@@ -5,6 +5,32 @@
 
 const DEFAULT_NEGATIVE_PROMPT = "bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
 
+
+const asyncFetch = async (url, options) => {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || errData.detail || `Server returned HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  
+  if (data.task_id) {
+    let pollData = data;
+    const backendUrl = url.split('/sdapi')[0].split('/api')[0];
+    while (pollData.status !== 'completed' && pollData.status !== 'failed') {
+      await new Promise(r => setTimeout(r, 3000));
+      const pollRes = await fetch(`${backendUrl}/async/status/${data.task_id}`);
+      if (!pollRes.ok) throw new Error(`Polling failed with HTTP ${pollRes.status}`);
+      pollData = await pollRes.json();
+    }
+    if (pollData.status === 'failed') throw new Error(pollData.error || 'Task failed');
+    if (pollData.error) throw new Error(pollData.error);
+    return pollData.result;
+  }
+  
+  return data;
+};
+
 let lastUsedModelName = null;
 
 const flushMemoryIfModelChanged = async (backendUrl, targetModelName) => {
@@ -73,7 +99,7 @@ export const generateImageAI = async ({
     let usedEngineName = `GPU (${baseModel?.name || baseModel || 'default'})`;
 
     try {
-      const res = await fetch(`${backendUrl}/sdapi/v1/txt2img`, {
+      const data = await asyncFetch(`${backendUrl}/sdapi/v1/txt2img`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,19 +126,11 @@ export const generateImageAI = async ({
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        if (data.images?.length > 0) {
-          const rawB64 = data.images[0];
-          imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-          if (data.source) usedEngineName = data.source;
-        }
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+      if (data.error) throw new Error(data.error);
+      if (data.images?.length > 0) {
+        const rawB64 = data.images[0];
+        imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+        if (data.source) usedEngineName = data.source;
       }
     } catch (err) {
       let errorMessage = err.message || "Connection failed";
@@ -153,7 +171,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
   const imagePayload = sourceImage;
 
   try {
-    const res = await fetch(`${backendUrl}/sdapi/v1/interrogate`, {
+    const data = await asyncFetch(`${backendUrl}/sdapi/v1/interrogate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -162,15 +180,8 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.caption) {
-        return data.caption;
-      }
-      throw new Error('No caption returned from the server.');
-    }
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+    if (data.caption) return data.caption;
+    throw new Error('No caption returned from the server.');
   } catch (err) {
     let errorMessage = err.message || "Connection failed";
     if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
@@ -187,7 +198,7 @@ export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
 
   try {
-    const res = await fetch(`${backendUrl}/sdapi/v1/extra-single-image`, {
+    const data = await asyncFetch(`${backendUrl}/sdapi/v1/extra-single-image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -196,22 +207,18 @@ export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.images?.length > 0) {
-        const rawB64 = data.images[0];
-        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-        return [{
-          id: `up-${Date.now()}`,
-          url: imageUrl,
-          prompt: 'Upscaled Image',
-          modelUsed: data.source || 'Real-ESRGAN',
-          createdAt: new Date().toISOString(),
-        }];
-      }
+    if (data.images?.length > 0) {
+      const rawB64 = data.images[0];
+      const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+      return [{
+        id: `up-${Date.now()}`,
+        url: imageUrl,
+        prompt: 'Upscaled Image',
+        modelUsed: data.source || 'Real-ESRGAN',
+        createdAt: new Date().toISOString(),
+      }];
     }
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || errData.detail || `Server returned HTTP ${res.status}`);
+    throw new Error("No image data returned from upscaler.");
   } catch (err) {
     let errorMessage = err.message || "Connection failed";
     if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
@@ -248,7 +255,7 @@ export const generateImg2Img = async ({
   await flushMemoryIfModelChanged(backendUrl, currentModelName);
 
   try {
-    const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
+    const data = await asyncFetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -277,26 +284,20 @@ export const generateImg2Img = async ({
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      if (data.images?.length > 0) {
-        const rawB64 = data.images[0];
-        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-        return [{
-          id: `img2img-${Date.now()}`,
-          url: imageUrl,
-          prompt,
-          seed,
-          createdAt: new Date().toISOString(),
-          isAdult: isAdultMode,
-        }];
-      }
+    if (data.error) throw new Error(data.error);
+    if (data.images?.length > 0) {
+      const rawB64 = data.images[0];
+      const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+      return [{
+        id: `img2img-${Date.now()}`,
+        url: imageUrl,
+        prompt,
+        seed,
+        createdAt: new Date().toISOString(),
+        isAdult: isAdultMode,
+      }];
     }
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+    throw new Error("No image data returned from img2img.");
   } catch (err) {
     let errorMessage = err.message || "Connection failed";
     if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
@@ -313,7 +314,7 @@ export const faceFixImage = async ({ sourceImage, prompt }) => {
   const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
 
   try {
-    const res = await fetch(`${backendUrl}/sdapi/v1/face-fix`, {
+    const data = await asyncFetch(`${backendUrl}/sdapi/v1/face-fix`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -322,22 +323,18 @@ export const faceFixImage = async ({ sourceImage, prompt }) => {
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.images?.length > 0) {
-        const rawB64 = data.images[0];
-        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-        return [{
-          id: `fix-${Date.now()}`,
-          url: imageUrl,
-          prompt: 'Face Fix applied',
-          modelUsed: data.source || 'GFPGAN',
-          createdAt: new Date().toISOString(),
-        }];
-      }
+    if (data.images?.length > 0) {
+      const rawB64 = data.images[0];
+      const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+      return [{
+        id: `fix-${Date.now()}`,
+        url: imageUrl,
+        prompt: 'Face Fix applied',
+        modelUsed: data.source || 'GFPGAN',
+        createdAt: new Date().toISOString(),
+      }];
     }
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || errData.detail || `Server returned HTTP ${res.status}`);
+    throw new Error("No image data returned from face fix.");
   } catch (err) {
     let errorMessage = err.message || "Connection failed";
     if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
@@ -372,7 +369,7 @@ export const inpaintImage = async ({
   await flushMemoryIfModelChanged(backendUrl, currentModelName);
 
   try {
-    const res = await fetch(`${backendUrl}/sdapi/v1/img2img`, {
+    const data = await asyncFetch(`${backendUrl}/sdapi/v1/img2img`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -402,26 +399,20 @@ export const inpaintImage = async ({
       }),
     });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      if (data.images?.length > 0) {
-        const rawB64 = data.images[0];
-        const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
-        return [{
-          id: `inpaint-${Date.now()}`,
-          url: imageUrl,
-          prompt,
-          seed,
-          createdAt: new Date().toISOString(),
-          isAdult: isAdultMode,
-        }];
-      }
+    if (data.error) throw new Error(data.error);
+    if (data.images?.length > 0) {
+      const rawB64 = data.images[0];
+      const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
+      return [{
+        id: `inpaint-${Date.now()}`,
+        url: imageUrl,
+        prompt,
+        seed,
+        createdAt: new Date().toISOString(),
+        isAdult: isAdultMode,
+      }];
     }
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || errData.message || `Server returned HTTP ${res.status}`);
+    throw new Error("No image data returned from inpaint.");
   } catch (err) {
     throw new Error(`Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your server.`);
   }
