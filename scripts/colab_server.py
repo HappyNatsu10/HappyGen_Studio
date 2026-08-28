@@ -69,23 +69,21 @@ nest_asyncio.apply()
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-_clip_model = _clip_preprocess = _clip_tokenizer = _upscaler = _face_restorer = None
+_clip_model = _clip_preprocess = _upscaler = _face_restorer = None
 
 def _load_clip():
-    global _clip_model, _clip_preprocess, _clip_tokenizer
+    global _clip_model, _clip_preprocess
     if _clip_model is not None: return
-    import open_clip
-    model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
-    _clip_model = model.to("cuda").eval()
-    _clip_preprocess = preprocess
-    _clip_tokenizer = open_clip.get_tokenizer('ViT-B-32')
+    from transformers import BlipProcessor, BlipForConditionalGeneration
+    _clip_preprocess = BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-large')
+    _clip_model = BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-large').to("cuda", torch.float16)
 
 def _unload_clip():
-    global _clip_model, _clip_preprocess, _clip_tokenizer
+    global _clip_model, _clip_preprocess
     if _clip_model is not None:
         _clip_model = _clip_model.to("cpu")
-        del _clip_model, _clip_preprocess, _clip_tokenizer
-        _clip_model = _clip_preprocess = _clip_tokenizer = None
+        del _clip_model, _clip_preprocess
+        _clip_model = _clip_preprocess = None
         gc.collect()
         torch.cuda.empty_cache()
 
@@ -199,9 +197,16 @@ def health():
 
 @app.post("/sdapi/v1/unload-checkpoint")
 def unload_checkpoint():
+    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img
+    CURRENT_BASE_MODEL_FILE = None
+    if 'pipe' in globals():
+        try: del pipe
+        except: pass
+    if 'pipe_img2img' in globals():
+        try: del pipe_img2img
+        except: pass
     gc.collect()
     torch.cuda.empty_cache()
-    torch.cuda.ipc_collect()
     vram_free = torch.cuda.mem_get_info()[0] / (1024**3)
     return {"status": "ok", "vram_free_gb": round(vram_free, 2)}
 
@@ -314,24 +319,12 @@ def img2img(req: Img2ImgRequest):
 def interrogate(req: InterrogateRequest):
     _load_clip()
     image = _decode_base64_image(req.image)
-    image_tensor = _clip_preprocess(image).unsqueeze(0).to("cuda")
-    with torch.no_grad(), torch.cuda.amp.autocast():
-        image_features = _clip_model.encode_image(image_tensor)
-        image_features /= image_features.norm(dim=-1, keepdim=True)
-    candidate_labels = ["1girl", "1boy", "2girls", "solo", "anime", "realistic", "masterpiece", "highly detailed", "long hair", "short hair", "blonde hair", "black hair", "blue eyes", "red eyes", "smile", "serious", "school uniform", "dress", "outdoors", "indoors", "city", "close-up", "full body", "cinematic lighting"]
-    text_tokens = _clip_tokenizer(candidate_labels).to("cuda")
-    with torch.no_grad(), torch.cuda.amp.autocast():
-        text_features = _clip_model.encode_text(text_tokens)
-        text_features /= text_features.norm(dim=-1, keepdim=True)
-    similarity = (image_features @ text_features.T).squeeze(0)
-    scores = similarity.cpu().numpy()
-    top_indices = scores.argsort()[::-1]
-    caption_parts = []
-    for idx in top_indices:
-        if scores[idx] > 0.20 and len(caption_parts) < 8:
-            caption_parts.append(candidate_labels[idx])
+    inputs = _clip_preprocess(image, return_tensors="pt").to("cuda", torch.float16)
+    with torch.no_grad():
+        out = _clip_model.generate(**inputs, max_new_tokens=50)
+    caption = _clip_preprocess.decode(out[0], skip_special_tokens=True)
     _unload_clip()
-    return {"caption": ", ".join(caption_parts)}
+    return {"caption": caption}
 
 @app.post("/sdapi/v1/extra-single-image")
 def upscale(req: UpscaleRequest):
