@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Union
 import uvicorn
+from pycloudflared import try_cloudflare
 import requests
 import gc
 
@@ -17,10 +18,9 @@ def run_cmd(cmd):
     print(f"Running: {cmd}")
     os.system(cmd)
 
-run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic nest_asyncio python-multipart peft open_clip_torch")
+run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch")
 run_cmd("pip install -q git+https://github.com/xinntao/BasicSR.git")
 run_cmd("pip install -q realesrgan gfpgan")
-run_cmd("npm install -g localtunnel")
 
 # Cell 2: Download Models & SDXL Lightning Accelerator
 os.makedirs("/content/Models", exist_ok=True)
@@ -373,11 +373,5 @@ def face_fix(req: FaceFixRequest):
 
 threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning"), daemon=True).start()
 time.sleep(2)
-print("\n🌐 Starting Localtunnel (No Timeouts)...")
-lt_process = subprocess.Popen(["lt", "--port", "8000"], stdout=subprocess.PIPE)
-for line in lt_process.stdout:
-    decoded = line.decode('utf-8')
-    if "your url is:" in decoded:
-        url = decoded.split("is:")[1].strip()
-        print(f"\n🎉 COPY THIS URL: {url} \n")
-        break
+tunnel = try_cloudflare(port=8000)
+print(f"\n🎉 COPY THIS URL: {tunnel.tunnel}\n")
