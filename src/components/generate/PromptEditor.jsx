@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wand2, Lightbulb } from 'lucide-react';
+import ImageToPromptModal from './ImageToPromptModal';
 
 const QUICK_TAGS = [
   '1girl', 'solo', 'masterpiece', 'best quality', 'detailed eyes',
@@ -16,6 +17,8 @@ export default function PromptEditor({
   setNegativePrompt,
   onEnhance,
 }) {
+  const [isPromptModalOpen, setIsPromptModalOpen] = React.useState(false);
+
   const handleAppendTag = (tag) => {
     setPrompt(prev => {
       if (!prev.trim()) return tag;
@@ -34,14 +37,27 @@ export default function PromptEditor({
     setPrompt(prev => prev.trim() + pick);
   };
 
+  const handleUseGeneratedPrompt = (generatedTags) => {
+    setPrompt(generatedTags);
+  };
+
   return (
     <div className="space-y-3">
       {/* Main Prompt */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="text-[12px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-            Prompt
-          </label>
+          <div className="flex items-center gap-3">
+            <label className="text-[12px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+              Prompt
+            </label>
+            <button
+              onClick={() => setIsPromptModalOpen(true)}
+              className="text-[10px] font-medium px-2 py-1 rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300 transition-colors flex items-center gap-1"
+            >
+              <Lightbulb className="w-3 h-3" />
+              Image To Prompt
+            </button>
+          </div>
           <span className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>
             {prompt.length} chars
           </span>
@@ -65,6 +81,13 @@ export default function PromptEditor({
           </button>
         </div>
       </div>
+      
+      {/* Image to Prompt Modal */}
+      <ImageToPromptModal 
+        isOpen={isPromptModalOpen} 
+        onClose={() => setIsPromptModalOpen(false)} 
+        onUsePrompt={handleUseGeneratedPrompt} 
+      />
 
       {/* LoRA Triggers */}
       {loraPrompt !== undefined && (

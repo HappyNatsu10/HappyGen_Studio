@@ -178,6 +178,12 @@ export default function GeneratePage() {
 
       setResults(images);
       addGeneratedAssets(images);
+      
+      const warnedImage = images.find(img => img.hasWarning);
+      if (warnedImage) {
+        setError("⚠️ Quality Warning: " + warnedImage.warningReason);
+      }
+      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -199,7 +205,7 @@ export default function GeneratePage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex flex-col gap-6 w-full md:w-[400px] flex-shrink-0 md:overflow-y-auto z-10 glass-panel border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md rounded-[22px] p-6 shadow-xl relative scrollbar-hide"
+        className="flex flex-col gap-6 w-full md:w-[400px] flex-shrink-0 md:overflow-y-auto overflow-x-hidden z-10 glass-panel border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md rounded-[22px] p-6 shadow-xl relative scrollbar-hide"
       >
         
         {/* Mode Selector */}
@@ -208,10 +214,10 @@ export default function GeneratePage() {
         </motion.div>
 
         {/* Upload Zone (conditionally shown) */}
-        {['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && (
+        {['variations', 'img2img', 'upscale', 'facefix'].includes(generationMode) && (
           <motion.div variants={itemVariants}>
             <ImageUploadZone 
-              label={generationMode === 'upscale' ? 'Image to Upscale' : (generationMode === 'facefix' ? 'Image to Fix' : (generationMode === 'interrogate' ? 'Image to Analyze' : 'Source Image'))} 
+              label={generationMode === 'upscale' ? 'Image to Upscale' : (generationMode === 'facefix' ? 'Image to Fix' : 'Source Image')} 
               value={sourceImage} 
               onChange={setSourceImage} 
             />
