@@ -6,11 +6,15 @@ import Tooltip from '../common/Tooltip';
 export default function ModelSelector({
   baseModel,
   loras,
+  embeddings = [],
   onOpenExplorerBase,
   onOpenExplorerLora,
+  onOpenExplorerEmbedding,
   onRemoveLora,
   onUpdateLoraWeight,
   onClearLoras,
+  onRemoveEmbedding,
+  onClearEmbeddings,
 }) {
   return (
     <div className="space-y-3">
@@ -19,10 +23,13 @@ export default function ModelSelector({
         <ActiveModelBar
           baseModel={baseModel}
           loras={loras}
+          embeddings={embeddings}
           onRemoveLora={onRemoveLora}
           onUpdateWeight={onUpdateLoraWeight}
           onClearLoras={onClearLoras}
           onChangeModel={onOpenExplorerBase}
+          onRemoveEmbedding={onRemoveEmbedding}
+          onClearEmbeddings={onClearEmbeddings}
         />
       ) : (
         <button
@@ -41,7 +48,7 @@ export default function ModelSelector({
         </button>
       )}
 
-      {/* Add LoRA Button */}
+      {/* Add LoRA/Embedding Buttons */}
       {baseModel && (
         <div className="flex items-center gap-2">
           <button
@@ -49,9 +56,18 @@ export default function ModelSelector({
             className="btn btn-ghost flex-1 text-[12px] flex items-center justify-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            Browse & Add LoRAs
+            Add LoRA
           </button>
-          <Tooltip text="Low-Rank Adaptations. Mini-models that sit on top of the base model to add specific characters, concepts, or styles.">
+          
+          <button
+            onClick={onOpenExplorerEmbedding}
+            className="btn btn-ghost flex-1 text-[12px] flex items-center justify-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Embedding
+          </button>
+          
+          <Tooltip text="Modifiers that sit on top of the base model. LoRAs add visual styles/characters. Embeddings (Textual Inversions) add custom words to the vocabulary.">
             <HelpCircle className="w-4 h-4 text-slate-500 cursor-help flex-shrink-0 mr-1" />
           </Tooltip>
         </div>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 const STORAGE_KEY_BASE = 'omnigen_selected_base_model';
 const STORAGE_KEY_LORAS = 'omnigen_active_loras';
+const STORAGE_KEY_EMBEDDINGS = 'omnigen_active_embeddings';
 
 const useModelStore = create((set, get) => ({
   // Engines
@@ -82,11 +83,52 @@ const useModelStore = create((set, get) => ({
     set({ loras: [] });
   },
 
+  // Embeddings
+  embeddings: (() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_EMBEDDINGS);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  })(),
+
+  addEmbedding: (embedding) => set((state) => {
+    if (state.embeddings.some(e => e.id === embedding.id)) return state;
+    const newEmbeds = [...state.embeddings, {
+      id: embedding.id,
+      versionId: embedding.versionId || embedding.version?.id,
+      name: embedding.name,
+      triggerWords: embedding.triggerWords || embedding.version?.trainedWords || [],
+      thumbnailUrl: embedding.thumbnailUrl || null,
+      baseModel: embedding.baseModel || embedding.version?.baseModel || 'Unknown',
+      downloadUrl: embedding.downloadUrl || embedding.version?.downloadUrl || null,
+      fileName: embedding.fileName || embedding.version?.fileName || null,
+    }];
+    localStorage.setItem(STORAGE_KEY_EMBEDDINGS, JSON.stringify(newEmbeds));
+    return { embeddings: newEmbeds };
+  }),
+
+  removeEmbedding: (embeddingId) => set((state) => {
+    const newEmbeds = state.embeddings.filter(e => e.id !== embeddingId);
+    localStorage.setItem(STORAGE_KEY_EMBEDDINGS, JSON.stringify(newEmbeds));
+    return { embeddings: newEmbeds };
+  }),
+
+  clearEmbeddings: () => {
+    localStorage.setItem(STORAGE_KEY_EMBEDDINGS, JSON.stringify([]));
+    set({ embeddings: [] });
+  },
+
   // Computed selector for trigger words
   getCombinedTriggerWords: () => {
-    return get().loras.reduce((acc, l) => {
+    const loraWords = get().loras.reduce((acc, l) => {
       return [...acc, ...(l.triggerWords || [])];
     }, []);
+    const embedWords = get().embeddings.reduce((acc, e) => {
+      return [...acc, ...(e.triggerWords || [])];
+    }, []);
+    return [...loraWords, ...embedWords];
   }
 }));
 

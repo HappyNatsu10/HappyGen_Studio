@@ -72,6 +72,7 @@ export const generateImageAI = async ({
   prompt,
   baseModel = '',
   loras = [],
+  embeddings = [],
   width = 512,
   height = 768,
   seed = Math.floor(Math.random() * 2147483647),
@@ -121,6 +122,11 @@ export const generateImageAI = async ({
             weight: l.weight ?? 0.8,
             downloadUrl: l.version?.downloadUrl || l.downloadUrl,
             fileName: l.version?.fileName || l.fileName
+          })),
+          embeddings: embeddings.map(e => ({
+            name: e.id || e.name,
+            downloadUrl: e.version?.downloadUrl || e.downloadUrl,
+            fileName: e.version?.fileName || e.fileName
           })),
           civitai_api_key: civitaiApiKey,
         }),
@@ -240,6 +246,7 @@ export const generateImg2Img = async ({
   seed = Math.floor(Math.random() * 2147483647),
   baseModel = '',
   loras = [],
+  embeddings = [],
   steps = 20,
   guidanceScale = 6.5,
   isAdultMode = false,
@@ -279,6 +286,11 @@ export const generateImg2Img = async ({
           weight: l.weight ?? 0.8,
           downloadUrl: l.version?.downloadUrl || l.downloadUrl,
           fileName: l.version?.fileName || l.fileName
+        })),
+        embeddings: embeddings.map(e => ({
+          name: e.id || e.name,
+          downloadUrl: e.version?.downloadUrl || e.downloadUrl,
+          fileName: e.version?.fileName || e.fileName
         })),
         civitai_api_key: civitaiApiKey,
       }),
@@ -354,6 +366,7 @@ export const inpaintImage = async ({
   seed = Math.floor(Math.random() * 2147483647),
   baseModel = '',
   loras = [],
+  embeddings = [],
   steps = 20,
   guidanceScale = 6.5,
   isAdultMode = false,
@@ -394,6 +407,11 @@ export const inpaintImage = async ({
           weight: l.weight ?? 0.8,
           downloadUrl: l.version?.downloadUrl || l.downloadUrl,
           fileName: l.version?.fileName || l.fileName
+        })),
+        embeddings: embeddings.map(e => ({
+          name: e.id || e.name,
+          downloadUrl: e.version?.downloadUrl || e.downloadUrl,
+          fileName: e.version?.fileName || e.fileName
         })),
         civitai_api_key: civitaiApiKey,
       }),

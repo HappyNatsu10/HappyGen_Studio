@@ -8,7 +8,7 @@ import useModelStore from '../../store/useModelStore';
 
 export default function ModelSelectionModal() {
   const { showModelModal: isOpen, closeModelModal: onClose, isAdultMode, modalEngineContext: engineContext } = useAppStore();
-  const { setBaseModel, addLora } = useModelStore();
+  const { setBaseModel, addLora, addEmbedding } = useModelStore();
   const [animationClass, setAnimationClass] = useState('opacity-0 scale-95');
   const [validationError, setValidationError] = useState(null);
 
@@ -58,7 +58,7 @@ export default function ModelSelectionModal() {
           <div>
             <h2 className="text-[16px] font-semibold flex items-center gap-2 text-white">
               <Cpu className="w-4 h-4 text-purple-400" />
-              {intent === 'lora' ? 'Browse & Add LoRA' : 'Select Base Model'}
+              {intent === 'lora' ? 'Browse & Add LoRA' : (intent === 'embedding' ? 'Browse & Add Embedding' : 'Select Base Model')}
             </h2>
             {forcedBaseModel !== 'All' && intent === 'lora' && (
               <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
@@ -86,7 +86,7 @@ export default function ModelSelectionModal() {
           <ModelExplorer
             isAdultMode={isAdultMode}
             forcedBaseModel={forcedBaseModel}
-            forcedType={intent === 'lora' ? 'LORA' : 'Checkpoint'}
+            forcedType={intent === 'lora' ? 'LORA' : (intent === 'embedding' ? 'TextualInversion' : 'Checkpoint')}
             onSelectBaseModel={(model) => {
               setBaseModel({
                 id: model.id,
@@ -120,6 +120,10 @@ export default function ModelSelectionModal() {
                 }
               }
               addLora(lora);
+              onClose();
+            }}
+            onAddEmbedding={(embedding) => {
+              addEmbedding(embedding);
               onClose();
             }}
             isModal={true}

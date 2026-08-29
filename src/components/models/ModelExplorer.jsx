@@ -7,7 +7,7 @@ import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 
 const BASE_MODEL_FILTERS = ['All', 'Pony', 'SDXL 1.0', 'Illustrious', 'SD 1.5', 'Flux.1 D'];
-const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA'];
+const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA', 'TextualInversion'];
 const SORT_OPTIONS = ['Most Downloaded', 'Highest Rated', 'Newest'];
 
 export default function ModelExplorer(props) {
@@ -145,7 +145,7 @@ export default function ModelExplorer(props) {
                 disabled={!!forcedType}
                 style={{ opacity: forcedType && typeFilter !== t ? 0.5 : 1, cursor: forcedType ? 'not-allowed' : 'pointer' }}
               >
-                {t === 'LORA' ? 'LoRA' : t}
+                {t === 'LORA' ? 'LoRA' : (t === 'TextualInversion' ? 'Embedding' : t)}
               </button>
             ))}
 
@@ -264,6 +264,10 @@ export default function ModelExplorer(props) {
             onAddLora(model);
             setSelectedModel(null);
           }}
+          onAddEmbedding={(model) => {
+            if (props.onAddEmbedding) props.onAddEmbedding(model);
+            setSelectedModel(null);
+          }}
           isFav={isFavourited(selectedModel.id)}
           onToggleFav={() => toggleFavourite(selectedModel)}
         />
@@ -301,7 +305,7 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
         {/* Badges */}
         <div className="absolute top-2 left-2">
           <span className={`badge shadow-sm ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`} style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
-            {model.type === 'LORA' ? 'LoRA' : model.type}
+            {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? 'Embedding' : model.type)}
           </span>
         </div>
 

@@ -34,8 +34,9 @@ export default function GeneratePage() {
   const { isAdultMode, openModelModal } = useAppStore();
   const { 
     imageEngine, setImageEngine, 
-    baseModel, loras, 
-    removeLora, updateLoraWeight, clearLoras 
+    baseModel, loras, embeddings,
+    removeLora, updateLoraWeight, clearLoras,
+    removeEmbedding, clearEmbeddings
   } = useModelStore();
   const { addGeneratedAssets, setCanvasTargetImage } = useWorkspaceStore();
   const onSendToCanvas = (url) => {
@@ -160,6 +161,7 @@ export default function GeneratePage() {
         engine: imageEngine,
         baseModel: baseModel,
         loras: loras,
+        embeddings: embeddings,
       };
 
       let images = [];
@@ -265,11 +267,15 @@ export default function GeneratePage() {
             <ModelSelector
               baseModel={baseModel}
               loras={loras}
+              embeddings={embeddings}
               onOpenExplorerBase={() => openModelModal({ intent: 'base' })}
               onOpenExplorerLora={() => openModelModal({ intent: 'lora', arch: baseModel?.version?.baseModel })}
+              onOpenExplorerEmbedding={() => openModelModal({ intent: 'embedding' })}
               onRemoveLora={removeLora}
               onUpdateLoraWeight={updateLoraWeight}
               onClearLoras={clearLoras}
+              onRemoveEmbedding={removeEmbedding}
+              onClearEmbeddings={clearEmbeddings}
             />
           </motion.div>
         )}
