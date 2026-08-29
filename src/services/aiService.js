@@ -3,7 +3,7 @@
  * Communicates with configured backend (Local GPU / Google Colab).
  */
 
-const DEFAULT_NEGATIVE_PROMPT = "bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
+const DEFAULT_NEGATIVE_PROMPT = "score_6, score_5, score_4, bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
 
 
 const asyncFetch = async (url, options) => {
