@@ -52,12 +52,14 @@ export async function searchModels({
   sort = 'Most Downloaded',
   nsfw = false,
   limit = 20,
+  tag,
   cursor,
 } = {}) {
   const params = new URLSearchParams();
   if (query) params.set('query', query);
   if (type) params.set('types', type);
   if (baseModel) params.set('baseModels', baseModel);
+  if (tag) params.set('tag', tag);
   if (sort) params.set('sort', sort);
   
   // If we're on the .red domain, nsfw is effectively implied/allowed, but we can pass it anyway
