@@ -70,6 +70,7 @@ export function AuthProvider({ children }) {
       generatedCount: 0,
       savedPrompts: [],
       favoriteImages: [],
+      favouriteFolders: ['Uncategorized'],
       customSettings: {
         preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
         defaultSteps: 20,
@@ -109,7 +110,8 @@ export function AuthProvider({ children }) {
       generatedCount: 0,
       isGuest: true,
       savedPrompts: [],
-      favoriteImages: []
+      favoriteImages: [],
+      favouriteFolders: ['Uncategorized']
     };
     setCurrentUser(guestUser);
     setShowAuthModal(false);

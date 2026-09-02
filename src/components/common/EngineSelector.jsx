@@ -28,7 +28,7 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
     <div className="relative w-full" ref={dropdownRef}>
       <label className="text-[12px] font-medium flex items-center gap-1.5 mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
         {label}
-        <Tooltip text="The backend provider or hardware powering the generation.">
+        <Tooltip position="center" text="The backend provider or hardware powering the generation.">
           <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
         </Tooltip>
       </label>

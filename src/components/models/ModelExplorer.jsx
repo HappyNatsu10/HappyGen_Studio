@@ -38,7 +38,10 @@ export default function ModelExplorer(props) {
   const [hasMore, setHasMore] = useState(false);
   const [selectedModel, setSelectedModel] = useState(null);
 
-  const { favourites, toggleFavourite, isFavourited } = useFavouriteModels();
+  const [favSortBy, setFavSortBy] = useState('Date Added');
+  const [activeFolder, setActiveFolder] = useState('All');
+
+  const { favourites, folders, toggleFavourite, isFavourited, createFolder } = useFavouriteModels();
 
   const doSearch = useCallback(async (append = false) => {
     if (activeTab !== 'Search') return;
@@ -92,7 +95,25 @@ export default function ModelExplorer(props) {
   }, [forcedType]);
 
   // Handle Tab changes
-  const displayResults = activeTab === 'Search' ? results : (activeTab === 'Favourites' ? favourites : []);
+  let displayResults = activeTab === 'Search' ? results : favourites;
+
+  if (activeTab === 'Favourites') {
+    // Filter by folder
+    if (activeFolder !== 'All') {
+      displayResults = displayResults.filter(m => m.folder === activeFolder);
+    }
+    // Filter by query (local search)
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      displayResults = displayResults.filter(m => m.name.toLowerCase().includes(q) || m.creator.toLowerCase().includes(q));
+    }
+    // Sort
+    displayResults = [...displayResults].sort((a, b) => {
+      if (favSortBy === 'Name (A-Z)') return a.name.localeCompare(b.name);
+      if (favSortBy === 'Most Downloaded') return (b.stats?.downloads || 0) - (a.stats?.downloads || 0);
+      return (b.addedAt || 0) - (a.addedAt || 0); // Date Added (default)
+    });
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -104,7 +125,7 @@ export default function ModelExplorer(props) {
             <input
               type="text"
               value={query}
-              onChange={e => { setQuery(e.target.value); setActiveTab('Search'); }}
+              onChange={e => setQuery(e.target.value)}
               placeholder="Search models & LoRAs on CivitAI..."
               className="input w-full pl-10 pr-10"
             />
@@ -205,6 +226,56 @@ export default function ModelExplorer(props) {
                   {s}
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Favourites Controls */}
+        {activeTab === 'Favourites' && (
+          <div className="flex flex-col gap-3 pb-2 border-b border-white/5">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              {/* Folders */}
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
+                  Folder:
+                </span>
+                {['All', ...folders].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setActiveFolder(f)}
+                    className={`chip ${activeFolder === f ? 'active' : ''}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+                <button
+                  onClick={() => {
+                    const name = window.prompt("Enter new folder name:");
+                    if (name) {
+                      createFolder(name);
+                      setActiveFolder(name);
+                    }
+                  }}
+                  className="chip opacity-60 hover:opacity-100"
+                >
+                  + New
+                </button>
+              </div>
+
+              {/* Sort */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Sort:</span>
+                <select
+                  value={favSortBy}
+                  onChange={e => setFavSortBy(e.target.value)}
+                  className="input text-xs py-1.5 px-2"
+                  style={{ minWidth: 140 }}
+                >
+                  <option value="Date Added">Date Added</option>
+                  <option value="Name (A-Z)">Name (A-Z)</option>
+                  <option value="Most Downloaded">Most Downloaded</option>
+                </select>
+              </div>
             </div>
           </div>
         )}

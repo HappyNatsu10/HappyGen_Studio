@@ -99,6 +99,9 @@ export const generateImageAI = async ({
     let imageUrl = '';
     let usedEngineName = `GPU (${baseModel?.name || baseModel || 'default'})`;
 
+    let hasWarning = false;
+    let warningReason = '';
+
     try {
       const data = await asyncFetch(`${backendUrl}/sdapi/v1/txt2img`, {
         method: 'POST',
@@ -133,8 +136,6 @@ export const generateImageAI = async ({
       });
 
       if (data.error) throw new Error(data.error);
-      let hasWarning = false;
-      let warningReason = '';
 
       if (data.images?.length > 0) {
         const rawB64 = data.images[0];

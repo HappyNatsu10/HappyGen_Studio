@@ -67,7 +67,7 @@ export default function ModelSelector({
             Add Embedding
           </button>
           
-          <Tooltip text="Modifiers that sit on top of the base model. LoRAs add visual styles/characters. Embeddings (Textual Inversions) add custom words to the vocabulary.">
+          <Tooltip position="right" text="Modifiers that sit on top of the base model. LoRAs add visual styles/characters. Embeddings (Textual Inversions) add custom words to the vocabulary.">
             <HelpCircle className="w-4 h-4 text-slate-500 cursor-help flex-shrink-0 mr-1" />
           </Tooltip>
         </div>

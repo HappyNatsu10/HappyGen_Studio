@@ -5,6 +5,7 @@ export function useFavouriteModels() {
   const { currentUser, updateProfile, openAuth } = useAuth();
 
   const favourites = currentUser?.favouriteModels || [];
+  const folders = currentUser?.favouriteFolders || ['Uncategorized'];
 
   const isFavourited = useCallback((modelId) => {
     return favourites.some(m => m.id === modelId);
@@ -30,7 +31,10 @@ export function useFavouriteModels() {
         thumbnailUrl: model.thumbnailUrl,
         creator: model.creator,
         stats: model.stats,
-        version: model.version || model.versions?.[0]
+        version: model.version || model.versions?.[0],
+        versions: model.versions || (model.version ? [model.version] : []),
+        addedAt: Date.now(),
+        folder: 'Uncategorized',
       };
       newFavourites = [...favourites, modelDataToSave];
     }
@@ -38,10 +42,28 @@ export function useFavouriteModels() {
     updateProfile({ favouriteModels: newFavourites });
   }, [currentUser, favourites, isFavourited, updateProfile, openAuth]);
 
+  const createFolder = useCallback((folderName) => {
+    if (!currentUser) return;
+    const name = folderName.trim();
+    if (!name || folders.includes(name)) return;
+    updateProfile({ favouriteFolders: [...folders, name] });
+  }, [currentUser, folders, updateProfile]);
+
+  const moveModelToFolder = useCallback((modelId, folderName) => {
+    if (!currentUser) return;
+    const newFavourites = favourites.map(m => 
+      m.id === modelId ? { ...m, folder: folderName } : m
+    );
+    updateProfile({ favouriteModels: newFavourites });
+  }, [currentUser, favourites, updateProfile]);
+
   return {
     favourites,
+    folders,
     isFavourited,
     toggleFavourite,
+    createFolder,
+    moveModelToFolder,
     favouriteCount: favourites.length
   };
 }
