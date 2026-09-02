@@ -19,6 +19,8 @@ const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA', 'TextualInversion'];
 const SORT_OPTIONS = ['Most Downloaded', 'Highest Rated', 'Newest'];
 const CATEGORY_TAGS = ['anime', 'character', 'style', 'concept', 'clothing', 'background', 'poses', 'buildings', 'vehicle', 'action', 'exclusive', 'negative', 'other'];
 const CATEGORY_FILTERS = ['All', 'Anime', 'Character', 'Style', 'Concept', 'Clothing', 'Background', 'Poses', 'Buildings', 'Vehicle', 'Action', 'Exclusive', 'Negative', 'Other'];
+const STYLE_TAGS = ['anime', 'realistic', 'photorealistic', '3d', 'cartoon', 'illustration', 'painting', 'sketch', 'vintage'];
+const STYLE_FILTERS = ['All', 'Anime', 'Realistic', 'Photorealistic', '3D', 'Cartoon', 'Illustration'];
 
 export default function ModelExplorer(props) {
   const storeIsAdultMode = useAppStore(state => state.isAdultMode);
@@ -36,7 +38,9 @@ export default function ModelExplorer(props) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState(forcedType || 'All');
   const [baseModelFilter, setBaseModelFilter] = useState(forcedBaseModel && forcedBaseModel !== 'All' ? forcedBaseModel : 'All');
+  const [styleFilter, setStyleFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [activeTagFilter, setActiveTagFilter] = useState('none'); // 'style' or 'category'
   const [sortBy, setSortBy] = useState('Most Downloaded');
   
   const [results, setResults] = useState([]);
@@ -75,7 +79,7 @@ export default function ModelExplorer(props) {
         query: query.trim() || undefined,
         type: typeFilter !== 'All' ? typeFilter : undefined,
         baseModel: baseModelFilter !== 'All' ? baseModelFilter : undefined,
-        tag: categoryFilter !== 'All' ? categoryFilter.toLowerCase() : undefined,
+        tag: activeTagFilter === 'category' && categoryFilter !== 'All' ? categoryFilter.toLowerCase() : (styleFilter !== 'All' ? styleFilter.toLowerCase() : undefined),
         sort: sortBy,
         nsfw: isAdultMode || false,
         limit: 20,
@@ -94,7 +98,7 @@ export default function ModelExplorer(props) {
     } finally {
       setLoading(false);
     }
-  }, [query, typeFilter, baseModelFilter, categoryFilter, sortBy, isAdultMode, cursor, activeTab]);
+  }, [query, typeFilter, baseModelFilter, categoryFilter, styleFilter, sortBy, isAdultMode, cursor, activeTab, activeTagFilter]);
 
   // Initial load + filter changes
   useEffect(() => {
@@ -102,7 +106,7 @@ export default function ModelExplorer(props) {
       const timeout = setTimeout(() => doSearch(false), query ? 400 : 0);
       return () => clearTimeout(timeout);
     }
-  }, [query, typeFilter, baseModelFilter, categoryFilter, sortBy, isAdultMode, activeTab]);
+  }, [query, typeFilter, baseModelFilter, categoryFilter, styleFilter, sortBy, isAdultMode, activeTab, activeTagFilter]);
 
   useEffect(() => {
     if (forcedBaseModel && forcedBaseModel !== 'All') {
@@ -242,7 +246,15 @@ export default function ModelExplorer(props) {
               </span>
               <select
                 value={categoryFilter}
-                onChange={e => setCategoryFilter(e.target.value)}
+                onChange={e => {
+                  setCategoryFilter(e.target.value);
+                  if (e.target.value !== 'All') {
+                    setActiveTagFilter('category');
+                    setStyleFilter('All');
+                  } else {
+                    setActiveTagFilter('none');
+                  }
+                }}
                 className="input text-xs py-1.5 px-2"
                 style={{ minWidth: 140 }}
               >
@@ -250,6 +262,27 @@ export default function ModelExplorer(props) {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+
+              <span className="text-[11px] font-medium ml-4 mr-1" style={{ color: 'var(--text-tertiary)' }}>
+                Style:
+              </span>
+              {STYLE_FILTERS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setStyleFilter(s);
+                    if (s !== 'All') {
+                      setActiveTagFilter('style');
+                      setCategoryFilter('All');
+                    } else {
+                      setActiveTagFilter('none');
+                    }
+                  }}
+                  className={`chip ${styleFilter === s ? 'active' : ''}`}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -481,7 +514,8 @@ export default function ModelExplorer(props) {
 
 function ModelCard({ model, onClick, isFav, onToggleFav }) {
   const [imgError, setImgError] = useState(false);
-  const categoryTag = model.tags?.find(t => CATEGORY_TAGS.includes(t.toLowerCase()));
+  const categoryTag = model.tags?.find(t => CATEGORY_TAGS.includes(t.toLowerCase()) && !STYLE_TAGS.includes(t.toLowerCase()));
+  const styleTag = model.tags?.find(t => STYLE_TAGS.includes(t.toLowerCase()));
 
   return (
     <div
@@ -514,6 +548,11 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
           {categoryTag && (
             <span className="badge shadow-sm capitalize text-[9px] px-1.5 py-0.5" style={{ background: 'rgba(168,85,247,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
               {categoryTag}
+            </span>
+          )}
+          {styleTag && (
+            <span className="badge shadow-sm capitalize text-[9px] px-1.5 py-0.5" style={{ background: 'rgba(59,130,246,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
+              {styleTag}
             </span>
           )}
         </div>
