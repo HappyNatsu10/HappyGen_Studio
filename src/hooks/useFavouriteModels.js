@@ -25,12 +25,7 @@ export function useFavouriteModels() {
     if (isFavourited(model.id)) return;
 
     const modelDataToSave = {
-      id: model.id,
-      name: model.name,
-      type: model.type,
-      thumbnailUrl: model.thumbnailUrl,
-      creator: model.creator,
-      stats: model.stats,
+      ...model,
       version: model.version || model.versions?.[0],
       versions: model.versions || (model.version ? [model.version] : []),
       addedAt: Date.now(),
