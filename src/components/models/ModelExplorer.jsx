@@ -17,8 +17,8 @@ const BASE_MODEL_FILTERS = [
 ];
 const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA', 'TextualInversion'];
 const SORT_OPTIONS = ['Most Downloaded', 'Highest Rated', 'Newest'];
-const STYLE_TAGS = ['anime', 'realistic', 'photorealistic', '3d', 'cartoon', 'illustration', 'painting', 'sketch', 'vintage'];
-const STYLE_FILTERS = ['All', 'Anime', 'Realistic', 'Photorealistic', '3D', 'Cartoon', 'Illustration'];
+const CATEGORY_TAGS = ['anime', 'character', 'style', 'concept', 'clothing', 'background', 'poses', 'buildings', 'vehicle', 'action', 'exclusive', 'negative', 'other'];
+const CATEGORY_FILTERS = ['All', 'Anime', 'Character', 'Style', 'Concept', 'Clothing', 'Background', 'Poses', 'Buildings', 'Vehicle', 'Action', 'Exclusive', 'Negative', 'Other'];
 
 export default function ModelExplorer(props) {
   const storeIsAdultMode = useAppStore(state => state.isAdultMode);
@@ -36,7 +36,7 @@ export default function ModelExplorer(props) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState(forcedType || 'All');
   const [baseModelFilter, setBaseModelFilter] = useState(forcedBaseModel && forcedBaseModel !== 'All' ? forcedBaseModel : 'All');
-  const [styleFilter, setStyleFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Most Downloaded');
   
   const [results, setResults] = useState([]);
@@ -75,7 +75,7 @@ export default function ModelExplorer(props) {
         query: query.trim() || undefined,
         type: typeFilter !== 'All' ? typeFilter : undefined,
         baseModel: baseModelFilter !== 'All' ? baseModelFilter : undefined,
-        tag: styleFilter !== 'All' ? styleFilter.toLowerCase() : undefined,
+        tag: categoryFilter !== 'All' ? categoryFilter.toLowerCase() : undefined,
         sort: sortBy,
         nsfw: isAdultMode || false,
         limit: 20,
@@ -94,7 +94,7 @@ export default function ModelExplorer(props) {
     } finally {
       setLoading(false);
     }
-  }, [query, typeFilter, baseModelFilter, styleFilter, sortBy, isAdultMode, cursor, activeTab]);
+  }, [query, typeFilter, baseModelFilter, categoryFilter, sortBy, isAdultMode, cursor, activeTab]);
 
   // Initial load + filter changes
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function ModelExplorer(props) {
       const timeout = setTimeout(() => doSearch(false), query ? 400 : 0);
       return () => clearTimeout(timeout);
     }
-  }, [query, typeFilter, baseModelFilter, styleFilter, sortBy, isAdultMode, activeTab]);
+  }, [query, typeFilter, baseModelFilter, categoryFilter, sortBy, isAdultMode, activeTab]);
 
   useEffect(() => {
     if (forcedBaseModel && forcedBaseModel !== 'All') {
@@ -238,17 +238,18 @@ export default function ModelExplorer(props) {
 
             <div className="flex flex-wrap gap-2 items-center pb-2 border-b border-white/5">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
-                Style:
+                Category:
               </span>
-              {STYLE_FILTERS.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setStyleFilter(s)}
-                  className={`chip ${styleFilter === s ? 'active' : ''}`}
-                >
-                  {s}
-                </button>
-              ))}
+              <select
+                value={categoryFilter}
+                onChange={e => setCategoryFilter(e.target.value)}
+                className="input text-xs py-1.5 px-2"
+                style={{ minWidth: 140 }}
+              >
+                {CATEGORY_FILTERS.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
           </div>
         )}
@@ -480,7 +481,7 @@ export default function ModelExplorer(props) {
 
 function ModelCard({ model, onClick, isFav, onToggleFav }) {
   const [imgError, setImgError] = useState(false);
-  const styleTag = model.tags?.find(t => STYLE_TAGS.includes(t.toLowerCase()));
+  const categoryTag = model.tags?.find(t => CATEGORY_TAGS.includes(t.toLowerCase()));
 
   return (
     <div
@@ -510,9 +511,9 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
           <span className={`badge shadow-sm ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`} style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
             {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? 'Embedding' : model.type)}
           </span>
-          {styleTag && (
+          {categoryTag && (
             <span className="badge shadow-sm capitalize text-[9px] px-1.5 py-0.5" style={{ background: 'rgba(168,85,247,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
-              {styleTag}
+              {categoryTag}
             </span>
           )}
         </div>
