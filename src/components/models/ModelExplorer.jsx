@@ -7,7 +7,14 @@ import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 
-const BASE_MODEL_FILTERS = ['All', 'Pony', 'SDXL 1.0', 'Animagine', 'Illustrious', 'SD 1.5', 'SD 1.4', 'Flux.1 D', 'Flux.1 S', 'SD 2.1', 'SD 3'];
+const BASE_MODEL_FILTERS = [
+  'All', 'SD 1.4', 'SD 1.5', 'SD 1.5 LCM', 'SD 1.5 Hyper', 'SD 2.0', 'SD 2.1', 'SD 2.1 768',
+  'SD 2.1 Unclip', 'SDXL 0.9', 'SDXL 1.0', 'SDXL 1.0 LCM', 'SDXL Turbo', 'SDXL Lightning',
+  'SDXL Hyper', 'Pony', 'Illustrious', 'Animagine', 'Anima', 'Chroma', 'SVD', 'SVD XT',
+  'Playground v2', 'PixArt a', 'PixArt E', 'Cascade', 'CosXL', 'AuraFlow', 'Hunyuan 1',
+  'Lumina', 'Kolors', 'Flux.1 S', 'Flux.1 D', 'NoobAI', 'SD 3', 'SD 3.5', 'SD 3.5 Large',
+  'SD 3.5 Large Turbo', 'SD 3.5 Medium', 'Other'
+];
 const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA', 'TextualInversion'];
 const SORT_OPTIONS = ['Most Downloaded', 'Highest Rated', 'Newest'];
 const STYLE_TAGS = ['anime', 'realistic', 'photorealistic', '3d', 'cartoon', 'illustration', 'painting', 'sketch', 'vintage'];
@@ -191,26 +198,27 @@ export default function ModelExplorer(props) {
               ))}
 
               {!forcedBaseModel && (
-                <>
-                  <span className="text-[11px] font-medium ml-3 mr-1" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
-                  {BASE_MODEL_FILTERS.map(b => (
-                    <button
-                      key={b}
-                      onClick={() => setBaseModelFilter(b)}
-                      className={`chip ${baseModelFilter === b ? 'active' : ''}`}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </>
+                <div className="flex items-center gap-2 ml-3">
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
+                  <select
+                    value={baseModelFilter}
+                    onChange={e => setBaseModelFilter(e.target.value)}
+                    className="input text-xs py-1.5 px-2"
+                    style={{ minWidth: 120 }}
+                  >
+                    {BASE_MODEL_FILTERS.map(b => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
               )}
               {forcedBaseModel && forcedBaseModel !== 'All' && (
-                <>
-                  <span className="text-[11px] font-medium ml-3 mr-1" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
-                  <button className="chip active flex items-center gap-1 opacity-80 cursor-not-allowed" disabled>
-                    {forcedBaseModel}
-                  </button>
-                </>
+                <div className="flex items-center gap-2 ml-3">
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
+                  <select className="input text-xs py-1.5 px-2 opacity-80 cursor-not-allowed" disabled style={{ minWidth: 120 }}>
+                    <option>{forcedBaseModel}</option>
+                  </select>
+                </div>
               )}
 
               <div className="ml-auto flex items-center gap-2">
