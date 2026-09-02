@@ -7,7 +7,7 @@ import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 
-const BASE_MODEL_FILTERS = ['All', 'Pony', 'SDXL 1.0', 'Illustrious', 'SD 1.5', 'SD 1.4', 'Flux.1 D', 'Flux.1 S', 'SD 2.1', 'SD 3'];
+const BASE_MODEL_FILTERS = ['All', 'Pony', 'SDXL 1.0', 'Animagine', 'Illustrious', 'SD 1.5', 'SD 1.4', 'Flux.1 D', 'Flux.1 S', 'SD 2.1', 'SD 3'];
 const TYPE_FILTERS = ['All', 'Checkpoint', 'LORA', 'TextualInversion'];
 const SORT_OPTIONS = ['Most Downloaded', 'Highest Rated', 'Newest'];
 const STYLE_TAGS = ['anime', 'realistic', 'photorealistic', '3d', 'cartoon', 'illustration', 'painting', 'sketch', 'vintage'];
