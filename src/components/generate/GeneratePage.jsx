@@ -148,6 +148,15 @@ export default function GeneratePage() {
     }
   }, [baseModel?.id]); // Only trigger when model changes
 
+  // Listen to custom events to change generation mode from external components (like modals)
+  useEffect(() => {
+    const handleSetMode = (e) => {
+      setGenerationMode(e.detail);
+    };
+    window.addEventListener('set-generation-mode', handleSetMode);
+    return () => window.removeEventListener('set-generation-mode', handleSetMode);
+  }, []);
+
   const handleModeSelect = (newMode) => {
     setGenerationMode(newMode);
     if (newMode === 'draft') {

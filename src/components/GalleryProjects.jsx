@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert } from 'lucide-react';
+import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2 } from 'lucide-react';
+import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 
@@ -8,6 +9,7 @@ export default function GalleryProjects() {
   const { generatedAssets } = useWorkspaceStore();
   const isVerifiedAdult = true; // Placeholder for future auth integration
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'adult_vault'
+  const [activeViewerImage, setActiveViewerImage] = useState(null);
 
   const filteredAssets = generatedAssets.filter(asset => 
     activeTab === 'adult_vault' ? asset.isAdult : !asset.isAdult
@@ -62,19 +64,17 @@ export default function GalleryProjects() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {filteredAssets.map(asset => (
-                <div key={asset.id} className="card card-interactive overflow-hidden group">
+                <div 
+                  key={asset.id} 
+                  className="card card-interactive overflow-hidden group cursor-pointer"
+                  onClick={() => setActiveViewerImage(asset)}
+                >
                   <div className="aspect-square overflow-hidden relative img-overlay" style={{ background: 'var(--surface-2)' }}>
                     <img src={asset.url} alt={asset.prompt} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
-                      <a
-                        href={asset.url}
-                        download={`omnigen-${asset.id}.png`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-primary p-2"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
+                      <button className="btn btn-primary p-2">
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                   <div className="p-3 space-y-1">
@@ -90,6 +90,13 @@ export default function GalleryProjects() {
           )}
         </div>
       )}
+
+      {/* Image Viewer Modal */}
+      <ImageViewerModal
+        image={activeViewerImage}
+        isOpen={!!activeViewerImage}
+        onClose={() => setActiveViewerImage(null)}
+      />
 
     </div>
   );

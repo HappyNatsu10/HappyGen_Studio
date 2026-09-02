@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Copy, Check, Send, Sparkles, ImagePlus } from 'lucide-react';
+import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2 } from 'lucide-react';
+import ImageViewerModal from '../common/ImageViewerModal';
 
 export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   useEffect(() => {
     if (!isGenerating && results.length > 0) {
@@ -69,14 +71,25 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
       {/* Main Preview */}
       {activeImage && (
         <div className={`card overflow-hidden transition-all duration-500 ${showSuccess ? 'shadow-[0_0_20px_rgba(52,211,153,0.3)] border-[var(--success)]' : ''}`}>
-          <div className="relative img-overlay" style={{ background: 'var(--surface-2)' }}>
+          <div className="relative img-overlay group cursor-pointer" style={{ background: 'var(--surface-2)' }} onClick={() => setViewerOpen(true)}>
             <img
               src={activeImage.url}
               alt={activeImage.prompt || ''}
               className="w-full max-h-[500px] object-contain"
             />
             {/* Action overlay - Floating Pill */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 bg-[var(--surface-1)]/80 backdrop-blur-md px-4 py-2 rounded-full border border-[var(--border-subtle)] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 bg-[var(--surface-1)]/80 backdrop-blur-md px-4 py-2 rounded-full border border-[var(--border-subtle)] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking buttons
+            >
+              <button
+                onClick={() => setViewerOpen(true)}
+                className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                title="Full Screen View"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              <div className="w-px h-4 bg-white/20 mx-1"></div>
               <button
                 onClick={() => handleDownload(activeImage)}
                 className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
@@ -160,6 +173,12 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
           ))}
         </div>
       )}
+      {/* ImageViewerModal */}
+      <ImageViewerModal
+        image={activeImage}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+      />
     </div>
   );
 }
