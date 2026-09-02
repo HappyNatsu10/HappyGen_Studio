@@ -19,8 +19,11 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
       setError('');
       try {
         const result = await interrogateImage({ sourceImage, model: interrogator });
-        if (result && result.caption) {
-          setGeneratedPrompt(result.caption);
+        if (result) {
+          const promptText = typeof result === 'string' ? result : result.caption;
+          if (promptText) {
+            setGeneratedPrompt(promptText);
+          }
         }
       } catch (err) {
         setError(err.message);
