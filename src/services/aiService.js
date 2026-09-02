@@ -81,6 +81,7 @@ export const generateImageAI = async ({
   guidanceScale = 6.5,
   isAdultMode = false,
   negativePrompt = '',
+  sampler = 'Euler a',
 }) => {
   const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
 
@@ -114,6 +115,7 @@ export const generateImageAI = async ({
           width,
           height,
           seed: currentSeed,
+          sampler_name: sampler,
           base_model: typeof baseModel === 'object' && baseModel ? {
             name: baseModel.name,
             fileName: baseModel.version?.fileName || baseModel.fileName,
@@ -263,6 +265,7 @@ export const generateImg2Img = async ({
   steps = 20,
   guidanceScale = 6.5,
   isAdultMode = false,
+  sampler = 'Euler a',
 }) => {
   const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
   const rawBackendUrl = typeof window !== 'undefined'
@@ -288,6 +291,7 @@ export const generateImg2Img = async ({
         width,
         height,
         seed,
+        sampler_name: sampler,
         base_model: typeof baseModel === 'object' && baseModel ? {
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,
@@ -383,6 +387,7 @@ export const inpaintImage = async ({
   steps = 20,
   guidanceScale = 6.5,
   isAdultMode = false,
+  sampler = 'Euler a',
 }) => {
   const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
   const rawBackendUrl = typeof window !== 'undefined'
@@ -409,6 +414,7 @@ export const inpaintImage = async ({
         width,
         height,
         seed,
+        sampler_name: sampler,
         base_model: typeof baseModel === 'object' && baseModel ? {
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,

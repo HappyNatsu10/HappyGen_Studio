@@ -3,11 +3,25 @@ import { Zap, Sparkles, Crown, HelpCircle } from 'lucide-react';
 import Tooltip from '../common/Tooltip';
 
 const ASPECT_RATIOS = [
-  { label: 'Portrait', value: '2:3', w: 512, h: 768 },
-  { label: 'Square', value: '1:1', w: 576, h: 576 },
-  { label: 'Landscape', value: '3:2', w: 768, h: 512 },
-  { label: 'Wide', value: '16:9', w: 832, h: 464 },
-  { label: 'Tall', value: '9:16', w: 464, h: 832 },
+  { label: 'Square (1024 x 1024)', value: '1:1', w: 1024, h: 1024 },
+  { label: 'Portrait (896 x 1152)', value: '7:9', w: 896, h: 1152 },
+  { label: 'Landscape (1152 x 896)', value: '9:7', w: 1152, h: 896 },
+  { label: 'Panorama (1216 x 832)', value: '19:13', w: 1216, h: 832 },
+  { label: 'Vertical Panorama (832 x 1216)', value: '13:19', w: 832, h: 1216 },
+  { label: 'Cinematic Wide (1536 x 640)', value: '12:5', w: 1536, h: 640 },
+  { label: 'Cinematic Portrait (768 x 1344)', value: '4:7', w: 768, h: 1344 },
+  { label: 'Extended Portrait (640 x 1536)', value: '5:12', w: 640, h: 1536 },
+];
+
+const SAMPLERS = [
+  { id: 'Euler a', label: 'Euler Ancestral (Euler a)' },
+  { id: 'DPM++ 2M Karras', label: 'DPM++ 2M Karras' },
+  { id: 'DPM++ SDE Karras', label: 'DPM++ SDE Karras' },
+  { id: 'Euler', label: 'Euler' },
+  { id: 'UniPC', label: 'UniPC' },
+  { id: 'DDIM', label: 'DDIM' },
+  { id: 'LMS Karras', label: 'LMS Karras' },
+  { id: 'PNDM', label: 'PNDM' },
 ];
 
 const QUALITY_PRESETS = [
@@ -29,27 +43,53 @@ export default function GenerationSettings({
   setSeed,
   batchCount,
   setBatchCount,
+  sampler,
+  setSampler,
 }) {
   return (
     <div className="space-y-4">
       {/* Aspect Ratio */}
       <div>
         <label className="text-[11px] font-medium block mb-2" style={{ color: 'var(--text-tertiary)' }}>
-          Aspect Ratio
+          Aspect Ratio / Canvas Size
         </label>
-        <div className="flex flex-wrap gap-2">
+        <select
+          value={aspectRatio.label}
+          onChange={e => {
+            const selected = ASPECT_RATIOS.find(ar => ar.label === e.target.value);
+            if (selected) setAspectRatio(selected);
+          }}
+          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+        >
           {ASPECT_RATIOS.map(ar => (
-            <button
-              key={ar.value}
-              onClick={() => setAspectRatio(ar)}
-              className={`chip flex-1 justify-center text-[11px] min-w-[70px] ${
-                aspectRatio.value === ar.value ? 'active' : ''
-              }`}
-            >
+            <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-white">
               {ar.label}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
+      </div>
+
+      {/* Sampling Method */}
+      <div>
+        <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
+          Sampling Method
+          <Tooltip text="The algorithm used to denoise the image. Different samplers yield different artistic styles and details.">
+            <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+          </Tooltip>
+        </label>
+        <select
+          value={sampler}
+          onChange={e => setSampler(e.target.value)}
+          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+        >
+          {SAMPLERS.map(s => (
+            <option key={s.id} value={s.id} className="bg-[var(--surface-1)] text-white">
+              {s.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="space-y-5 mt-2">

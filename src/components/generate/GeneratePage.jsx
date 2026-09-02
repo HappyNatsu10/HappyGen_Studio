@@ -55,6 +55,7 @@ export default function GeneratePage() {
   const [cfg, setCfg] = useState(6.5);
   const [seed, setSeed] = useState('-1');
   const [batchCount, setBatchCount] = useState(1);
+  const [sampler, setSampler] = useState('Euler a');
   const [denoisingStrength, setDenoisingStrength] = useState(0.5);
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -162,6 +163,7 @@ export default function GeneratePage() {
         baseModel: baseModel,
         loras: loras,
         embeddings: embeddings,
+        sampler: sampler,
       };
 
       let images = [];
@@ -330,6 +332,8 @@ export default function GeneratePage() {
               setSeed={setSeed}
               batchCount={batchCount}
               setBatchCount={setBatchCount}
+              sampler={sampler}
+              setSampler={setSampler}
             />
           </motion.div>
         )}
