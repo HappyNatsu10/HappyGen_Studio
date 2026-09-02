@@ -38,8 +38,16 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
     try {
       const upscaledImages = await upscaleImage({ sourceImage: currentImage.url, scale: 2 });
       if (upscaledImages && upscaledImages.length > 0) {
-        addGeneratedAssets(upscaledImages);
-        setCurrentImage(upscaledImages[0]); // update view to upscaled version
+        const newImage = {
+          ...currentImage,
+          ...upscaledImages[0],
+          width: currentImage.width ? currentImage.width * 2 : null,
+          height: currentImage.height ? currentImage.height * 2 : null,
+          prompt: currentImage.prompt ? `${currentImage.prompt} (Upscaled 2x)` : 'Upscaled Image (2x)',
+          isUpscaled: true
+        };
+        addGeneratedAssets([newImage]);
+        setCurrentImage(newImage); // update view to upscaled version
       }
     } catch (err) {
       console.error('Failed to upscale:', err);
@@ -128,11 +136,15 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
           <div className="flex items-center gap-2 overflow-x-auto pb-1 shrink-0">
             <button
               onClick={handleUpscale}
-              disabled={isUpscaling}
-              className="flex items-center gap-1.5 px-4 py-2 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30 rounded-xl transition-all text-sm font-semibold disabled:opacity-50"
+              disabled={isUpscaling || currentImage.isUpscaled}
+              className={`flex items-center gap-1.5 px-4 py-2 border rounded-xl transition-all text-sm font-semibold disabled:opacity-50 ${
+                currentImage.isUpscaled 
+                  ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                  : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border-purple-500/30'
+              }`}
             >
-              <Sparkles className="w-4 h-4" />
-              Upscale
+              {currentImage.isUpscaled ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+              {currentImage.isUpscaled ? 'Upscaled' : 'Upscale'}
             </button>
             <button
               onClick={handleSendToInpaint}
