@@ -41,8 +41,6 @@ export default function GenerationSettings({
   setCfg,
   seed,
   setSeed,
-  batchCount,
-  setBatchCount,
   sampler,
   setSampler,
 }) {
@@ -151,28 +149,6 @@ export default function GenerationSettings({
             onChange={e => setSeed(e.target.value)}
             placeholder="-1 for random"
             className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
-          />
-        </div>
-
-        {/* Batch */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              Batch Count
-              <Tooltip text="How many images to generate at once.">
-                <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
-              </Tooltip>
-            </label>
-            <span className="text-xs font-mono bg-white/5 px-2 py-0.5 rounded text-purple-300">{batchCount}</span>
-          </div>
-          <input
-            type="range"
-            min="1"
-            max="4"
-            step="1"
-            value={batchCount}
-            onChange={e => setBatchCount(Number(e.target.value))}
-            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
           />
         </div>
       </div>

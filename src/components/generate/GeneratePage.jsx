@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
+import { Image as ImageIcon, Loader2, AlertCircle, Settings, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PromptEditor from './PromptEditor';
 import ModelSelector from './ModelSelector';
@@ -61,6 +61,7 @@ export default function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const prevLorasRef = useRef(loras);
 
@@ -316,25 +317,37 @@ export default function GeneratePage() {
           </motion.div>
         )}
 
-        {/* Settings */}
+        {/* Batch Count */}
         {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && (
           <motion.div variants={itemVariants}>
-            <GenerationSettings
-              aspectRatio={aspectRatio}
-              setAspectRatio={setAspectRatio}
-              qualityPreset={qualityPreset}
-              setQualityPreset={setQualityPreset}
-              steps={steps}
-              setSteps={setSteps}
-              cfg={cfg}
-              setCfg={setCfg}
-              seed={seed}
-              setSeed={setSeed}
-              batchCount={batchCount}
-              setBatchCount={setBatchCount}
-              sampler={sampler}
-              setSampler={setSampler}
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[12px] font-semibold text-slate-300 flex items-center gap-1.5">
+                Batch Count
+              </label>
+              <span className="text-[12px] font-mono bg-white/5 px-2 py-0.5 rounded text-purple-300">{batchCount}</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="4"
+              step="1"
+              value={batchCount}
+              onChange={e => setBatchCount(Number(e.target.value))}
+              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
             />
+          </motion.div>
+        )}
+
+        {/* Settings Button */}
+        {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && (
+          <motion.div variants={itemVariants}>
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              className="w-full flex items-center justify-center gap-2 bg-[var(--surface-0)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-white py-3 px-4 rounded-xl transition-all font-medium text-[13px]"
+            >
+              <Settings className="w-4 h-4 text-purple-400" />
+              Advanced Settings
+            </button>
           </motion.div>
         )}
 
@@ -380,6 +393,47 @@ export default function GeneratePage() {
           onUpscale={handleDirectUpscale}
         />
       </div>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="card max-w-sm w-full bg-[var(--surface-1)] border border-[var(--border-subtle)] shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
+            <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--surface-2)]">
+              <h3 className="font-bold text-white flex items-center gap-2">
+                <Settings className="w-4 h-4 text-purple-400" />
+                Advanced Settings
+              </h3>
+              <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors hover:bg-white/10">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto">
+              <GenerationSettings
+                aspectRatio={aspectRatio}
+                setAspectRatio={setAspectRatio}
+                qualityPreset={qualityPreset}
+                setQualityPreset={setQualityPreset}
+                steps={steps}
+                setSteps={setSteps}
+                cfg={cfg}
+                setCfg={setCfg}
+                seed={seed}
+                setSeed={setSeed}
+                sampler={sampler}
+                setSampler={setSampler}
+              />
+            </div>
+            <div className="px-5 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-2)]">
+              <button 
+                onClick={() => setShowSettingsModal(false)}
+                className="btn btn-primary w-full py-2.5 rounded-xl font-semibold text-sm"
+              >
+                Apply & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
