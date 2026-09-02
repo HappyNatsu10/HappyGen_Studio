@@ -36,7 +36,8 @@ export default function GeneratePage() {
     imageEngine, setImageEngine, 
     baseModel, loras, embeddings,
     removeLora, updateLoraWeight, clearLoras,
-    removeEmbedding, clearEmbeddings
+    removeEmbedding, clearEmbeddings,
+    modelProfiles, saveModelProfile
   } = useModelStore();
   const { addGeneratedAssets, setCanvasTargetImage } = useWorkspaceStore();
   const onSendToCanvas = (url) => {
@@ -106,6 +107,46 @@ export default function GeneratePage() {
     }
     prevLorasRef.current = loras;
   }, [loras]);
+
+  // Auto-apply custom saved model profiles or general fallbacks
+  useEffect(() => {
+    if (!baseModel) return;
+    
+    // 1. Check if user saved a custom profile for this exact model
+    if (modelProfiles && modelProfiles[baseModel.id]) {
+      const profile = modelProfiles[baseModel.id];
+      if (profile.steps) setSteps(profile.steps);
+      if (profile.cfg) setCfg(profile.cfg);
+      if (profile.sampler) setSampler(profile.sampler);
+      return; // Stop here, use their custom settings
+    }
+
+    // 2. Fallback to generalized settings based on architecture
+    const arch = baseModel.version?.baseModel || baseModel.baseModel || "";
+    const name = (baseModel.name || "").toLowerCase();
+
+    if (name.includes('lightning')) {
+      setSteps(6);
+      setCfg(1.5);
+      setSampler('DPM++ SDE Karras');
+    } else if (name.includes('turbo') || name.includes('lcm')) {
+      setSteps(6);
+      setCfg(2.0);
+      setSampler('Euler a');
+    } else if (arch.includes('Flux')) {
+      setSteps(25);
+      setCfg(3.5);
+      setSampler('Euler'); 
+    } else if (arch.includes('SDXL') || arch.includes('Pony')) {
+      setSteps(30);
+      setCfg(6.5);
+      setSampler('DPM++ 2M Karras');
+    } else {
+      setSteps(25);
+      setCfg(7.0);
+      setSampler('Euler a');
+    }
+  }, [baseModel?.id]); // Only trigger when model changes
 
   const handleModeSelect = (newMode) => {
     setGenerationMode(newMode);
@@ -421,6 +462,9 @@ export default function GeneratePage() {
                 setSeed={setSeed}
                 sampler={sampler}
                 setSampler={setSampler}
+                baseModel={baseModel}
+                hasCustomProfile={baseModel ? !!modelProfiles[baseModel.id] : false}
+                onSaveProfile={() => saveModelProfile(baseModel.id, { steps, cfg, sampler })}
               />
             </div>
             <div className="px-5 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-2)]">

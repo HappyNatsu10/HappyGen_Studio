@@ -3,6 +3,7 @@ import { create } from 'zustand';
 const STORAGE_KEY_BASE = 'omnigen_selected_base_model';
 const STORAGE_KEY_LORAS = 'omnigen_active_loras';
 const STORAGE_KEY_EMBEDDINGS = 'omnigen_active_embeddings';
+const STORAGE_KEY_MODEL_PROFILES = 'omnigen_model_profiles';
 
 const useModelStore = create((set, get) => ({
   // Engines
@@ -11,6 +12,21 @@ const useModelStore = create((set, get) => ({
 
   videoEngine: 'sora_2',
   setVideoEngine: (engine) => set({ videoEngine: engine }),
+
+  // Custom Model Profiles
+  modelProfiles: (() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_MODEL_PROFILES);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  })(),
+  saveModelProfile: (modelId, settings) => set((state) => {
+    const newProfiles = { ...state.modelProfiles, [modelId]: settings };
+    localStorage.setItem(STORAGE_KEY_MODEL_PROFILES, JSON.stringify(newProfiles));
+    return { modelProfiles: newProfiles };
+  }),
 
   // Base model
   baseModel: (() => {

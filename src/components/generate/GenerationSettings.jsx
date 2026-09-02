@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Sparkles, Crown, HelpCircle } from 'lucide-react';
+import { Zap, Sparkles, Crown, HelpCircle, Save, CheckCircle2 } from 'lucide-react';
 import Tooltip from '../common/Tooltip';
 
 const ASPECT_RATIOS = [
@@ -43,9 +43,39 @@ export default function GenerationSettings({
   setSeed,
   sampler,
   setSampler,
+  baseModel,
+  hasCustomProfile,
+  onSaveProfile,
 }) {
+  const [justSaved, setJustSaved] = React.useState(false);
+
+  const handleSave = () => {
+    onSaveProfile();
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
+
   return (
     <div className="space-y-4">
+      {baseModel && (
+        <div className="bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-[12px] font-semibold text-white truncate max-w-[200px]">{baseModel.name}</span>
+            <span className="text-[10px] text-slate-400">{hasCustomProfile ? 'Using Custom Settings' : 'Using Standard Settings'}</span>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={justSaved}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+              justSaved ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-purple-300 border border-purple-500/30'
+            }`}
+          >
+            {justSaved ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            {justSaved ? 'Saved!' : 'Save as Default'}
+          </button>
+        </div>
+      )}
+
       {/* Aspect Ratio */}
       <div>
         <label className="text-[11px] font-medium block mb-2" style={{ color: 'var(--text-tertiary)' }}>
