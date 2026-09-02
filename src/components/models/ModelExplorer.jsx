@@ -40,6 +40,8 @@ export default function ModelExplorer(props) {
 
   const [favSortBy, setFavSortBy] = useState('Date Added');
   const [activeFolder, setActiveFolder] = useState('All');
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
   const { favourites, folders, toggleFavourite, isFavourited, createFolder } = useFavouriteModels();
 
@@ -248,18 +250,37 @@ export default function ModelExplorer(props) {
                     {f}
                   </button>
                 ))}
-                <button
-                  onClick={() => {
-                    const name = window.prompt("Enter new folder name:");
-                    if (name) {
-                      createFolder(name);
-                      setActiveFolder(name);
-                    }
-                  }}
-                  className="chip opacity-60 hover:opacity-100"
-                >
-                  + New
-                </button>
+                {isCreatingFolder ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (newFolderName.trim()) {
+                        createFolder(newFolderName);
+                        setActiveFolder(newFolderName.trim());
+                      }
+                      setIsCreatingFolder(false);
+                      setNewFolderName('');
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <input
+                      type="text"
+                      autoFocus
+                      value={newFolderName}
+                      onChange={e => setNewFolderName(e.target.value)}
+                      placeholder="Folder name..."
+                      className="input text-[11px] py-1 px-2 h-7 w-28"
+                      onBlur={() => setIsCreatingFolder(false)}
+                    />
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setIsCreatingFolder(true)}
+                    className="chip opacity-60 hover:opacity-100"
+                  >
+                    + New
+                  </button>
+                )}
               </div>
 
               {/* Sort */}
