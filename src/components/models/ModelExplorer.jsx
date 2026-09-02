@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Download, ThumbsUp, Filter, X, Loader2, Heart, Clock } from 'lucide-react';
 import { searchModels, formatCount } from '../../services/civitaiService';
 import ModelDetailDrawer from './ModelDetailDrawer';
+import FolderSelectModal from './FolderSelectModal';
 import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
@@ -42,8 +43,20 @@ export default function ModelExplorer(props) {
   const [activeFolder, setActiveFolder] = useState('All');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [editingFolder, setEditingFolder] = useState(null);
+  const [editFolderName, setEditFolderName] = useState('');
+  const [favModalModel, setFavModalModel] = useState(null);
 
-  const { favourites, folders, toggleFavourite, isFavourited, createFolder } = useFavouriteModels();
+  const { favourites, folders, toggleFavourite, isFavourited, createFolder, renameFolder, deleteFolder, addFavourite, removeFavourite } = useFavouriteModels();
+
+  const handleFavouriteClick = useCallback((model, e) => {
+    if (e) e.stopPropagation();
+    if (isFavourited(model.id)) {
+      removeFavourite(model.id);
+    } else {
+      setFavModalModel(model);
+    }
+  }, [isFavourited, removeFavourite]);
 
   const doSearch = useCallback(async (append = false) => {
     if (activeTab !== 'Search') return;
@@ -241,15 +254,73 @@ export default function ModelExplorer(props) {
                 <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                   Folder:
                 </span>
-                {['All', ...folders].map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setActiveFolder(f)}
-                    className={`chip ${activeFolder === f ? 'active' : ''}`}
-                  >
-                    {f}
-                  </button>
-                ))}
+                {['All', ...folders].map(f => {
+                  const isCustom = f !== 'All' && f !== 'Uncategorized';
+                  const isActive = activeFolder === f;
+                  
+                  if (editingFolder === f) {
+                    return (
+                      <form
+                        key={f}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (editFolderName.trim() && editFolderName.trim() !== f) {
+                            renameFolder(f, editFolderName.trim());
+                            setActiveFolder(editFolderName.trim());
+                          }
+                          setEditingFolder(null);
+                        }}
+                        className="flex items-center gap-1"
+                      >
+                        <input
+                          type="text"
+                          autoFocus
+                          value={editFolderName}
+                          onChange={e => setEditFolderName(e.target.value)}
+                          className="input text-[11px] py-1 px-2 h-7 w-28"
+                          onBlur={() => setEditingFolder(null)}
+                        />
+                      </form>
+                    );
+                  }
+
+                  return (
+                    <div key={f} className="flex items-center">
+                      <button
+                        onClick={() => setActiveFolder(f)}
+                        className={`chip ${isActive ? 'active' : ''} ${isCustom && isActive ? 'rounded-r-none pr-1.5' : ''}`}
+                      >
+                        {f}
+                      </button>
+                      {isCustom && isActive && (
+                        <div className="flex items-center h-7 bg-[var(--surface-2)] rounded-r-full border border-l-0 border-white/10 pr-1.5">
+                          <button
+                            onClick={() => {
+                              setEditFolderName(f);
+                              setEditingFolder(f);
+                            }}
+                            className="p-1 hover:text-white text-white/50 cursor-pointer"
+                            title="Rename Folder"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete folder "${f}"? Models inside will be moved to Uncategorized.`)) {
+                                deleteFolder(f);
+                                setActiveFolder('All');
+                              }
+                            }}
+                            className="p-1 hover:text-red-400 text-white/50 cursor-pointer"
+                            title="Delete Folder"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 {isCreatingFolder ? (
                   <form
                     onSubmit={(e) => {
@@ -318,10 +389,7 @@ export default function ModelExplorer(props) {
               model={model}
               onClick={() => setSelectedModel(model)}
               isFav={isFavourited(model.id)}
-              onToggleFav={(e) => {
-                e.stopPropagation();
-                toggleFavourite(model);
-              }}
+              onToggleFav={(e) => handleFavouriteClick(model, e)}
             />
           ))}
 
@@ -382,7 +450,20 @@ export default function ModelExplorer(props) {
             setSelectedModel(null);
           }}
           isFav={isFavourited(selectedModel.id)}
-          onToggleFav={() => toggleFavourite(selectedModel)}
+          onToggleFav={() => handleFavouriteClick(selectedModel)}
+        />
+      )}
+
+      {favModalModel && (
+        <FolderSelectModal
+          model={favModalModel}
+          folders={folders}
+          onClose={() => setFavModalModel(null)}
+          onConfirm={(folderName) => {
+            addFavourite(favModalModel, folderName);
+            setFavModalModel(null);
+          }}
+          onCreateFolder={createFolder}
         />
       )}
     </div>
