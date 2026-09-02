@@ -7,8 +7,29 @@ import { interrogateImage } from '../../services/aiService';
 export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
   const [sourceImage, setSourceImage] = useState(null);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [interrogator, setInterrogator] = useState('deepdanbooru');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+
+  // Re-run if they toggle the model while an image is loaded
+  React.useEffect(() => {
+    if (!sourceImage || !isOpen) return;
+    const runInterrogate = async () => {
+      setIsProcessing(true);
+      setError('');
+      try {
+        const result = await interrogateImage({ sourceImage, model: interrogator });
+        if (result && result.caption) {
+          setGeneratedPrompt(result.caption);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+    runInterrogate();
+  }, [interrogator, sourceImage, isOpen]);
 
   if (!isOpen) return null;
 
@@ -19,21 +40,10 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const b64 = e.target.result;
+      // Setting sourceImage will trigger the useEffect to run interrogateImage
       setSourceImage(b64);
       setGeneratedPrompt('');
       setError('');
-      
-      setIsProcessing(true);
-      try {
-        const result = await interrogateImage({ sourceImage: b64 });
-        if (result && result.caption) {
-          setGeneratedPrompt(result.caption);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsProcessing(false);
-      }
     };
     reader.readAsDataURL(file);
   };
@@ -73,7 +83,23 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
           >
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/5">
-              <h2 className="text-lg font-semibold text-white">Image To Prompt</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-semibold text-white">Image To Prompt</h2>
+                <div className="flex bg-white/5 p-1 rounded-lg">
+                  <button
+                    onClick={() => setInterrogator('deepdanbooru')}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'deepdanbooru' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Anime Tags
+                  </button>
+                  <button
+                    onClick={() => setInterrogator('clip')}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'clip' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Realistic Text
+                  </button>
+                </div>
+              </div>
               <button 
                 onClick={onClose}
                 className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
