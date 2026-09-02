@@ -196,6 +196,20 @@ export default function GeneratePage() {
     setSourceImage(imageUrl);
   };
 
+  const handleDirectUpscale = async (imageUrl) => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const images = await upscaleImage({ sourceImage: imageUrl, scale: 2 });
+      setResults(images);
+      addGeneratedAssets(images);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5 bg-[var(--surface-0)] relative">
       {/* Background Decorative Blur - Removed to fix GPU freeze on low-end hardware */}
@@ -359,6 +373,7 @@ export default function GeneratePage() {
           error={error}
           onCreateVariant={handleCreateVariant}
           onSendToCanvas={onSendToCanvas}
+          onUpscale={handleDirectUpscale}
         />
       </div>
     </div>

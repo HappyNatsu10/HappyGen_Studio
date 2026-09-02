@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus } from 'lucide-react';
 
-export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant }) {
+export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -84,6 +84,15 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               >
                 <Download className="w-4 h-4" />
               </button>
+              {onUpscale && (
+                <button
+                  onClick={() => onUpscale(activeImage.url)}
+                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                  title="Upscale Image (2x)"
+                >
+                  <Sparkles className="w-4 h-4" />
+                </button>
+              )}
               {onCreateVariant && (
                 <button
                   onClick={() => onCreateVariant(activeImage.url)}
