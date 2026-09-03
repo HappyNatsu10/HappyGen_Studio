@@ -58,6 +58,8 @@ export default function GeneratePage() {
   const [batchCount, setBatchCount] = useState(1);
   const [sampler, setSampler] = useState('Euler a');
   const [denoisingStrength, setDenoisingStrength] = useState(0.5);
+  const [upscaleScale, setUpscaleScale] = useState(2);
+  const [upscaleModel, setUpscaleModel] = useState("R-ESRGAN 4x+ Anime6B");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState([]);
@@ -256,7 +258,7 @@ export default function GeneratePage() {
     setIsGenerating(true);
     setError(null);
     try {
-      const images = await upscaleImage({ sourceImage: imageUrl, scale: 2 });
+      const images = await upscaleImage({ sourceImage: imageUrl, scale: upscaleScale, upscalerName: upscaleModel });
       setResults(images);
       addGeneratedAssets(images);
     } catch (err) {
