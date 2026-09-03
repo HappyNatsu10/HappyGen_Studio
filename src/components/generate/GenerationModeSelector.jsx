@@ -8,7 +8,7 @@ export const GENERATION_MODES = [
   { id: 'img2img', label: 'Image to Image', icon: ImagePlus, desc: 'Generate or edit using reference images' },
   { id: 'upscale', label: 'Upscale', icon: ArrowUpCircle, desc: 'Increase image resolution' },
   { id: 'facefix', label: 'Image Face Fix', icon: UserCircle, desc: 'Fix faces in an existing image' },
-  { id: 'hires', label: 'Image Hires Fix', icon: Maximize, desc: 'Hires fix from an existing image' },
+  { id: 'hires', label: 'Image Hires Fix', icon: Maximize, desc: 'Generate a large image with enhanced details' },
 ];
 
 export default function GenerationModeSelector({ currentMode, onSelectMode }) {
