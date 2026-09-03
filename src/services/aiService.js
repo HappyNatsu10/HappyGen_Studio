@@ -83,7 +83,11 @@ export const generateImageAI = async ({
   negativePrompt = '',
   sampler = 'Euler a',
 }) => {
-  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  const NSFW_BLOCKLIST = "nsfw, nude, naked, nipples, pornography, explicit, uncensored, genitalia, penis, vagina, pubic hair, sex";
+  let activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  if (!isAdultMode) {
+    activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
+  }
 
   const images = [];
   const rawBackendUrl = typeof window !== 'undefined'
@@ -268,7 +272,11 @@ export const generateImg2Img = async ({
   isAdultMode = false,
   sampler = 'Euler a',
 }) => {
-  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  const NSFW_BLOCKLIST = "nsfw, nude, naked, nipples, pornography, explicit, uncensored, genitalia, penis, vagina, pubic hair, sex";
+  let activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  if (!isAdultMode) {
+    activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
+  }
   const rawBackendUrl = typeof window !== 'undefined'
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
@@ -393,7 +401,11 @@ export const inpaintImage = async ({
   isAdultMode = false,
   sampler = 'Euler a',
 }) => {
-  const activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  const NSFW_BLOCKLIST = "nsfw, nude, naked, nipples, pornography, explicit, uncensored, genitalia, penis, vagina, pubic hair, sex";
+  let activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
+  if (!isAdultMode) {
+    activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
+  }
   const rawBackendUrl = typeof window !== 'undefined'
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';

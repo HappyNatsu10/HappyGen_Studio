@@ -8,15 +8,19 @@ const useGenerateStore = create(persist((set) => ({
   setGenerationMode: (mode) => set({ generationMode: mode }),
 
   prompt: '',
-  setPrompt: (prompt) => set({ prompt }),
+  setPrompt: (prompt) => set((state) => ({ 
+    prompt: typeof prompt === 'function' ? prompt(state.prompt) : prompt 
+  })),
 
   loraPrompt: '',
-  setLoraPrompt: (loraPrompt) => set({ loraPrompt }),
+  setLoraPrompt: (loraPrompt) => set((state) => ({ 
+    loraPrompt: typeof loraPrompt === 'function' ? loraPrompt(state.loraPrompt) : loraPrompt 
+  })),
 
   negativePrompt: DEFAULT_NEGATIVE,
   setNegativePrompt: (negativePrompt) => set({ negativePrompt }),
 
-  aspectRatio: '1:1',
+  aspectRatio: { label: 'Square (1024 x 1024)', value: '1:1', w: 1024, h: 1024 },
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
 
   qualityPreset: 'quality',

@@ -202,6 +202,17 @@ export default function GeneratePage() {
         fullPrompt += (fullPrompt ? ', ' : '') + loraPrompt.trim();
       }
 
+      if (!isAdultMode && ['create', 'draft', 'hires', 'img2img', 'variations', 'inpaint'].includes(generationMode)) {
+        const explicitWords = ['nsfw', 'nude', 'naked', 'nipple', 'porn', 'sex', 'genital', 'uncensored', 'pussy', 'penis', 'breast', 'boob', 'milf', 'topless'];
+        const promptLower = fullPrompt.toLowerCase();
+        const foundWord = explicitWords.find(word => promptLower.includes(word));
+        if (foundWord) {
+          setError(`Adult mode is disabled. Please remove explicit terms like "${foundWord}" or enable the +18 switch.`);
+          setIsGenerating(false);
+          return;
+        }
+      }
+
       const parsedSeed = seed === '-1' || !seed.trim()
         ? Math.floor(Math.random() * 2147483647)
         : parseInt(seed, 10);
