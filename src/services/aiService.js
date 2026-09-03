@@ -322,6 +322,9 @@ export const generateImg2Img = async ({
         url: imageUrl,
         prompt,
         seed,
+        width,
+        height,
+        modelUsed: currentModelName || 'Google Colab Cloud GPU',
         createdAt: new Date().toISOString(),
         isAdult: isAdultMode,
       }];
