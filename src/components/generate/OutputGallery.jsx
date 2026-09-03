@@ -108,7 +108,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               )}
               {onCreateVariant && (
                 <button
-                  onClick={() => onCreateVariant(activeImage.url)}
+                  onClick={() => onCreateVariant(activeImage)}
                   className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
                   title="Create Variant"
                 >

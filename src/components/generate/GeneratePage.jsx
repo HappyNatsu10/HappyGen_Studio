@@ -244,9 +244,12 @@ export default function GeneratePage() {
     }
   };
 
-  const handleCreateVariant = (imageUrl) => {
+  const handleCreateVariant = (image) => {
     setGenerationMode('variations');
-    setSourceImage(imageUrl);
+    setSourceImage(image.url);
+    if (image.prompt) {
+      setPrompt(image.prompt);
+    }
   };
 
   const handleDirectUpscale = async (imageUrl) => {
