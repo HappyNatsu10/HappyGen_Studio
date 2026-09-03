@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video } from 'lucide-react';
+import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video } ChevronDown } from 'lucide-react';
 import { upscaleImage } from '../../services/aiService';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useAppStore from '../../store/useAppStore';
@@ -8,6 +8,9 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
   const [isUpscaling, setIsUpscaling] = useState(false);
   const [currentImage, setCurrentImage] = useState(image);
   const [copiedSeed, setCopiedSeed] = useState(false);
+  const [showUpscaleSettings, setShowUpscaleSettings] = useState(false);
+  const [upscaleScale, setUpscaleScale] = useState(2);
+  const [upscaleModel, setUpscaleModel] = useState("R-ESRGAN 4x+ Anime6B");
 
   // Sync currentImage when prop changes (in case gallery cycles images)
   React.useEffect(() => {
@@ -35,15 +38,16 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
 
   const handleUpscale = async () => {
     setIsUpscaling(true);
+    setShowUpscaleSettings(false);
     try {
-      const upscaledImages = await upscaleImage({ sourceImage: currentImage.url, scale: 2 });
+      const upscaledImages = await upscaleImage({ sourceImage: currentImage.url, scale: upscaleScale, upscalerName: upscaleModel });
       if (upscaledImages && upscaledImages.length > 0) {
         const newImage = {
           ...currentImage,
           ...upscaledImages[0],
-          width: currentImage.width ? currentImage.width * 2 : null,
-          height: currentImage.height ? currentImage.height * 2 : null,
-          prompt: currentImage.prompt ? `${currentImage.prompt} (Upscaled 2x)` : 'Upscaled Image (2x)',
+          width: currentImage.width ? Math.round(currentImage.width * upscaleScale) : null,
+          height: currentImage.height ? Math.round(currentImage.height * upscaleScale) : null,
+          prompt: currentImage.prompt ? `${currentImage.prompt} (Upscaled ${upscaleScale}x)` : `Upscaled Image (${upscaleScale}x)`,
           isUpscaled: true
         };
         addGeneratedAssets([newImage]);

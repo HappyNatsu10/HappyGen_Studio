@@ -212,7 +212,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
   }
 };
 
-export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
+export const upscaleImageAI = async ({ sourceImage, scale = 2, upscalerName = "R-ESRGAN 4x+ Anime6B" }) => {
   const rawBackendUrl = typeof window !== 'undefined'
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
@@ -225,6 +225,7 @@ export const upscaleImageAI = async ({ sourceImage, scale = 2 }) => {
       body: JSON.stringify({
         image: sourceImage,
         upscaling_resize: scale,
+        upscaler_name: upscalerName,
       }),
     });
 
