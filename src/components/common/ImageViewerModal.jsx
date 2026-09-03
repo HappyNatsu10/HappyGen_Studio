@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video } ChevronDown } from 'lucide-react';
+import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown } from 'lucide-react';
 import { upscaleImage } from '../../services/aiService';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useAppStore from '../../store/useAppStore';

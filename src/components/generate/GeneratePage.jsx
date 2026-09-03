@@ -14,6 +14,7 @@ import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
+import useGenerateStore from '../../store/useGenerateStore';
 
 const DEFAULT_NEGATIVE = 'bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality';
 
@@ -44,22 +45,25 @@ export default function GeneratePage() {
     setCanvasTargetImage(url);
     useAppStore.getState().setActiveTab('canvas');
   };
-  const [generationMode, setGenerationMode] = useState('create');
   const [sourceImage, setSourceImage] = useState(null);
   const [maskImage, setMaskImage] = useState(null);
-  const [prompt, setPrompt] = useState('');
-  const [loraPrompt, setLoraPrompt] = useState('');
-  const [negativePrompt, setNegativePrompt] = useState(DEFAULT_NEGATIVE);
-  const [aspectRatio, setAspectRatio] = useState(ASPECT_RATIOS[0]);
-  const [qualityPreset, setQualityPreset] = useState('quality');
-  const [steps, setSteps] = useState(20);
-  const [cfg, setCfg] = useState(6.5);
-  const [seed, setSeed] = useState('-1');
-  const [batchCount, setBatchCount] = useState(1);
-  const [sampler, setSampler] = useState('Euler a');
-  const [denoisingStrength, setDenoisingStrength] = useState(0.5);
-  const [upscaleScale, setUpscaleScale] = useState(2);
-  const [upscaleModel, setUpscaleModel] = useState("R-ESRGAN 4x+ Anime6B");
+
+  const {
+    generationMode, setGenerationMode,
+    prompt, setPrompt,
+    loraPrompt, setLoraPrompt,
+    negativePrompt, setNegativePrompt,
+    aspectRatio, setAspectRatio,
+    qualityPreset, setQualityPreset,
+    steps, setSteps,
+    cfg, setCfg,
+    seed, setSeed,
+    batchCount, setBatchCount,
+    sampler, setSampler,
+    denoisingStrength, setDenoisingStrength,
+    upscaleScale, setUpscaleScale,
+    upscaleModel, setUpscaleModel
+  } = useGenerateStore();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState([]);

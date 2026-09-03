@@ -1,6 +1,20 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { get, set, del } from 'idb-keyval';
 
-const useWorkspaceStore = create((set, get) => ({
+const idbStorage = {
+  getItem: async (name) => {
+    return (await get(name)) || null;
+  },
+  setItem: async (name, value) => {
+    await set(name, value);
+  },
+  removeItem: async (name) => {
+    await del(name);
+  },
+};
+
+const useWorkspaceStore = create(persist((set, get) => ({
   // Global Assets
   generatedAssets: [],
   setGeneratedAssets: (assets) => set({ generatedAssets: assets }),
@@ -20,6 +34,9 @@ const useWorkspaceStore = create((set, get) => ({
 
   img2imgSourceImage: null,
   setImg2ImgSourceImage: (url) => set({ img2imgSourceImage: url }),
+}), {
+  name: 'omnigen-workspace-storage',
+  storage: createJSONStorage(() => idbStorage),
 }));
 
 export default useWorkspaceStore;

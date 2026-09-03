@@ -1,11 +1,12 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const STORAGE_KEY_BASE = 'omnigen_selected_base_model';
 const STORAGE_KEY_LORAS = 'omnigen_active_loras';
 const STORAGE_KEY_EMBEDDINGS = 'omnigen_active_embeddings';
 const STORAGE_KEY_MODEL_PROFILES = 'omnigen_model_profiles';
 
-const useModelStore = create((set, get) => ({
+const useModelStore = create(persist((set, get) => ({
   // Engines
   imageEngine: 'flux_1',
   setImageEngine: (engine) => set({ imageEngine: engine }),
@@ -146,6 +147,6 @@ const useModelStore = create((set, get) => ({
     }, []);
     return [...loraWords, ...embedWords];
   }
-}));
+}), { name: 'omnigen-model-storage' }));
 
 export default useModelStore;

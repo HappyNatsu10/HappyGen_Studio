@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useAppStore = create((set) => ({
+const useAppStore = create(persist((set) => ({
   // Navigation State
   activeTab: 'generate',
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -25,6 +26,6 @@ const useAppStore = create((set) => ({
   modalEngineContext: null,
   openModelModal: (context) => set({ showModelModal: true, modalEngineContext: context }),
   closeModelModal: () => set({ showModelModal: false, modalEngineContext: null }),
-}));
+}), { name: 'omnigen-app-storage' }));
 
 export default useAppStore;
