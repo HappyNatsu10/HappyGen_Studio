@@ -294,12 +294,15 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
 
         CURRENT_BASE_MODEL_FILE = req_base_model_file
 
-def _apply_loras(target_pipe, loras, api_key):
+def _apply_loras(target_pipe, loras, api_key, base_model=None):
     loaded_adapters = []
     loaded_weights = []
     if not target_pipe: return loaded_adapters
     if "StableDiffusionXL" in str(type(target_pipe)):
-        is_pony = "pony" in CURRENT_BASE_MODEL_FILE.lower()
+        is_pony = "pony" in CURRENT_BASE_MODEL_FILE.lower() or "illustrious" in CURRENT_BASE_MODEL_FILE.lower()
+        if base_model:
+            arch = base_model.get("architecture", "") if isinstance(base_model, dict) else str(base_model)
+            if "pony" in arch.lower() or "illustrious" in arch.lower(): is_pony = True
         if os.path.exists(LIGHTNING_PATH) and not is_pony:
             try:
                 adapter_id = "lora_lightning"

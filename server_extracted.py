@@ -405,13 +405,16 @@ def _load_embeddings(target_pipe, embeddings, api_key):
             except Exception as e:
                 print(f"Embedding load note: {e}")
 
-def _apply_loras(target_pipe, loras, api_key):
+def _apply_loras(target_pipe, loras, api_key, base_model=None):
     loaded_adapters = []
     loaded_weights = []
     if not target_pipe: return loaded_adapters
     
     if "StableDiffusionXL" in str(type(target_pipe)):
-        is_pony = "pony" in CURRENT_BASE_MODEL_FILE.lower()
+        is_pony = "pony" in CURRENT_BASE_MODEL_FILE.lower() or "illustrious" in CURRENT_BASE_MODEL_FILE.lower()
+        if base_model:
+            arch = base_model.get("architecture", "") if isinstance(base_model, dict) else str(base_model)
+            if "pony" in arch.lower() or "illustrious" in arch.lower(): is_pony = True
         if os.path.exists(LIGHTNING_PATH) and not is_pony:
             try:
                 adapter_id = "lora_lightning"
@@ -452,11 +455,12 @@ def _do_txt2img(req: Txt2ImgRequest):
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
     _load_embeddings(pipe, req.embeddings, req.civitai_api_key)
-    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
-    req_architecture = req.base_model.get("architecture", "SDXL 1.0") if isinstance(req.base_model, dict) else "SDXL 1.0"
-    is_pony = "Pony" in req_architecture or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key, base_model=req.base_model)
+    req_architecture = req.base_model.get("architecture", "") if isinstance(req.base_model, dict) else str(req.base_model)
+    is_pony = "pony" in req_architecture.lower() or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    is_illustrious = "illustrious" in req_architecture.lower() or "illustrious" in CURRENT_BASE_MODEL_FILE.lower()
     prompt_str = req.prompt
-    if is_pony and "score_" not in req.prompt:
+    if is_pony and "score_" not in req.prompt.lower():
         prompt_str = f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
     with torch.inference_mode():
@@ -489,11 +493,12 @@ def _do_img2img(req: Img2ImgRequest):
     generator = torch.Generator("cuda").manual_seed(seed)
     init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
     _load_embeddings(pipe_img2img, req.embeddings, req.civitai_api_key)
-    loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
-    req_architecture = req.base_model.get("architecture", "SDXL 1.0") if isinstance(req.base_model, dict) else "SDXL 1.0"
-    is_pony = "Pony" in req_architecture or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key, base_model=req.base_model)
+    req_architecture = req.base_model.get("architecture", "") if isinstance(req.base_model, dict) else str(req.base_model)
+    is_pony = "pony" in req_architecture.lower() or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    is_illustrious = "illustrious" in req_architecture.lower() or "illustrious" in CURRENT_BASE_MODEL_FILE.lower()
     prompt_str = req.prompt
-    if is_pony and "score_" not in req.prompt:
+    if is_pony and "score_" not in req.prompt.lower():
         prompt_str = f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
     with torch.inference_mode():
