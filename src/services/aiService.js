@@ -125,7 +125,7 @@ export const generateImageAI = async ({
             fileName: baseModel.version?.fileName || baseModel.fileName,
             downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
             architecture: baseModel.version?.baseModel || "SDXL 1.0"
-          } : baseModel,
+          } : (baseModel || engine),
           loras: loras.map(l => ({
             name: l.id || l.name,
             weight: l.weight ?? 0.8,
