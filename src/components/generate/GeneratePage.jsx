@@ -51,7 +51,6 @@ export default function GeneratePage() {
   const {
     generationMode, setGenerationMode,
     prompt, setPrompt,
-    loraPrompt, setLoraPrompt,
     negativePrompt, setNegativePrompt,
     aspectRatio, setAspectRatio,
     qualityPreset, setQualityPreset,
@@ -72,45 +71,8 @@ export default function GeneratePage() {
 
   const prevLorasRef = useRef(loras);
 
+  // Sync prevLorasRef for changes
   useEffect(() => {
-    const prevLoras = prevLorasRef.current;
-    const addedLoras = loras.filter(l => !prevLoras.find(pl => pl.id === l.id));
-    const removedLoras = prevLoras.filter(pl => !loras.find(l => l.id === pl.id));
-
-    if (addedLoras.length > 0 || removedLoras.length > 0) {
-      setLoraPrompt(currentPrompt => {
-        let newPrompt = currentPrompt;
-        
-        removedLoras.forEach(lora => {
-          if (lora.triggerWords && lora.triggerWords.length > 0) {
-            lora.triggerWords.filter(Boolean).forEach(tw => {
-              const escapedTw = tw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const regex = new RegExp(`(^|\\s*,\\s*|\\s+)${escapedTw}(?=\\s*,|\\s+|$)`, 'gi');
-              newPrompt = newPrompt.replace(regex, '');
-            });
-          }
-        });
-
-        // Clean up stray commas left over from removals
-        newPrompt = newPrompt.replace(/^,[\s]*/, '').replace(/,[\s]*$/, '').replace(/,[\s]*,/g, ', ').trim();
-
-        addedLoras.forEach(lora => {
-          if (lora.triggerWords && lora.triggerWords.length > 0) {
-            const triggers = lora.triggerWords.filter(Boolean).join(', ');
-            if (triggers) {
-              if (newPrompt.length > 0 && !newPrompt.endsWith(',')) {
-                newPrompt += ', ';
-              } else if (newPrompt.endsWith(',')) {
-                newPrompt += ' ';
-              }
-              newPrompt += triggers;
-            }
-          }
-        });
-
-        return newPrompt.trim();
-      });
-    }
     prevLorasRef.current = loras;
   }, [loras]);
 
@@ -198,9 +160,6 @@ export default function GeneratePage() {
 
     try {
       let fullPrompt = prompt.trim();
-      if (loraPrompt.trim()) {
-        fullPrompt += (fullPrompt ? ', ' : '') + loraPrompt.trim();
-      }
 
       if (!isAdultMode && ['create', 'draft', 'hires', 'img2img', 'variations', 'inpaint'].includes(generationMode)) {
         const explicitWords = ['nsfw', 'nude', 'naked', 'nipple', 'porn', 'sex', 'genital', 'uncensored', 'pussy', 'penis', 'breast', 'boob', 'milf', 'topless'];
@@ -356,7 +315,7 @@ export default function GeneratePage() {
 
         {/* Model Selection (hidden for upscale/facefix and closed engines) */}
         {!['upscale', 'facefix', 'interrogate'].includes(generationMode) && !isEngineClosed(imageEngine) && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} id="tour-model-selector">
             <ModelSelector
               baseModel={baseModel}
               loras={loras}
@@ -375,12 +334,10 @@ export default function GeneratePage() {
 
         {/* Prompt (hidden for upscale) */}
         {generationMode !== 'upscale' && generationMode !== 'interrogate' && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} id="tour-prompt-box">
             <PromptEditor
               prompt={prompt}
               setPrompt={setPrompt}
-              loraPrompt={loraPrompt}
-              setLoraPrompt={setLoraPrompt}
               negativePrompt={negativePrompt}
               setNegativePrompt={setNegativePrompt}
             />
@@ -431,7 +388,7 @@ export default function GeneratePage() {
         )}
 
         {/* Generate Button */}
-        <motion.div variants={itemVariants} className="sticky bottom-0 z-20 -mx-0 pt-3 pb-1 md:static md:pt-0 md:pb-0" style={{ background: 'linear-gradient(to top, var(--surface-1) 70%, transparent)' }}>
+        <motion.div id="tour-generate-button" variants={itemVariants} className="sticky bottom-0 z-20 -mx-0 pt-3 pb-1 md:static md:pt-0 md:pb-0" style={{ background: 'linear-gradient(to top, var(--surface-1) 70%, transparent)' }}>
           <button
             onClick={handleGenerate}
             disabled={isGenerating || (generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate' && !prompt.trim())}

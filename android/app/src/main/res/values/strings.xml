@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">OmniGen AI Studio</string>
-    <string name="title_activity_main">OmniGen AI Studio</string>
-    <string name="package_name">com.happynatsu.aiimagegenerator</string>
-    <string name="custom_url_scheme">com.happynatsu.aiimagegenerator</string>
+    <string name="app_name">HappyGen Studio</string>
+    <string name="title_activity_main">HappyGen Studio</string>
+    <string name="package_name">com.happynatsu.happygenstudio</string>
+    <string name="custom_url_scheme">com.happynatsu.happygenstudio</string>
 </resources>

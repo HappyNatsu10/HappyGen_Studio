@@ -187,7 +187,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
             <img 
               src={sourceImage} 
               alt="Source for Inpainting" 
-              className="block w-auto h-auto max-w-full max-h-[400px] select-none pointer-events-none" 
+              className="block w-auto h-auto max-w-full max-h-[70vh] select-none pointer-events-none" 
             />
             
             {/* The drawing canvas overlay */}

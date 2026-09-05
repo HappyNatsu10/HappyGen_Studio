@@ -55,10 +55,11 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-             style={{ background: 'linear-gradient(135deg, var(--accent) 0%, #a855f7 100%)' }}>
-          O
-        </div>
+        <img
+          src="/icon.svg"
+          alt="HappyGen Logo"
+          className="w-7 h-7 rounded-lg flex-shrink-0 shadow-sm object-cover"
+        />
         {!collapsed && (
           <span className="font-semibold text-sm tracking-tight" style={{ color: 'var(--text-primary)' }}>
             HappyGen <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>v2</span>
@@ -84,7 +85,7 @@ export default function Sidebar() {
                   onClick={() => setActiveTab(item.id)}
                   className={`relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
                     collapsed ? 'justify-center' : ''
-                  }`}
+                  } ${item.id === 'gallery' ? 'tour-gallery-desktop' : ''}`}
                   style={{
                     background: isActive ? 'var(--accent-subtle)' : 'transparent',
                     color: isActive ? 'var(--text-accent)' : 'var(--text-secondary)',
@@ -123,16 +124,15 @@ export default function Sidebar() {
               className="w-7 h-7 rounded-full object-cover flex-shrink-0"
               style={{ border: '1px solid var(--border-default)' }}
             />
-            {!collapsed && (
-              <div className="text-left overflow-hidden">
-                <div className="text-[12px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                  {currentUser.name}
+            {!collapsed && <div className="flex-1 overflow-hidden">
+                  <div className="text-[13px] font-semibold text-[var(--text-primary)] truncate">
+                    {currentUser.name}
+                  </div>
+                  <div className="text-[11px] text-[var(--text-tertiary)] truncate mt-0.5">
+                    {currentUser.tier || 'Free User'}
+                  </div>
                 </div>
-                <div className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>
-                  {currentUser.credits ?? 150} credits
-                </div>
-              </div>
-            )}
+            }
           </button>
         ) : (
           <button

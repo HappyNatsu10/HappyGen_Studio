@@ -11,7 +11,12 @@ const useAppStore = create(persist((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   
   // App Settings
+  hasSeenTutorial: false,
+  setHasSeenTutorial: (val) => set({ hasSeenTutorial: val }),
   
+  hasSeenInteractiveTour: false,
+  setHasSeenInteractiveTour: (val) => set({ hasSeenInteractiveTour: val }),
+
   isAdultMode: false,
   setIsAdultMode: (isAdult) => set({ isAdultMode: isAdult }),
 

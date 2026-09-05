@@ -9,6 +9,7 @@ const TABS = [
   { id: 'inpaint', label: 'Inpaint', icon: Brush },
   { id: 'models', label: 'Explore', icon: Layers },
   { id: 'gallery', label: 'Gallery', icon: FolderOpen },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function MobileTabBar() {
@@ -23,7 +24,7 @@ export default function MobileTabBar() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="flex flex-col items-center justify-center w-full h-full space-y-1 relative"
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 relative ${tab.id === 'gallery' ? 'tour-gallery-mobile' : ''}`}
             style={{ color: isActive ? 'var(--accent)' : 'var(--text-tertiary)' }}
           >
             {isActive && (

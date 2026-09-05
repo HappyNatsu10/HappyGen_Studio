@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2 } from 'lucide-react';
+import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush } from 'lucide-react';
 import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -72,8 +72,23 @@ export default function GalleryProjects() {
                   <div className="aspect-square overflow-hidden relative img-overlay" style={{ background: 'var(--surface-2)' }}>
                     <img src={asset.url} alt={asset.prompt} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
-                      <button className="btn btn-primary p-2">
+                      <button 
+                        className="btn btn-primary p-2"
+                        title="View Fullscreen"
+                        onClick={(e) => { e.stopPropagation(); setActiveViewerImage(asset); }}
+                      >
                         <Maximize2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        className="btn btn-secondary p-2 bg-white/20 hover:bg-white/40 text-white"
+                        title="Send to Inpaint Studio"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          useWorkspaceStore.getState().setInpaintSourceImage(asset.url);
+                          useAppStore.getState().setActiveTab('inpaint');
+                        }}
+                      >
+                        <Brush className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

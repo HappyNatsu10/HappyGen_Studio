@@ -1,4 +1,4 @@
-package com.happynatsu.aiimagegenerator;
+package com.happynatsu.happygenstudio;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -297,7 +297,21 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
 def _apply_loras(target_pipe, loras, api_key):
     loaded_adapters = []
     loaded_weights = []
-    if not loras or not target_pipe: return loaded_adapters
+    if not target_pipe: return loaded_adapters
+    if "StableDiffusionXL" in str(type(target_pipe)):
+        is_pony = "pony" in CURRENT_BASE_MODEL_FILE.lower()
+        if os.path.exists(LIGHTNING_PATH) and not is_pony:
+            try:
+                adapter_id = "lora_lightning"
+                target_pipe.load_lora_weights("/content/LoRAs", weight_name=os.path.basename(LIGHTNING_PATH), adapter_name=adapter_id)
+                loaded_weights.append(1.0)
+                loaded_adapters.append(adapter_id)
+            except Exception as e:
+                print(f"Lightning LoRA load note: {e}")
+    if not loras:
+        if loaded_adapters:
+            target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
+        return loaded_adapters
     for item in loras:
         name = item if isinstance(item, str) else item.get("fileName") or item.get("name")
         weight = 0.85 if isinstance(item, str) else float(item.get("weight", 0.85))
@@ -324,7 +338,11 @@ def _do_txt2img(req: Txt2ImgRequest):
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
     loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
-    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+    req_architecture = req.base_model.get("architecture", "SDXL 1.0") if isinstance(req.base_model, dict) else "SDXL 1.0"
+    is_pony = "Pony" in req_architecture or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    prompt_str = req.prompt
+    if is_pony and "score_" not in req.prompt:
+        prompt_str = f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
     with torch.inference_mode():
         if "Flux" in str(type(pipe)):
@@ -351,7 +369,11 @@ def _do_img2img(req: Img2ImgRequest):
     generator = torch.Generator("cuda").manual_seed(seed)
     init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
     loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
-    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+    req_architecture = req.base_model.get("architecture", "SDXL 1.0") if isinstance(req.base_model, dict) else "SDXL 1.0"
+    is_pony = "Pony" in req_architecture or "pony" in CURRENT_BASE_MODEL_FILE.lower()
+    prompt_str = req.prompt
+    if is_pony and "score_" not in req.prompt:
+        prompt_str = f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
 
     with torch.inference_mode():
         image = pipe_img2img(prompt=prompt_str, negative_prompt=req.negative_prompt, image=init_image, strength=req.denoising_strength, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, generator=generator).images[0]

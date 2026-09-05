@@ -12,11 +12,6 @@ const useGenerateStore = create(persist((set) => ({
     prompt: typeof prompt === 'function' ? prompt(state.prompt) : prompt 
   })),
 
-  loraPrompt: '',
-  setLoraPrompt: (loraPrompt) => set((state) => ({ 
-    loraPrompt: typeof loraPrompt === 'function' ? loraPrompt(state.loraPrompt) : loraPrompt 
-  })),
-
   negativePrompt: DEFAULT_NEGATIVE,
   setNegativePrompt: (negativePrompt) => set({ negativePrompt }),
 

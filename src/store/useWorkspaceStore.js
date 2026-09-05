@@ -14,13 +14,31 @@ const idbStorage = {
   },
 };
 
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../config/firebase';
+
 const useWorkspaceStore = create(persist((set, get) => ({
   // Global Assets
   generatedAssets: [],
   setGeneratedAssets: (assets) => set({ generatedAssets: assets }),
-  addGeneratedAssets: (newAssets) => set((state) => ({ 
-    generatedAssets: [...newAssets, ...state.generatedAssets] 
-  })),
+  addGeneratedAssets: async (newAssets) => {
+    // 1. Update local Zustand state
+    set((state) => ({ 
+      generatedAssets: [...newAssets, ...state.generatedAssets] 
+    }));
+    
+    // 2. Sync to Firebase if user is logged in
+    const user = auth?.currentUser;
+    if (user && db) {
+      try {
+        const docRef = doc(db, 'user_workspaces', user.uid);
+        const currentAssets = get().generatedAssets;
+        await setDoc(docRef, { generatedAssets: currentAssets }, { merge: true });
+      } catch (err) {
+        console.warn("Could not sync generated assets to Firebase.", err);
+      }
+    }
+  },
 
   // Cross-Module State (Sending data between tabs)
   canvasTargetImage: null,

@@ -174,15 +174,17 @@
 }
 
 /* --- Input --- */
-.input {
-  background-color: var(--surface-2);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  padding: 8px 12px;
-  font-size: 14px;
-  transition: border-color var(--transition-fast),
-              box-shadow var(--transition-fast);
+@layer components {
+  .input {
+    background-color: var(--surface-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+  }
 }
 
 .input::placeholder {
@@ -377,6 +379,8 @@
 }
 
 .mode-toggle-option {
+  flex: 1;
+  text-align: center;
   padding: 5px 14px;
   font-size: 12px;
   font-weight: 500;
@@ -538,4 +542,66 @@ textarea {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* ============================================
+   Driver.js Custom Theme (HappyGen Dark)
+   Overrides the default light theme of the tour
+   ============================================ */
+.driver-popover {
+  background-color: var(--surface-1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
+
+.driver-popover-title {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  margin-bottom: 4px !important;
+}
+
+.driver-popover-description {
+  color: var(--text-tertiary) !important;
+  font-size: 13px !important;
+}
+
+.driver-popover-footer button {
+  background-color: var(--surface-2) !important;
+  color: var(--text-secondary) !important;
+  text-shadow: none !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition-fast) !important;
+  padding: 4px 10px !important;
+}
+
+.driver-popover-footer button:hover {
+  background-color: var(--surface-3) !important;
+  color: var(--text-primary) !important;
+}
+
+.driver-popover-footer .driver-popover-next-btn {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: white !important;
+}
+
+.driver-popover-footer .driver-popover-next-btn:hover {
+  background-color: var(--accent-hover) !important;
+  opacity: 1 !important;
+}
+
+.driver-popover-close-btn {
+  color: var(--text-tertiary) !important;
+}
+
+.driver-popover-close-btn:hover {
+  color: var(--text-primary) !important;
+}
+
+.driver-popover-arrow {
+  border-color: var(--surface-1) !important;
 }

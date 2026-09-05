@@ -11,8 +11,6 @@ const QUICK_TAGS = [
 export default function PromptEditor({
   prompt,
   setPrompt,
-  loraPrompt,
-  setLoraPrompt,
   negativePrompt,
   setNegativePrompt,
   onEnhance,
@@ -65,7 +63,9 @@ export default function PromptEditor({
         <div className="relative">
           <textarea
             value={prompt}
+            onInput={e => setPrompt(e.target.value)}
             onChange={e => setPrompt(e.target.value)}
+            onBlur={e => setPrompt(e.target.value)}
             placeholder="Describe what you want to create..."
             rows={4}
             className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all resize-none shadow-inner"
@@ -88,22 +88,6 @@ export default function PromptEditor({
         onClose={() => setIsPromptModalOpen(false)} 
         onUsePrompt={handleUseGeneratedPrompt} 
       />
-
-      {/* LoRA Triggers */}
-      {loraPrompt !== undefined && (
-        <div>
-          <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-            LoRA Triggers (Auto-appended)
-          </label>
-          <textarea
-            value={loraPrompt}
-            onChange={e => setLoraPrompt(e.target.value)}
-            placeholder="LoRA trigger words will appear here..."
-            rows={1}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-purple-300 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all resize-none shadow-inner"
-          />
-        </div>
-      )}
 
       {/* Quick Tags — Both Modes */}
       <div>

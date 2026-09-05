@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import GalleryPickerModal from '../common/GalleryPickerModal';
 
 export default function ImageUploadZone({ label, value, onChange }) {
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isGalleryPickerOpen, setIsGalleryPickerOpen] = useState(false);
 
   const handleFile = (file) => {
     if (file && file.type.startsWith('image/')) {
@@ -26,18 +28,27 @@ export default function ImageUploadZone({ label, value, onChange }) {
       {label && <label className="text-[11px] font-medium block mb-2 text-[var(--text-tertiary)]">{label}</label>}
       
       {!value ? (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-            isDragging ? 'border-[var(--accent)] bg-[var(--accent-muted)]' : 'border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]'
-          }`}
-        >
-          <Upload className={`w-6 h-6 mb-2 ${isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'}`} />
-          <span className="text-[12px] font-medium text-[var(--text-secondary)]">Click or drag image here</span>
-          <span className="text-[10px] text-[var(--text-tertiary)] mt-1">PNG, JPG, WEBP up to 10MB</span>
+        <div className="flex flex-col gap-2">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={onDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+              isDragging ? 'border-[var(--accent)] bg-[var(--accent-muted)]' : 'border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]'
+            }`}
+          >
+            <Upload className={`w-6 h-6 mb-2 ${isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'}`} />
+            <span className="text-[12px] font-medium text-[var(--text-secondary)]">Click or drag image here</span>
+            <span className="text-[10px] text-[var(--text-tertiary)] mt-1">PNG, JPG, WEBP up to 10MB</span>
+          </div>
+          <button 
+            onClick={() => setIsGalleryPickerOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[12px] font-medium text-[var(--text-secondary)] transition-colors"
+          >
+            <ImageIcon className="w-4 h-4" />
+            Select from Gallery
+          </button>
         </div>
       ) : (
         <div className="relative rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]">
@@ -62,6 +73,13 @@ export default function ImageUploadZone({ label, value, onChange }) {
         }}
         accept="image/*"
         className="hidden"
+      />
+      <GalleryPickerModal 
+        isOpen={isGalleryPickerOpen}
+        onClose={() => setIsGalleryPickerOpen(false)}
+        onSelect={(url) => {
+          onChange(url);
+        }}
       />
     </div>
   );

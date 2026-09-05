@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Download, ThumbsUp, Filter, X, Loader2, Heart, Clock } from 'lucide-react';
 import { searchModels, formatCount } from '../../services/civitaiService';
 import ModelDetailDrawer from './ModelDetailDrawer';
@@ -120,6 +120,24 @@ export default function ModelExplorer(props) {
     }
   }, [forcedType]);
 
+  const loadMoreRef = useRef(null);
+
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore || loading || activeTab !== 'Search') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          doSearch(true);
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, activeTab, doSearch]);
+
   // Handle Tab changes
   let displayResults = activeTab === 'Search' ? results : favourites;
 
@@ -184,8 +202,8 @@ export default function ModelExplorer(props) {
 
         {/* Filters (only for Search) */}
         {activeTab === 'Search' && (
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-col gap-3 pb-2 border-b border-white/5 overflow-x-auto hide-scrollbar">
+            <div className="flex gap-2 items-center min-w-max">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                 <Filter className="inline w-3 h-3 mr-1" />Type:
               </span>
@@ -240,7 +258,7 @@ export default function ModelExplorer(props) {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 items-center pb-2 border-b border-white/5">
+            <div className="flex gap-2 items-center min-w-max">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                 Category:
               </span>
@@ -289,10 +307,10 @@ export default function ModelExplorer(props) {
 
         {/* Favourites Controls */}
         {activeTab === 'Favourites' && (
-          <div className="flex flex-col gap-3 pb-2 border-b border-white/5">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex flex-col gap-3 pb-2 border-b border-white/5 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center gap-3 min-w-max">
               {/* Folders */}
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex gap-2 items-center min-w-max">
                 <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                   Folder:
                 </span>
@@ -440,15 +458,10 @@ export default function ModelExplorer(props) {
           ))}
         </div>
 
-        {/* Load More */}
-        {hasMore && !loading && activeTab === 'Search' && (
-          <div className="flex justify-center pt-6">
-            <button
-              onClick={() => doSearch(true)}
-              className="btn btn-secondary"
-            >
-              Load More
-            </button>
+        {/* Infinite Scroll Trigger */}
+        {hasMore && activeTab === 'Search' && (
+          <div ref={loadMoreRef} className="flex justify-center pt-6 pb-4">
+            {loading && <Loader2 className="w-6 h-6 animate-spin text-purple-500" />}
           </div>
         )}
 

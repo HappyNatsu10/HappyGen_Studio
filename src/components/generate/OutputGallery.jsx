@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2 } from 'lucide-react';
+import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush } from 'lucide-react';
 import ImageViewerModal from '../common/ImageViewerModal';
 
 export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
@@ -115,6 +115,18 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
                   <ImagePlus className="w-4 h-4" />
                 </button>
               )}
+              <button
+                onClick={() => {
+                  const useAppStore = require('../../store/useAppStore').default;
+                  const useWorkspaceStore = require('../../store/useWorkspaceStore').default;
+                  useWorkspaceStore.getState().setInpaintSourceImage(activeImage.url);
+                  useAppStore.getState().setActiveTab('inpaint');
+                }}
+                className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                title="Send to Inpaint Studio"
+              >
+                <Brush className="w-4 h-4" />
+              </button>
               {onSendToCanvas && (
                 <button
                   onClick={() => onSendToCanvas(activeImage.url)}

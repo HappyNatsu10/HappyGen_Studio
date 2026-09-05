@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight, Zap } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight, Zap, CheckCircle2 } from 'lucide-react';
 
 export default function AuthModal() {
-  const { showAuthModal, authModalMode, closeAuth, login, register, loginAsGuest, DEFAULT_AVATARS } = useAuth();
+  const { showAuthModal, authModalMode, closeAuth, login, register, logout, loginAsGuest, DEFAULT_AVATARS } = useAuth();
   const [mode, setMode] = useState(authModalMode || 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,22 +11,38 @@ export default function AuthModal() {
   const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATARS[0]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!showAuthModal) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
     try {
       if (mode === 'signup') {
         if (!email || !password || !name) throw new Error('Please fill in all required fields.');
         if (password.length < 6) throw new Error('Password must be at least 6 characters long.');
-        register({ name, email, password, avatar: selectedAvatar });
+        await register({ name, email, password, avatar: selectedAvatar });
+        await logout(); // Ensure they aren't auto-logged in, as requested
+        setSuccessMessage('Account created successfully! Please sign in.');
+        
+        setTimeout(() => {
+          setSuccessMessage('');
+          setMode('login');
+          setPassword(''); // clear password for safety
+        }, 1500);
       } else {
         if (!email || !password) throw new Error('Please enter your email and password.');
-        login({ email, password });
+        await login({ email, password });
+        setSuccessMessage('Logged in successfully!');
+        
+        setTimeout(() => {
+          closeAuth();
+          setSuccessMessage('');
+        }, 1500);
       }
     } catch (err) {
       setError(err.message || 'An error occurred during authentication.');
@@ -34,6 +50,32 @@ export default function AuthModal() {
       setLoading(false);
     }
   };
+
+  const handleGuestLogin = () => {
+    setError('');
+    loginAsGuest();
+    setSuccessMessage('Logged in as Guest!');
+    setTimeout(() => {
+      closeAuth();
+      setSuccessMessage('');
+    }, 1500);
+  };
+
+  if (successMessage) {
+    return (
+      <div className="modal-overlay overlay-enter" onClick={closeAuth}>
+        <div className="modal-panel animate-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+          <div className="p-8 flex flex-col items-center justify-center space-y-4 text-center">
+            <CheckCircle2 className="w-14 h-14 text-emerald-500" />
+            <div>
+              <h2 className="text-[16px] font-semibold text-white">{successMessage}</h2>
+              <p className="text-[12px] text-gray-400 mt-1">Preparing your studio...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-overlay overlay-enter" onClick={closeAuth}>
@@ -146,7 +188,7 @@ export default function AuthModal() {
 
           {/* Guest */}
           <div className="pt-2 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
-            <button type="button" onClick={() => { setError(''); loginAsGuest(); }}
+            <button type="button" onClick={handleGuestLogin}
               className="flex items-center justify-center gap-1.5 mx-auto text-[12px] font-medium cursor-pointer transition-colors"
               style={{ color: 'var(--text-tertiary)' }}>
               <Zap className="w-3.5 h-3.5" style={{ color: 'var(--warning)' }} />

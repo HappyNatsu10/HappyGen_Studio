@@ -67,7 +67,8 @@ def get_pipeline():
     pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
 
     # 1. SDXL Lightning 4-Step Acceleration
-    if os.path.exists(LIGHTNING_PATH):
+    is_pony_base = "pony" in BASE_MODEL_NAME.lower()
+    if os.path.exists(LIGHTNING_PATH) and not is_pony_base:
         try:
             print("[ACCEL] Fusing SDXL Lightning 4-Step LoRA...")
             pipe.load_lora_weights(MODELS_DIR, weight_name=os.path.basename(LIGHTNING_PATH))

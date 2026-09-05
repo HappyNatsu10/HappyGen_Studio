@@ -7,6 +7,8 @@ import ImageUploadZone from './generate/ImageUploadZone';
 
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import useGenerateStore from '../store/useGenerateStore';
+import useModelStore from '../store/useModelStore';
 
 export default function InpaintStudio() {
   const { isAdultMode, mode } = useAppStore();
@@ -38,13 +40,30 @@ export default function InpaintStudio() {
     setResultImage(null);
 
     try {
-      // In a real app, this would hit the backend API
+      const { baseModel, loras, embeddings } = useModelStore.getState();
+      const { aspectRatio, steps, cfg, sampler } = useGenerateStore.getState();
+      
+      // Get exact image dimensions to prevent squashing/scaling
+      const img = new Image();
+      img.src = sourceImage;
+      await new Promise(resolve => { img.onload = resolve; });
+      const width = img.naturalWidth || aspectRatio?.w || 1024;
+      const height = img.naturalHeight || aspectRatio?.h || 1024;
+      
       const images = await inpaintImage({
         sourceImage,
         maskImage,
         prompt,
         negativePrompt,
-        isAdultMode
+        isAdultMode,
+        baseModel,
+        loras: (loras || []),
+        embeddings: (embeddings || []),
+        steps: steps || 20,
+        guidanceScale: cfg || 6.5,
+        sampler: sampler || 'Euler a',
+        width,
+        height
       });
       
       setResultImage(images[0]);

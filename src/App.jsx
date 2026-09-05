@@ -13,6 +13,8 @@ import UserProfileModal from './components/UserProfileModal';
 import MobileTabBar from './components/layout/MobileTabBar';
 import ModelSelectionModal from './components/models/ModelSelectionModal';
 import InpaintStudio from './components/InpaintStudio';
+import OnboardingTutorial from './components/common/OnboardingTutorial';
+import InteractiveTour from './components/common/InteractiveTour';
 import useAppStore from './store/useAppStore';
 
 const TAB_TITLES = {
@@ -35,7 +37,9 @@ function MainApp() {
     showBackendModal,
     showProfileModal,
     showModelModal,
+    hasSeenTutorial,
     setShowBackendModal,
+    setShowProfileModal,
   } = useAppStore();
 
   const sidebarWidth = sidebarCollapsed ? 60 : 220;
@@ -103,15 +107,18 @@ function MainApp() {
       {/* Modals */}
       <ModelSelectionModal />
       <AuthModal />
-      <UserProfileModal />
+      <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
       <BackendConfigModal isOpen={showBackendModal} onClose={() => setShowBackendModal(false)} />
+      
+      {!hasSeenTutorial && <OnboardingTutorial />}
+      <InteractiveTour />
     </div>
   );
 }
 
 // Simple settings page connected to Zustand
 function SettingsPage() {
-  const { isAdultMode, setIsAdultMode, setShowBackendModal } = useAppStore();
+  const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour } = useAppStore();
 
   return (
     <div className="max-w-lg space-y-6">
@@ -148,6 +155,20 @@ function SettingsPage() {
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
               isAdultMode ? 'translate-x-6' : 'translate-x-1'
             }`} />
+          </button>
+        </div>
+      </div>
+
+      {/* App Walkthrough */}
+      <div className="card p-4">
+        <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>Help & Tutorials</div>
+        <p className="text-[11px] mb-3" style={{ color: 'var(--text-tertiary)' }}>Replay the introductory guide or take an interactive tour of HappyGen Studio.</p>
+        <div className="flex flex-col gap-2">
+          <button onClick={() => setHasSeenTutorial(false)} className="btn btn-secondary w-full text-[12px] py-2 cursor-pointer transition-colors hover:bg-white/10">
+            Show Welcome Guide
+          </button>
+          <button onClick={() => setHasSeenInteractiveTour(false)} className="btn btn-secondary w-full text-[12px] py-2 cursor-pointer transition-colors hover:bg-white/10">
+            Start Interactive Tour
           </button>
         </div>
       </div>
