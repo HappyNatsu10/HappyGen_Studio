@@ -307,18 +307,17 @@ def _apply_loras(target_pipe, loras, api_key):
         lora_url = item.get("downloadUrl") if isinstance(item, dict) else None
         if not os.path.exists(lora_path) and lora_url:
             download_civitai_model(lora_url, lora_path, api_key)
-        if os.path.exists(lora_path) and lora_file != CURRENT_BASE_MODEL_FILE:
+        if os.path.exists(lora_path) and lora_file != CURRENT_BASE_MODEL_FILE and lora_file != os.path.basename(LIGHTNING_PATH):
             try:
                 adapter_id = f"lora_{len(loaded_adapters)}"
                 target_pipe.load_lora_weights("/content/LoRAs", weight_name=lora_file, adapter_name=adapter_id)
                 loaded_weights.append(weight)
                 loaded_adapters.append(adapter_id)
-            except Exception as e:
-                print(f"LoRA load note: {e}")
+            except:
+                pass
     if loaded_adapters:
         target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
     return loaded_adapters
-
 
 def _do_txt2img(req: Txt2ImgRequest):
     _switch_model_if_needed(req.base_model, req.civitai_api_key)
