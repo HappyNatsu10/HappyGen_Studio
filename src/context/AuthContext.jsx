@@ -78,6 +78,10 @@ export function AuthProvider({ children }) {
         photoURL: avatar || DEFAULT_AVATARS[0]
       });
 
+      // Inherit guest state if present
+      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
+      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders : ['Uncategorized'];
+
       // Save user to Firestore
       const newUserProfile = {
         name: name.trim() || 'Creator',
@@ -88,7 +92,8 @@ export function AuthProvider({ children }) {
         generatedCount: 0,
         savedPrompts: [],
         favoriteImages: [],
-        favouriteFolders: ['Uncategorized'],
+        favouriteFolders: guestFolders,
+        favouriteModels: guestModels,
         customSettings: {
           preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
           defaultSteps: 20,
@@ -114,7 +119,42 @@ export function AuthProvider({ children }) {
   // Login Existing Account
   const login = async ({ email, password }) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Inherit guest state if present
+      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
+      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // If we had guest favorites, merge them into the account we just logged into
+      if (guestModels.length > 0 || guestFolders.length > 0) {
+        try {
+          const docRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+             const existingData = docSnap.data();
+             const existingModels = existingData.favouriteModels || [];
+             const existingFolders = existingData.favouriteFolders || ['Uncategorized'];
+             
+             // Merge, avoiding duplicates by id
+             const mergedModels = [...existingModels];
+             for (const gm of guestModels) {
+               if (!mergedModels.find(m => m.id === gm.id)) {
+                 mergedModels.push(gm);
+               }
+             }
+             
+             const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+             
+             await updateDoc(docRef, {
+               favouriteModels: mergedModels,
+               favouriteFolders: mergedFolders
+             });
+          }
+        } catch (e) {
+          console.error("Could not merge guest data on login", e);
+        }
+      }
     } catch (error) {
       console.error(error);
       throw new Error('Invalid email or password. Please try again.');
@@ -134,7 +174,8 @@ export function AuthProvider({ children }) {
       isGuest: true,
       savedPrompts: [],
       favoriteImages: [],
-      favouriteFolders: ['Uncategorized']
+      favouriteFolders: ['Uncategorized'],
+      favouriteModels: []
     };
     setCurrentUser(guestUser);
     return guestUser;

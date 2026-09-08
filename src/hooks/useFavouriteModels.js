@@ -2,7 +2,14 @@ import { useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export function useFavouriteModels() {
-  const { currentUser, updateProfile, openAuth } = useAuth();
+  const { currentUser, updateProfile, setShowAuthModal, setAuthModalMode } = useAuth();
+  
+  const openAuth = useCallback((mode) => {
+    if (setAuthModalMode && setShowAuthModal) {
+      setAuthModalMode(mode);
+      setShowAuthModal(true);
+    }
+  }, [setAuthModalMode, setShowAuthModal]);
 
   const favourites = currentUser?.favouriteModels || [];
   const folders = currentUser?.favouriteFolders || ['Uncategorized'];
