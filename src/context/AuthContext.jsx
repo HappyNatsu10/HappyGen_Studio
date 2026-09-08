@@ -126,7 +126,7 @@ export function AuthProvider({ children }) {
     const guestUser = {
       id: `guest_${Date.now()}`,
       name: 'Guest Explorer',
-      email: 'guest@omnigen.ai',
+      email: 'guest@happygen.ai',
       avatar: DEFAULT_AVATARS[2],
       tier: 'Guest Sandbox',
       createdAt: new Date().toISOString(),

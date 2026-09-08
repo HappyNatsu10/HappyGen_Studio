@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush } from 'lucide-react';
 import ImageViewerModal from '../common/ImageViewerModal';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { Media } from '@capacitor-community/media';
 
 export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
   const [activeIdx, setActiveIdx] = useState(0);
@@ -20,33 +23,74 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
 
   const handleDownload = async (image) => {
     try {
+      const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
       const response = await fetch(image.url);
       const blob = await response.blob();
       
-      if (navigator.share && /mobile/i.test(navigator.userAgent)) {
-        const file = new File([blob], `omnigen-${image.seed || Date.now()}.png`, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Generated Image'
-          });
-          return;
+      if (isNativeApp) {
+        // Read blob as base64 for Capacitor
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64data = reader.result;
+          const fileName = `happygen-${image.seed || Date.now()}.png`;
+          try {
+            let pureBase64 = base64data;
+            if (base64data.includes(',')) {
+              pureBase64 = base64data.split(',')[1];
+            }
+            
+            const perm = await Media.checkPermissions();
+            if (perm.publicStorage !== 'granted') {
+              await Media.requestPermissions();
+            }
+
+            const savedFile = await Filesystem.writeFile({
+              path: fileName,
+              data: pureBase64,
+              directory: Directory.Cache
+            });
+            
+            await Media.savePhoto({
+              path: savedFile.uri,
+              album: 'HappyGen Studio'
+            });
+            
+            await Share.share({
+              title: 'Generated Image',
+              url: savedFile.uri,
+              dialogTitle: 'Share Image'
+            });
+          } catch (err) {
+            console.error("Capacitor save/share error:", err);
+          }
+        };
+      } else {
+        if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+          const file = new File([blob], `happygen-${image.seed || Date.now()}.png`, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Generated Image'
+            });
+            return;
+          }
         }
+        
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `happygen-${image.seed || Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
       }
-      
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `omnigen-${image.seed || Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch (e) {
       console.error('Download failed', e);
       const a = document.createElement('a');
       a.href = image.url;
-      a.download = `omnigen-${image.seed || Date.now()}.png`;
+      a.download = `happygen-${image.seed || Date.now()}.png`;
       a.target = '_blank';
       a.click();
     }
