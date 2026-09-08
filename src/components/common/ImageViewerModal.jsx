@@ -82,6 +82,18 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
         };
       } else {
         // Web fallback
+        if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+          const file = new File([blob], `happygen-${currentImage.seed || Date.now()}.png`, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Generated Image'
+            });
+            setIsDownloading(false);
+            return;
+          }
+        }
+        
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;

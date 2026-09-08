@@ -18,11 +18,38 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
 
   const activeImage = results[activeIdx] || null;
 
-  const handleDownload = (image) => {
-    const a = document.createElement('a');
-    a.href = image.url;
-    a.download = `omnigen-${image.seed || Date.now()}.png`;
-    a.click();
+  const handleDownload = async (image) => {
+    try {
+      const response = await fetch(image.url);
+      const blob = await response.blob();
+      
+      if (navigator.share && /mobile/i.test(navigator.userAgent)) {
+        const file = new File([blob], `omnigen-${image.seed || Date.now()}.png`, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Generated Image'
+          });
+          return;
+        }
+      }
+      
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `omnigen-${image.seed || Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e) {
+      console.error('Download failed', e);
+      const a = document.createElement('a');
+      a.href = image.url;
+      a.download = `omnigen-${image.seed || Date.now()}.png`;
+      a.target = '_blank';
+      a.click();
+    }
   };
 
   const handleCopySeed = (seed) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, FolderPlus } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function FolderSelectModal({ model, folders, onClose, onConfirm, onCreateFolder }) {
   const [selectedFolder, setSelectedFolder] = useState('Uncategorized');
@@ -21,7 +22,7 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
 
   if (!model) return null;
 
-  return (
+  return createPortal(
     <>
       <div className="fixed inset-0 z-50 overlay-enter" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm rounded-xl border modal-enter overflow-hidden" style={{ background: 'var(--surface-1)', borderColor: 'var(--border-subtle)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
@@ -105,6 +106,7 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
           </form>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

@@ -112,18 +112,18 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
             </div>
 
             {/* Content */}
-            <div className="flex flex-col md:flex-row p-6 gap-6 min-h-[400px]">
+            <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 flex-1 overflow-y-auto min-h-0">
               {/* Left side: Image Upload/Display */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col min-h-[200px] md:min-h-[300px]">
                 {!sourceImage ? (
-                  <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-purple-500/50 rounded-xl bg-white/5 cursor-pointer transition-all group min-h-[300px]">
+                  <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-purple-500/50 rounded-xl bg-white/5 cursor-pointer transition-all group p-4 text-center">
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     <ImageIcon className="w-12 h-12 text-slate-500 mb-4 group-hover:text-purple-400 transition-colors" />
                     <p className="text-sm font-medium text-slate-300">Click or drag image to upload</p>
                     <p className="text-xs text-slate-500 mt-2">Supports JPG, PNG, WebP</p>
                   </label>
                 ) : (
-                  <div className="relative flex-1 rounded-xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center min-h-[300px]">
+                  <div className="relative flex-1 rounded-xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center h-full">
                     <img src={sourceImage} alt="Source" className="max-w-full max-h-full object-contain" />
                     <button 
                       onClick={handleReset}
@@ -142,7 +142,7 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
               </div>
 
               {/* Right side: Result */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col min-h-[250px] md:min-h-[300px]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-white">Prompt</h3>
                   <button 
@@ -165,7 +165,7 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
                       value={generatedPrompt}
                       readOnly
                       placeholder="Generated tags will appear here..."
-                      className="w-full h-full bg-[#23242E] border border-white/5 rounded-xl p-4 text-[13px] leading-relaxed text-slate-300 placeholder-slate-600 focus:outline-none resize-none shadow-inner min-h-[250px]"
+                      className="absolute inset-0 w-full h-full bg-[#23242E] border border-white/5 rounded-xl p-4 text-[13px] leading-relaxed text-slate-300 placeholder-slate-600 focus:outline-none resize-none shadow-inner"
                     />
                   )}
                 </div>
