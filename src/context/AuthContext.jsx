@@ -150,14 +150,24 @@ export function AuthProvider({ children }) {
                favouriteModels: mergedModels,
                favouriteFolders: mergedFolders
              });
+             
+             // Update local state immediately so UI reflects the merge
+             setCurrentUser(prev => prev ? {
+               ...prev,
+               favouriteModels: mergedModels,
+               favouriteFolders: mergedFolders
+             } : null);
           }
         } catch (e) {
           console.error("Could not merge guest data on login", e);
         }
       }
     } catch (error) {
-      console.error(error);
-      throw new Error('Invalid email or password. Please try again.');
+      console.error("Login Error:", error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        throw new Error('Invalid email or password. Please try again.');
+      }
+      throw new Error(error.message || 'An error occurred during sign in.');
     }
   };
 
