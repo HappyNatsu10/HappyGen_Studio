@@ -4,6 +4,7 @@ import { searchModels, formatCount } from '../../services/civitaiService';
 import ModelDetailDrawer from './ModelDetailDrawer';
 import FolderSelectModal from './FolderSelectModal';
 import { useFavouriteModels } from '../../hooks/useFavouriteModels';
+import { useAuth } from '../../context/AuthContext';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 
@@ -60,14 +61,20 @@ export default function ModelExplorer(props) {
 
   const { favourites, folders, toggleFavourite, isFavourited, createFolder, renameFolder, deleteFolder, addFavourite, removeFavourite } = useFavouriteModels();
 
+  const { currentUser, openAuth } = useAuth();
+
   const handleFavouriteClick = useCallback((model, e) => {
     if (e) e.stopPropagation();
+    if (!currentUser) {
+      openAuth('login');
+      return;
+    }
     if (isFavourited(model.id)) {
       removeFavourite(model.id);
     } else {
       setFavModalModel(model);
     }
-  }, [isFavourited, removeFavourite]);
+  }, [currentUser, openAuth, isFavourited, removeFavourite]);
 
   const doSearch = useCallback(async (append = false) => {
     if (activeTab !== 'Search') return;

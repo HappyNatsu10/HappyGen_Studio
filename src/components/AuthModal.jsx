@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight, Zap, CheckCircle2 } from 'lucide-react';
 
 export default function AuthModal() {
-  const { showAuthModal, authModalMode, closeAuth, login, register, logout, loginAsGuest, DEFAULT_AVATARS } = useAuth();
-  const [mode, setMode] = useState(authModalMode || 'signup');
+  const { showAuthModal, authModalMode, closeAuth, login, register, loginAsGuest, DEFAULT_AVATARS } = useAuth();
+  const [mode, setMode] = useState(authModalMode || 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -13,6 +13,15 @@ export default function AuthModal() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Sync internal mode with the external authModalMode whenever the modal opens
+  useEffect(() => {
+    if (showAuthModal) {
+      setMode(authModalMode || 'login');
+      setError('');
+      setSuccessMessage('');
+    }
+  }, [showAuthModal, authModalMode]);
 
   if (!showAuthModal) return null;
 
@@ -26,13 +35,13 @@ export default function AuthModal() {
         if (!email || !password || !name) throw new Error('Please fill in all required fields.');
         if (password.length < 6) throw new Error('Password must be at least 6 characters long.');
         await register({ name, email, password, avatar: selectedAvatar });
-        await logout(); // Ensure they aren't auto-logged in, as requested
-        setSuccessMessage('Account created successfully! Please sign in.');
+        // Don't logout here — register already saves to Firestore and sets currentUser.
+        // onAuthStateChanged will handle setting the user profile on its own.
+        setSuccessMessage('Account created successfully!');
         
         setTimeout(() => {
+          closeAuth();
           setSuccessMessage('');
-          setMode('login');
-          setPassword(''); // clear password for safety
         }, 1500);
       } else {
         if (!email || !password) throw new Error('Please enter your email and password.');
