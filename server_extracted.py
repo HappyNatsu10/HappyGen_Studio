@@ -355,7 +355,7 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
                 from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
                 pipe = StableDiffusionPipeline.from_single_file(model_path, config="runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
                 pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
-                pipe_img2img = StableDiffusionImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer, unet=pipe.unet, scheduler=pipe.scheduler)
+                pipe_img2img = StableDiffusionImg2ImgPipeline(**pipe.components)
             elif "Flux" in req_architecture:
                 from diffusers import FluxPipeline
                 pipe = FluxPipeline.from_single_file(model_path, config="black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).to("cuda")
@@ -374,7 +374,7 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
                     text_encoder = CLIPTextModel.from_pretrained("runwayml/stable-diffusion-v1-5", subfolder="text_encoder", torch_dtype=torch.float16)
                     pipe = StableDiffusionPipeline.from_single_file(model_path, config="runwayml/stable-diffusion-v1-5", text_encoder=text_encoder, torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
                     pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
-                    pipe_img2img = StableDiffusionImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, tokenizer=pipe.tokenizer, unet=pipe.unet, scheduler=pipe.scheduler)
+                    pipe_img2img = StableDiffusionImg2ImgPipeline(**pipe.components)
                 else:
                     text_encoder = CLIPTextModel.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", subfolder="text_encoder", torch_dtype=torch.float16)
                     text_encoder_2 = CLIPTextModelWithProjection.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", subfolder="text_encoder_2", torch_dtype=torch.float16)
