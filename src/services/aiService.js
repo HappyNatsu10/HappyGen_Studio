@@ -187,6 +187,32 @@ export const generateImageAI = async ({
 };
 
 export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
+  if (model === 'vlm') {
+    // This points to your Vercel deployment URL where the secret key is safely stored.
+    // Replace 'https://happygen-studio.vercel.app' with your actual Vercel project URL once deployed.
+    const VERCEL_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? 'https://happygen-studio.vercel.app' 
+      : 'http://localhost:3000'; // For local testing if you run `vercel dev`
+
+    try {
+      const res = await fetch(`${VERCEL_BASE_URL}/api/gemini`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceImage })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Vercel proxy returned ${res.status}`);
+      }
+      
+      if (!data.caption) throw new Error("No caption returned from Vercel proxy.");
+      return data.caption;
+    } catch (err) {
+      throw new Error(`Detailed VLM Error: ${err.message}. Make sure your Vercel proxy is running and GEMINI_API_KEY is set.`);
+    }
+  }
+
   const rawBackendUrl = typeof window !== 'undefined'
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';

@@ -40,9 +40,16 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               pureBase64 = base64data.split(',')[1];
             }
             
-            const perm = await Media.checkPermissions();
-            if (perm.publicStorage !== 'granted') {
-              await Media.requestPermissions();
+            // First ensure permissions
+            try {
+              const perm = await Media.checkPermissions();
+              if (perm.publicStorage !== 'granted') {
+                await Media.requestPermissions();
+              }
+            } catch (permErr) {
+              console.log("Permission check error (expected on some OS versions):", permErr);
+              // Fallback to directly requesting
+              await Media.requestPermissions().catch(e => console.log(e));
             }
 
             const savedFile = await Filesystem.writeFile({
@@ -51,18 +58,24 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               directory: Directory.Cache
             });
             
-            await Media.savePhoto({
-              path: savedFile.uri,
-              album: 'HappyGen Studio'
-            });
-            
-            await Share.share({
-              title: 'Generated Image',
-              url: savedFile.uri,
-              dialogTitle: 'Share Image'
-            });
+            try {
+              await Media.savePhoto({
+                path: savedFile.uri,
+                album: 'HappyGen Studio'
+              });
+              alert('Image successfully saved to Gallery!');
+            } catch (saveErr) {
+              console.error("Gallery save error:", saveErr);
+              // Fallback to share sheet if gallery save fails
+              await Share.share({
+                title: 'Generated Image',
+                url: savedFile.uri,
+                dialogTitle: 'Save or Share Image'
+              });
+            }
           } catch (err) {
             console.error("Capacitor save/share error:", err);
+            alert('Failed to save image: ' + err.message);
           }
         };
       } else {

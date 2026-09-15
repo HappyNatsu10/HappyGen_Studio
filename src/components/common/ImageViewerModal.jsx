@@ -50,9 +50,15 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
             }
             
             // First ensure permissions
-            const perm = await Media.checkPermissions();
-            if (perm.publicStorage !== 'granted') {
-              await Media.requestPermissions();
+            try {
+              const perm = await Media.checkPermissions();
+              if (perm.publicStorage !== 'granted') {
+                await Media.requestPermissions();
+              }
+            } catch (permErr) {
+              console.log("Permission check error (expected on some OS versions):", permErr);
+              // Fallback to directly requesting
+              await Media.requestPermissions().catch(e => console.log(e));
             }
 
             // Write to cache directory temporarily
@@ -62,20 +68,26 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
               directory: Directory.Cache
             });
             
-            // Save to native gallery in 'HappyGen Studio' folder
-            await Media.savePhoto({
-              path: savedFile.uri,
-              album: 'HappyGen Studio'
-            });
-            
-            // Open native share sheet so user can "Save Image" to gallery or share to other apps
-            await Share.share({
-              title: 'Generated Image',
-              url: savedFile.uri,
-              dialogTitle: 'Share Image'
-            });
+            try {
+              // Save to native gallery in 'HappyGen Studio' folder
+              await Media.savePhoto({
+                path: savedFile.uri,
+                album: 'HappyGen Studio'
+              });
+              alert('Image successfully saved to Gallery!');
+            } catch (saveErr) {
+              console.error("Gallery save error:", saveErr);
+              // Fallback to share sheet if gallery save fails
+              // Open native share sheet so user can "Save Image" to gallery or share to other apps
+              await Share.share({
+                title: 'Generated Image',
+                url: savedFile.uri,
+                dialogTitle: 'Save or Share Image'
+              });
+            }
           } catch (err) {
             console.error("Capacitor save/share error:", err);
+            alert('Failed to save image: ' + err.message);
           } finally {
             setIsDownloading(false);
           }

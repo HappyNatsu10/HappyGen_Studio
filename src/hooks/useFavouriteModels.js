@@ -24,10 +24,26 @@ export function useFavouriteModels() {
     }
     if (isFavourited(model.id)) return;
 
+    // Sanitize data for Firestore to avoid "undefined" errors and massive payload sizes
+    const safeVersion = model.version || model.versions?.[0] || {};
+    
     const modelDataToSave = {
-      ...model,
-      version: model.version || model.versions?.[0],
-      versions: model.versions || (model.version ? [model.version] : []),
+      id: model.id,
+      name: model.name || 'Unknown',
+      type: model.type || 'Unknown',
+      creator: typeof model.creator === 'string' ? model.creator : (model.creator?.username || 'Unknown'),
+      thumbnailUrl: model.thumbnailUrl || null,
+      stats: {
+        downloads: model.stats?.downloadCount || model.stats?.downloads || 0,
+        thumbsUp: model.stats?.favoriteCount || model.stats?.thumbsUp || 0
+      },
+      tags: Array.isArray(model.tags) ? model.tags.filter(t => typeof t === 'string') : [],
+      version: {
+        id: safeVersion.id || null,
+        name: safeVersion.name || 'Unknown',
+        baseModel: safeVersion.baseModel || 'Unknown',
+        downloadUrl: safeVersion.downloadUrl || null
+      },
       addedAt: Date.now(),
       folder: folderName,
     };

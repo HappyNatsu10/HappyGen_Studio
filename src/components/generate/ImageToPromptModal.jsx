@@ -81,14 +81,13 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-4xl bg-[#1A1B23] border border-[var(--border-subtle)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ maxHeight: '90vh' }}
+            className="relative w-full max-w-4xl h-[100dvh] md:h-auto md:max-h-[90vh] bg-[#1A1B23] md:border border-[var(--border-subtle)] md:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-white/5">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <h2 className="text-lg font-semibold text-white">Image To Prompt</h2>
-                <div className="flex bg-white/5 p-1 rounded-lg">
+                <div className="flex flex-wrap bg-white/5 p-1 rounded-lg gap-1">
                   <button
                     onClick={() => setInterrogator('deepdanbooru')}
                     className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'deepdanbooru' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400 hover:text-slate-200'}`}
@@ -100,6 +99,12 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
                     className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'clip' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400 hover:text-slate-200'}`}
                   >
                     Realistic Text
+                  </button>
+                  <button
+                    onClick={() => setInterrogator('vlm')}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'vlm' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    Detailed (VLM)
                   </button>
                 </div>
               </div>
@@ -114,7 +119,7 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
             {/* Content */}
             <div className="flex flex-col md:flex-row p-4 md:p-6 gap-4 md:gap-6 flex-1 overflow-y-auto min-h-0">
               {/* Left side: Image Upload/Display */}
-              <div className="flex-1 flex flex-col min-h-[200px] md:min-h-[300px]">
+              <div className="flex-1 flex flex-col min-h-[150px] md:min-h-[300px]">
                 {!sourceImage ? (
                   <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-purple-500/50 rounded-xl bg-white/5 cursor-pointer transition-all group p-4 text-center">
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -142,7 +147,7 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
               </div>
 
               {/* Right side: Result */}
-              <div className="flex-1 flex flex-col min-h-[250px] md:min-h-[300px]">
+              <div className="flex-1 flex flex-col min-h-[200px] md:min-h-[300px]">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium text-white">Prompt</h3>
                   <button 
