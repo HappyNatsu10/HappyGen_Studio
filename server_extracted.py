@@ -95,6 +95,12 @@ import uvicorn
 from pycloudflared import try_cloudflare
 import requests
 import gc
+import sys
+import torchvision.transforms.functional as TF
+
+# Monkey patch for BasicSR PyTorch >= 2.1 bug
+if 'torchvision.transforms.functional_tensor' not in sys.modules:
+    sys.modules['torchvision.transforms.functional_tensor'] = TF
 import subprocess
 
 nest_asyncio.apply()
