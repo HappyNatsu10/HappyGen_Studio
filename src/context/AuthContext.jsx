@@ -140,55 +140,61 @@ export function AuthProvider({ children }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
+      let finalData = {};
+      
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+           finalData = docSnap.data();
+        } else {
+           finalData = {
+             name: user.displayName || 'User',
+             avatar: user.photoURL || DEFAULT_AVATARS[0],
+             favouriteModels: [],
+             favouriteFolders: ['Uncategorized']
+           };
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data during login:", err);
+        finalData = {
+           name: user.displayName || 'User',
+           avatar: user.photoURL || DEFAULT_AVATARS[0]
+        };
+      }
+      
       // If we had guest favorites, merge them into the account we just logged into
       if (guestModels.length > 0 || guestFolders.length > 0) {
-        try {
-          const docRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-             const existingData = docSnap.data();
-             const existingModels = existingData.favouriteModels || [];
-             const existingFolders = existingData.favouriteFolders || ['Uncategorized'];
-             
-             // Merge, avoiding duplicates by id
-             const mergedModels = [...existingModels];
-             for (const gm of guestModels) {
-               if (!mergedModels.find(m => m.id === gm.id)) {
-                 mergedModels.push(gm);
-               }
-             }
-             
-             const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
-             
-             await setDoc(docRef, {
-               favouriteModels: mergedModels,
-               favouriteFolders: mergedFolders
-             }, { merge: true });
-             
-             // Update local state immediately so UI reflects the merge
-             setCurrentUser(prev => prev ? {
-               ...prev,
-               favouriteModels: mergedModels,
-               favouriteFolders: mergedFolders
-             } : null);
-          } else {
-             // Create document if it doesn't exist to prevent future update failures
-             await setDoc(docRef, {
-               favouriteModels: guestModels,
-               favouriteFolders: guestFolders,
-               createdAt: new Date().toISOString()
-             }, { merge: true });
-             
-             setCurrentUser(prev => prev ? {
-               ...prev,
-               favouriteModels: guestModels,
-               favouriteFolders: guestFolders
-             } : null);
+          const existingModels = finalData.favouriteModels || [];
+          const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
+          
+          // Merge, avoiding duplicates by id
+          const mergedModels = [...existingModels];
+          for (const gm of guestModels) {
+            if (!mergedModels.find(m => m.id === gm.id)) {
+              mergedModels.push(gm);
+            }
           }
-        } catch (e) {
-          console.error("Could not merge guest data on login", e);
-        }
+          
+          const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+          
+          finalData.favouriteModels = mergedModels;
+          finalData.favouriteFolders = mergedFolders;
+          
+          try {
+             await setDoc(doc(db, 'users', user.uid), {
+               favouriteModels: mergedModels,
+               favouriteFolders: mergedFolders
+             }, { merge: true });
+          } catch (e) {
+             console.error("Could not merge guest data on login", e);
+          }
       }
+      
+      // Explicitly set the user IMMEDIATELY so the UI reflects they are logged in!
+      setCurrentUser({ id: user.uid, email: user.email, ...finalData });
+      
+      return user;
     } catch (error) {
       console.error("Login Error:", error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
