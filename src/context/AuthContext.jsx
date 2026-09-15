@@ -30,6 +30,14 @@ export function AuthProvider({ children }) {
   const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'signup'
 
   useEffect(() => {
+    // Check localStorage for a guest session before giving up completely
+    const savedGuest = localStorage.getItem('happygen_guest_user');
+    if (savedGuest && !auth) {
+       setCurrentUser(JSON.parse(savedGuest));
+       setLoadingUser(false);
+       return;
+    }
+
     // If auth is not configured properly, gracefully fallback
     if (!auth) {
        console.warn("Firebase Auth not initialized. Using guest mode.");
@@ -59,7 +67,13 @@ export function AuthProvider({ children }) {
           setCurrentUser({ id: user.uid, email: user.email, name: user.displayName, avatar: user.photoURL });
         }
       } else {
-        setCurrentUser(null);
+        // If not authenticated via Firebase, check if they were a guest
+        const savedGuestUser = localStorage.getItem('happygen_guest_user');
+        if (savedGuestUser) {
+           setCurrentUser(JSON.parse(savedGuestUser));
+        } else {
+           setCurrentUser(null);
+        }
       }
       setLoadingUser(false);
     });
@@ -146,16 +160,29 @@ export function AuthProvider({ children }) {
              
              const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
              
-             await updateDoc(docRef, {
+             await setDoc(docRef, {
                favouriteModels: mergedModels,
                favouriteFolders: mergedFolders
-             });
+             }, { merge: true });
              
              // Update local state immediately so UI reflects the merge
              setCurrentUser(prev => prev ? {
                ...prev,
                favouriteModels: mergedModels,
                favouriteFolders: mergedFolders
+             } : null);
+          } else {
+             // Create document if it doesn't exist to prevent future update failures
+             await setDoc(docRef, {
+               favouriteModels: guestModels,
+               favouriteFolders: guestFolders,
+               createdAt: new Date().toISOString()
+             }, { merge: true });
+             
+             setCurrentUser(prev => prev ? {
+               ...prev,
+               favouriteModels: guestModels,
+               favouriteFolders: guestFolders
              } : null);
           }
         } catch (e) {
@@ -188,6 +215,7 @@ export function AuthProvider({ children }) {
       favouriteModels: []
     };
     setCurrentUser(guestUser);
+    localStorage.setItem('happygen_guest_user', JSON.stringify(guestUser));
     return guestUser;
   };
 
@@ -195,9 +223,11 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     if (currentUser?.isGuest) {
       setCurrentUser(null);
+      localStorage.removeItem('happygen_guest_user');
     } else {
       try {
         await signOut(auth);
+        localStorage.removeItem('happygen_guest_user');
       } catch (error) {
         console.error("Error signing out", error);
       }
@@ -207,13 +237,19 @@ export function AuthProvider({ children }) {
   // Update Profile
   const updateProfile = async (updates) => {
     if (currentUser?.isGuest) {
-       setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+       const updatedGuest = { ...currentUser, ...updates };
+       setCurrentUser(updatedGuest);
+       localStorage.setItem('happygen_guest_user', JSON.stringify(updatedGuest));
        return;
     }
+    
+    // Optimistic UI update
+    setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+    
     try {
       const docRef = doc(db, 'users', currentUser.id);
-      await updateDoc(docRef, updates);
-      setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
+      // Use setDoc with merge instead of updateDoc so it creates the doc if missing
+      await setDoc(docRef, updates, { merge: true });
     } catch (error) {
       console.error("Failed to update profile", error);
     }
@@ -222,7 +258,10 @@ export function AuthProvider({ children }) {
   // Increment Generation Counter
   const consumeCredits = async () => {
     if (currentUser?.isGuest) {
-      setCurrentUser(prev => prev ? { ...prev, generatedCount: (prev.generatedCount || 0) + 1 } : null);
+      const newCount = (currentUser.generatedCount || 0) + 1;
+      const updatedGuest = { ...currentUser, generatedCount: newCount };
+      setCurrentUser(updatedGuest);
+      localStorage.setItem('happygen_guest_user', JSON.stringify(updatedGuest));
       return;
     }
     
@@ -230,7 +269,7 @@ export function AuthProvider({ children }) {
        const newCount = (currentUser.generatedCount || 0) + 1;
        setCurrentUser(prev => prev ? { ...prev, generatedCount: newCount } : null);
        const docRef = doc(db, 'users', currentUser.id);
-       await updateDoc(docRef, { generatedCount: newCount });
+       await setDoc(docRef, { generatedCount: newCount }, { merge: true });
     } catch (error) {
        console.error("Failed to update credits", error);
     }
