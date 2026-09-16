@@ -331,12 +331,13 @@ def _do_txt2img(req: Txt2ImgRequest):
     generator = torch.Generator("cuda").manual_seed(seed)
     loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
     prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+    neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
 
     with torch.inference_mode():
         if "Flux" in str(type(pipe)):
             image = pipe(prompt=prompt_str, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, width=req.width, height=req.height, generator=generator).images[0]
         else:
-            image = pipe(prompt=prompt_str, negative_prompt=req.negative_prompt, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, width=req.width, height=req.height, generator=generator).images[0]
+            image = pipe(prompt=prompt_str, negative_prompt=neg_prompt_str, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, width=req.width, height=req.height, generator=generator).images[0]
 
     if loaded_adapters:
         try: pipe.delete_adapters(loaded_adapters)
@@ -358,9 +359,10 @@ def _do_img2img(req: Img2ImgRequest):
     init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
     loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
     prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+    neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
 
     with torch.inference_mode():
-        image = pipe_img2img(prompt=prompt_str, negative_prompt=req.negative_prompt, image=init_image, strength=req.denoising_strength, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, generator=generator).images[0]
+        image = pipe_img2img(prompt=prompt_str, negative_prompt=neg_prompt_str, image=init_image, strength=req.denoising_strength, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, generator=generator).images[0]
     if loaded_adapters:
         try: pipe_img2img.delete_adapters(loaded_adapters)
         except: pass
