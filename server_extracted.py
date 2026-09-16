@@ -443,8 +443,13 @@ def _do_txt2img(req: Txt2ImgRequest):
     generator = torch.Generator("cuda").manual_seed(seed)
     _load_embeddings(pipe, req.embeddings, req.civitai_api_key)
     loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
-    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
-    neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
+    is_pony = "pony" in str(req.base_model).lower() or "pony" in str(globals().get("CURRENT_BASE_MODEL_FILE", "")).lower()
+    if is_pony:
+        prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+        neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
+    else:
+        prompt_str = req.prompt
+        neg_prompt_str = req.negative_prompt
 
     with torch.inference_mode():
         if "Flux" in str(type(pipe)):
@@ -477,8 +482,13 @@ def _do_img2img(req: Img2ImgRequest):
     init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
     _load_embeddings(pipe_img2img, req.embeddings, req.civitai_api_key)
     loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
-    prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
-    neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
+    is_pony = "pony" in str(req.base_model).lower() or "pony" in str(globals().get("CURRENT_BASE_MODEL_FILE", "")).lower()
+    if is_pony:
+        prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
+        neg_prompt_str = req.negative_prompt if req.negative_prompt and "score_" in req.negative_prompt else f"score_4, score_5, score_6, score_4_up, score_5_up, score_6_up, rating_explicit, {req.negative_prompt or ''}"
+    else:
+        prompt_str = req.prompt
+        neg_prompt_str = req.negative_prompt
 
     with torch.inference_mode():
         image = pipe_img2img(prompt=prompt_str, negative_prompt=neg_prompt_str, image=init_image, strength=req.denoising_strength, num_inference_steps=req.steps, guidance_scale=req.cfg_scale, generator=generator).images[0]
