@@ -24,8 +24,8 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-50 overlay-enter" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm rounded-xl border modal-enter overflow-hidden" style={{ background: 'var(--surface-1)', borderColor: 'var(--border-subtle)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+      <div className="fixed inset-0 z-[999] overlay-enter" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[999] w-full max-w-sm rounded-xl border modal-enter overflow-hidden" style={{ background: 'var(--surface-1)', borderColor: 'var(--border-subtle)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-2)' }}>
