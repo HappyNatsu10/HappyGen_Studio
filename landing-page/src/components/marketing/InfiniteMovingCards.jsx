@@ -9,23 +9,25 @@ import { Cpu } from "lucide-react";
 
 const getProviderLogoUrl = (provider) => {
   const p = provider.toUpperCase();
-  if (p.includes('OPENAI')) return "https://logo.clearbit.com/openai.com";
-  if (p.includes('GOOGLE')) return "https://logo.clearbit.com/google.com";
-  if (p.includes('MICROSOFT')) return "https://logo.clearbit.com/microsoft.com";
-  if (p.includes('ALIBABA')) return "https://logo.clearbit.com/alibaba.com";
-  if (p.includes('BAIDU')) return "https://logo.clearbit.com/baidu.com";
-  if (p.includes('XAI')) return "https://logo.clearbit.com/x.ai";
-  if (p.includes('BYTEDANCE')) return "https://logo.clearbit.com/bytedance.com";
-  if (p.includes('STABILITY')) return "https://logo.clearbit.com/stability.ai";
-  if (p.includes('RUNWAY')) return "https://logo.clearbit.com/runwayml.com";
-  if (p.includes('LUMA')) return "https://logo.clearbit.com/lumaai.com";
-  if (p.includes('PIKA')) return "https://logo.clearbit.com/pika.art";
-  if (p.includes('BLACK FOREST')) return "https://logo.clearbit.com/blackforestlabs.ai";
-  if (p.includes('KREA')) return "https://logo.clearbit.com/krea.ai";
-  if (p.includes('KUAISHOU')) return "https://logo.clearbit.com/kuaishou.com";
-  if (p.includes('LIGHTRICKS')) return "https://logo.clearbit.com/lightricks.com";
-  if (p.includes('SHENGSHU')) return "https://logo.clearbit.com/shengshu-ai.com"; // educated guess, fallback handles it
-  if (p.includes('HAIPER')) return "https://logo.clearbit.com/haiper.ai";
+  const getFavicon = (domain) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+  
+  if (p.includes('OPENAI')) return getFavicon('openai.com');
+  if (p.includes('GOOGLE')) return getFavicon('google.com');
+  if (p.includes('MICROSOFT')) return getFavicon('microsoft.com');
+  if (p.includes('ALIBABA')) return getFavicon('alibaba.com');
+  if (p.includes('BAIDU')) return getFavicon('baidu.com');
+  if (p.includes('XAI')) return getFavicon('x.ai');
+  if (p.includes('BYTEDANCE')) return getFavicon('bytedance.com');
+  if (p.includes('STABILITY')) return getFavicon('stability.ai');
+  if (p.includes('RUNWAY')) return getFavicon('runwayml.com');
+  if (p.includes('LUMA')) return getFavicon('lumaai.com');
+  if (p.includes('PIKA')) return getFavicon('pika.art');
+  if (p.includes('BLACK FOREST')) return getFavicon('blackforestlabs.ai');
+  if (p.includes('KREA')) return getFavicon('krea.ai');
+  if (p.includes('KUAISHOU')) return getFavicon('kuaishou.com');
+  if (p.includes('LIGHTRICKS')) return getFavicon('lightricks.com');
+  if (p.includes('SHENGSHU')) return getFavicon('shengshu-ai.com'); 
+  if (p.includes('HAIPER')) return getFavicon('haiper.ai');
   return null;
 };
 

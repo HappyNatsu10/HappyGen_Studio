@@ -56,9 +56,9 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <img
-          src="/icon.svg"
+          src="/logo.png"
           alt="HappyGen Logo"
-          className="w-7 h-7 rounded-lg flex-shrink-0 shadow-sm object-cover"
+          className="w-8 h-8 object-contain"
         />
         {!collapsed && (
           <span className="font-semibold text-sm tracking-tight" style={{ color: 'var(--text-primary)' }}>

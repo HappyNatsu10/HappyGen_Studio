@@ -37,9 +37,11 @@ BASE_MODEL_PATH = "/content/Models/crucibleRINGPonyxl_v28.safetensors"
 LIGHTNING_PATH = "/content/LoRAs/sdxl_lightning_4step_lora.safetensors"
 
 CIVITAI_API_KEY = None
+GEMINI_API_KEY = None
 try:
     from google.colab import userdata
     CIVITAI_API_KEY = userdata.get('CIVITAI_API_KEY')
+    GEMINI_API_KEY = userdata.get('GEMINI_API_KEY')
 except:
     pass
 

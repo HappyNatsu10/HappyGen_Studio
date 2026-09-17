@@ -34,7 +34,7 @@ export default function TopBar({ title, onOpenBackendModal }) {
     >
       <div className="flex items-center gap-2">
         <div className="md:hidden flex items-center gap-1.5">
-          <img src="/icon.svg" alt="HappyGen" className="w-5 h-5 rounded-[4px]" />
+          <img src="/logo.png" alt="HappyGen" className="w-5 h-5 object-contain" />
           <span className="text-[14px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#a855f7] to-[#ec4899]">
             HappyGen
           </span>

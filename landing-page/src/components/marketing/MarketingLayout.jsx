@@ -16,15 +16,12 @@ const MarketingNavbar = () => {
       >
         <div className="w-full px-6 md:px-12 xl:px-24 mx-auto flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:shadow-purple-500/40 transition-shadow">
-              <Rocket className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
             <span className="font-bold text-xl tracking-tight text-white">HappyGen Studio</span>
           </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</Link>
             <Link to="/walkthrough" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Walkthrough</Link>
             <Link to="/faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</Link>
             <Link to="/download" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Download</Link>
@@ -32,10 +29,6 @@ const MarketingNavbar = () => {
 
           <div className="hidden md:flex items-center gap-4">
             <Link to="/contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Contact</Link>
-            <Link to="/studio" className="btn btn-primary btn-primary-glow px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2">
-              <Play className="w-4 h-4 fill-current" />
-              Launch Studio
-            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -58,17 +51,9 @@ const MarketingNavbar = () => {
             className="fixed inset-0 z-40 bg-[var(--surface-0)]/95 backdrop-blur-3xl pt-24 px-6 md:hidden"
           >
             <div className="flex flex-col gap-6 text-lg">
-              <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Pricing</Link>
               <Link to="/walkthrough" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Walkthrough</Link>
               <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">FAQ</Link>
               <Link to="/download" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Download</Link>
-              <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Contact</Link>
-              
-              <div className="pt-6 border-t border-[var(--border-subtle)] mt-4">
-                <Link to="/studio" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary w-full py-4 justify-center text-lg rounded-xl">
-                  Launch Studio
-                </Link>
-              </div>
             </div>
           </motion.div>
         )}
@@ -96,9 +81,7 @@ const MarketingFooter = () => {
         <div>
           <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs text-slate-500">Product</h4>
           <ul className="space-y-4">
-            <li><Link to="/pricing" className="text-slate-400 hover:text-purple-400 text-sm transition-colors">Pricing & Plans</Link></li>
             <li><Link to="/download" className="text-slate-400 hover:text-purple-400 text-sm transition-colors">Download App</Link></li>
-            <li><Link to="/studio" className="text-slate-400 hover:text-purple-400 text-sm transition-colors flex items-center gap-2">Web Studio <ChevronRight className="w-3 h-3" /></Link></li>
           </ul>
         </div>
 

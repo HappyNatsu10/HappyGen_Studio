@@ -13,7 +13,7 @@ function createWindow() {
     minHeight: 700,
     title: "HappyGen Studio",
     backgroundColor: "#080811",
-    icon: path.join(__dirname, '../public/icon.svg'),
+    icon: path.join(__dirname, '../public/logo.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
