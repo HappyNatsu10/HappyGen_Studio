@@ -109,6 +109,9 @@ export default function GalleryProjects() {
       {/* Image Viewer Modal */}
       <ImageViewerModal
         image={activeViewerImage}
+        images={filteredAssets}
+        currentIndex={activeViewerImage ? filteredAssets.findIndex(a => a.id === activeViewerImage.id) : 0}
+        onIndexChange={(idx) => setActiveViewerImage(filteredAssets[idx])}
         isOpen={!!activeViewerImage}
         onClose={() => setActiveViewerImage(null)}
       />

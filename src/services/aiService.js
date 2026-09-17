@@ -190,9 +190,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
   if (model === 'vlm') {
     // This points to your Vercel deployment URL where the secret key is safely stored.
     // Replace 'https://happygen-studio.vercel.app' with your actual Vercel project URL once deployed.
-    const VERCEL_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? 'https://happygen-studio.vercel.app' 
-      : 'http://localhost:3000'; // For local testing if you run `vercel dev`
+    const VERCEL_BASE_URL = 'https://happy-gen-studio.vercel.app';
 
     try {
       const res = await fetch(`${VERCEL_BASE_URL}/api/gemini`, {
@@ -374,7 +372,7 @@ export const generateImg2Img = async ({
   }
 };
 
-export const faceFixImage = async ({ sourceImage, prompt }) => {
+export const faceFixImage = async ({ sourceImage, prompt, engine = "GFPGAN" }) => {
   const rawBackendUrl = typeof window !== 'undefined'
     ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
     : 'http://localhost:8000';
@@ -387,6 +385,7 @@ export const faceFixImage = async ({ sourceImage, prompt }) => {
       body: JSON.stringify({
         image: sourceImage,
         prompt: prompt || '',
+        engine: engine,
       }),
     });
 

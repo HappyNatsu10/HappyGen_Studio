@@ -52,30 +52,35 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               await Media.requestPermissions().catch(e => console.log(e));
             }
 
+            // Write directly to Documents directory
             const savedFile = await Filesystem.writeFile({
-              path: fileName,
+              path: `HappyGen Studio/${fileName}`,
               data: pureBase64,
-              directory: Directory.Cache
+              directory: Directory.Documents,
+              recursive: true
             });
             
-            try {
-              await Media.savePhoto({
-                path: savedFile.uri,
-                album: 'HappyGen Studio'
-              });
-              alert('Image successfully saved to Gallery!');
-            } catch (saveErr) {
-              console.error("Gallery save error:", saveErr);
-              // Fallback to share sheet if gallery save fails
-              await Share.share({
-                title: 'Generated Image',
-                url: savedFile.uri,
-                dialogTitle: 'Save or Share Image'
-              });
-            }
+            alert('Image successfully saved to Documents/HappyGen Studio!');
           } catch (err) {
             console.error("Capacitor save/share error:", err);
-            alert('Failed to save image: ' + err.message);
+            // Fallback to share sheet if direct save fails
+            try {
+              // Write to cache directory temporarily for sharing
+              const cacheFile = await Filesystem.writeFile({
+                path: fileName,
+                data: pureBase64,
+                directory: Directory.Cache
+              });
+              
+              await Share.share({
+                title: 'Generated Image',
+                url: cacheFile.uri,
+                dialogTitle: 'Save or Share Image'
+              });
+            } catch (shareErr) {
+              console.error("Share fallback error:", shareErr);
+              alert('Failed to save image: ' + err.message);
+            }
           }
         };
       } else {
@@ -272,6 +277,9 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
       {/* ImageViewerModal */}
       <ImageViewerModal
         image={activeImage}
+        images={results}
+        currentIndex={activeIdx}
+        onIndexChange={setActiveIdx}
         isOpen={viewerOpen}
         onClose={() => setViewerOpen(false)}
       />

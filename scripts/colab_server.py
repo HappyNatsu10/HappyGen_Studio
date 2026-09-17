@@ -1,10 +1,10 @@
 import os
 import subprocess
 import torch
-from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, EulerAncestralDiscreteScheduler
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, StableDiffusionXLInpaintPipeline, EulerAncestralDiscreteScheduler
 import io, base64, time, json, threading, nest_asyncio, uuid
 import numpy as np
-from PIL import Image
+import PIL.Image
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -26,7 +26,8 @@ def run_cmd(cmd):
 
 run_cmd("pip install -q diffusers transformers accelerate safetensors sentencepiece protobuf fastapi uvicorn pydantic pycloudflared nest_asyncio python-multipart peft open_clip_torch")
 run_cmd("pip install -q git+https://github.com/xinntao/BasicSR.git")
-run_cmd("pip install -q realesrgan gfpgan")
+run_cmd("pip install -q realesrgan gfpgan ultralytics")
+run_cmd("wget -q -c https://github.com/akanametov/yolov8-face/releases/download/v0.0.0/yolov8n-face.pt -O /content/Models/yolov8n-face.pt")
 
 # Cell 2: Download Models & SDXL Lightning Accelerator
 os.makedirs("/content/Models", exist_ok=True)
@@ -59,13 +60,17 @@ if not os.path.exists(LIGHTNING_PATH):
 
 # Cell 3: Load Model into 16GB Cloud VRAM
 CURRENT_BASE_MODEL_FILE = os.path.basename(BASE_MODEL_PATH)
-global pipe, pipe_img2img
+global pipe, pipe_img2img, pipe_inpaint
 pipe = StableDiffusionXLPipeline.from_single_file(
     BASE_MODEL_PATH, torch_dtype=torch.float16, use_safetensors=True
 ).to("cuda")
 pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
-
 pipe_img2img = StableDiffusionXLImg2ImgPipeline(
+    vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2,
+    tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler,
+)
+
+pipe_inpaint = StableDiffusionXLInpaintPipeline(
     vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2,
     tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler,
 )
@@ -147,7 +152,7 @@ def _unload_face_restorer():
 def _decode_base64_image(b64_string):
     if "," in b64_string:
         b64_string = b64_string.split(",", 1)[1]
-    return Image.open(io.BytesIO(base64.b64decode(b64_string))).convert("RGB")
+    return PIL.Image.open(io.BytesIO(base64.b64decode(b64_string))).convert("RGB")
 
 def _encode_image_to_base64(pil_image):
     buffered = io.BytesIO()
@@ -192,6 +197,7 @@ class UpscaleRequest(BaseModel):
 class FaceFixRequest(BaseModel):
     image: str
     prompt: Optional[str] = ""
+    engine: Optional[str] = "GFPGAN"
 
 def download_civitai_model(download_url, dest_path, api_key):
     if os.path.exists(dest_path): return True
@@ -221,13 +227,16 @@ def health():
 
 @app.post("/sdapi/v1/unload-checkpoint")
 def unload_checkpoint():
-    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img
+    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img, pipe_inpaint
     CURRENT_BASE_MODEL_FILE = None
     if 'pipe' in globals():
         try: del pipe
         except: pass
     if 'pipe_img2img' in globals():
         try: del pipe_img2img
+        except: pass
+    if 'pipe_inpaint' in globals():
+        try: del pipe_inpaint
         except: pass
     gc.collect()
     torch.cuda.empty_cache()
@@ -261,6 +270,9 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
         if 'pipe_img2img' in globals() and pipe_img2img is not None:
             try: del pipe_img2img
             except: pass
+        if 'pipe_inpaint' in globals() and pipe_inpaint is not None:
+            try: del pipe_inpaint
+            except: pass
         global _upscaler, _face_restorer, _clip_model, _clip_preprocess
         if '_upscaler' in globals() and _upscaler is not None:
             try: del _upscaler
@@ -283,20 +295,23 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
         torch.cuda.empty_cache()
 
         if "SD 1.5" in req_architecture or "SD 1.4" in req_architecture:
-            from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline
+            from diffusers import StableDiffusionPipeline, StableDiffusionImg2ImgPipeline, StableDiffusionInpaintPipeline
             pipe = StableDiffusionPipeline.from_single_file(model_path, config="runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionImg2ImgPipeline(**pipe.components)
+            pipe_inpaint = StableDiffusionInpaintPipeline(**pipe.components)
         elif "Flux" in req_architecture:
             from diffusers import FluxPipeline
             pipe = FluxPipeline.from_single_file(model_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).to("cuda")
             pipe.enable_model_cpu_offload()
             pipe_img2img = None
+            pipe_inpaint = None
         else:
-            from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
+            from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline, StableDiffusionXLInpaintPipeline
             pipe = StableDiffusionXLPipeline.from_single_file(model_path, config="stabilityai/stable-diffusion-xl-base-1.0", torch_dtype=torch.float16, use_safetensors=True, low_cpu_mem_usage=True).to("cuda")
             pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
             pipe_img2img = StableDiffusionXLImg2ImgPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2, tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler)
+            pipe_inpaint = StableDiffusionXLInpaintPipeline(vae=pipe.vae, text_encoder=pipe.text_encoder, text_encoder_2=pipe.text_encoder_2, tokenizer=pipe.tokenizer, tokenizer_2=pipe.tokenizer_2, unet=pipe.unet, scheduler=pipe.scheduler)
 
         CURRENT_BASE_MODEL_FILE = req_base_model_file
 
@@ -361,7 +376,7 @@ def _do_img2img(req: Img2ImgRequest):
     if not pipe_img2img: raise HTTPException(status_code=400, detail="img2img is not supported on this model architecture yet.")
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
-    init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), Image.LANCZOS)
+    init_image = _decode_base64_image(req.init_images[0]).resize((req.width, req.height), PIL.Image.LANCZOS)
     loaded_adapters = _apply_loras(pipe_img2img, req.loras, req.civitai_api_key)
     is_pony = "pony" in str(req.base_model).lower() or "pony" in str(globals().get("CURRENT_BASE_MODEL_FILE", "")).lower()
     if is_pony:
@@ -407,7 +422,7 @@ def _do_upscale(req: UpscaleRequest):
     image = _decode_base64_image(req.image)
     img_bgr = np.array(image)[:, :, ::-1]
     output, _ = _upscaler.enhance(img_bgr, outscale=req.upscaling_resize)
-    result_image = Image.fromarray(output[:, :, ::-1])
+    result_image = PIL.Image.fromarray(output[:, :, ::-1])
     _unload_upscaler()
     return {"images": [_encode_image_to_base64(result_image)], "source": "Real-ESRGAN"}
 
@@ -423,15 +438,69 @@ def _do_face_fix(req: FaceFixRequest):
     image = _decode_base64_image(req.image)
     img_bgr = np.array(image)[:, :, ::-1]
     _, _, output = _face_restorer.enhance(img_bgr, has_aligned=False, only_center_face=False, paste_back=True)
-    result_image = Image.fromarray(output[:, :, ::-1])
+    result_image = PIL.Image.fromarray(output[:, :, ::-1])
     _unload_face_restorer()
-    return {"images": [_encode_image_to_base64(result_image)], "source": "GFPGAN"}
+    return {"images": [_encode_image_to_base64(result_image)], "source": req.engine}
+
+def _do_adetailer(req: FaceFixRequest):
+    try:
+        from ultralytics import YOLO
+        import PIL.ImageDraw, PIL.ImageFilter
+    except ImportError:
+        return _do_face_fix(req)
+        
+    model_path = "/content/Models/yolov8n-face.pt"
+    if not os.path.exists(model_path):
+        return _do_face_fix(req)
+        
+    model = YOLO(model_path)
+    image = _decode_base64_image(req.image)
+    
+    results = model(image)
+    boxes = results[0].boxes.xyxy.cpu().numpy()
+    
+    if len(boxes) == 0:
+        return _do_face_fix(req)
+        
+    mask = PIL.Image.new("L", image.size, 0)
+    draw = PIL.ImageDraw.Draw(mask)
+    for box in boxes:
+        x1, y1, x2, y2 = box
+        w, h = x2 - x1, y2 - y1
+        px, py = w * 0.15, h * 0.15
+        draw.rectangle([max(0, x1 - px), max(0, y1 - py), min(image.width, x2 + px), min(image.height, y2 + py)], fill=255)
+        
+    mask = mask.filter(PIL.ImageFilter.GaussianBlur(15))
+    
+    if 'pipe_inpaint' not in globals() or pipe_inpaint is None:
+        return _do_face_fix(req)
+        
+    prompt_str = req.prompt if req.prompt else "highly detailed face, perfect eyes, masterpiece"
+    neg_prompt_str = "bad anatomy, deformed, ugly, bad eyes, poorly drawn face"
+    
+    seed = int(torch.randint(0, 2**32, (1,)).item())
+    generator = torch.Generator("cuda").manual_seed(seed)
+    
+    with torch.inference_mode():
+        result_img = pipe_inpaint(
+            prompt=prompt_str, 
+            negative_prompt=neg_prompt_str, 
+            image=image, 
+            mask_image=mask,
+            strength=0.4, 
+            num_inference_steps=30, 
+            guidance_scale=7.0, 
+            generator=generator
+        ).images[0]
+        
+    return {"images": [_encode_image_to_base64(result_img)], "source": "ADetailer"}
 
 @app.post("/sdapi/v1/face-fix")
 def face_fix(req: FaceFixRequest):
     task_id = str(uuid.uuid4())
     tasks[task_id] = {"status": "processing"}
-    threading.Thread(target=_bg_runner, args=(task_id, _do_face_fix, req)).start()
+    target_func = _do_adetailer if req.engine == "ADetailer" else _do_face_fix
+    threading.Thread(target=_bg_runner, args=(task_id, target_func, req)).start()
     return {"task_id": task_id}
 
 threading.Thread(target=lambda: uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning"), daemon=True).start()

@@ -68,6 +68,7 @@ export default function GeneratePage() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [faceFixEngine, setFaceFixEngine] = useState('GFPGAN');
 
   const prevLorasRef = useRef(loras);
 
@@ -202,7 +203,7 @@ export default function GeneratePage() {
       } else if (generationMode === 'upscale') {
         images = await upscaleImage({ sourceImage, scale: 2 });
       } else if (generationMode === 'facefix') {
-        images = await faceFixImage({ sourceImage, prompt: fullPrompt });
+        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine });
       }
 
       setResults(images);
@@ -298,6 +299,25 @@ export default function GeneratePage() {
               value={denoisingStrength}
               onChange={e => setDenoisingStrength(parseFloat(e.target.value))}
             />
+          </motion.div>
+        )}
+
+        {/* Engine Selection for Face Fix */}
+        {generationMode === 'facefix' && (
+          <motion.div variants={itemVariants}>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                Face Fix Engine
+              </label>
+            </div>
+            <select
+              value={faceFixEngine}
+              onChange={(e) => setFaceFixEngine(e.target.value)}
+              className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-blue-500/50"
+            >
+              <option value="GFPGAN">GFPGAN</option>
+              <option value="ADetailer">ADetailer</option>
+            </select>
           </motion.div>
         )}
 

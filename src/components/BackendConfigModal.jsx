@@ -148,22 +148,13 @@ export default function BackendConfigModal({ isOpen, onClose }) {
             )}
           </div>
 
-          {/* API Key */}
-          <div>
-            <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-              CivitAI API Key (Required for model downloads)
-            </label>
-            <input
-              type="password"
-              value={civitaiKey}
-              onChange={e => setCivitaiKey(e.target.value)}
-              placeholder="Enter your CivitAI API Key"
-              className="input w-full text-[13px]"
-            />
-            <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
-              Get your API key from your <a href="https://civitai.com/user/account" target="_blank" rel="noopener noreferrer" className="text-[#a855f7] hover:underline">CivitAI Account Settings</a>.
+          {/* API Key Info */}
+          <div className="bg-[#a855f7]/10 border border-[#a855f7]/20 rounded-lg p-3">
+            <p className="text-[11px] text-[#a855f7]">
+              <strong>Note:</strong> To download private/adult models, you must add your CivitAI API Key as a Secret in your Google Colab instance (named <code>CIVITAI_API_KEY</code>). You can get your API key from your <a href="https://civitai.com/user/account/security" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">CivitAI Account Security Settings</a>.
             </p>
           </div>
+
 
           {/* Actions */}
           <div className="flex gap-2">

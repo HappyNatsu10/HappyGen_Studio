@@ -9,24 +9,78 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
 
-export default function ImageViewerModal({ image, isOpen, onClose }) {
+export default function ImageViewerModal({ image, images = [], currentIndex = 0, onIndexChange, isOpen, onClose }) {
   const [isUpscaling, setIsUpscaling] = useState(false);
-  const [currentImage, setCurrentImage] = useState(image);
+  
+  // If `images` is passed, we use `images[currentIndex]`. Otherwise fallback to `image`.
+  const activeImage = (images && images.length > 0) ? images[currentIndex] : image;
+  const [currentImage, setCurrentImage] = useState(activeImage);
+  const [toastMessage, setToastMessage] = useState('');
+  
+  const [isFaceFixing, setIsFaceFixing] = useState(false);
+  const [faceFixEngine, setFaceFixEngine] = useState("GFPGAN");
+  const [showFaceFixOptions, setShowFaceFixOptions] = useState(false);
+
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showUpscaleSettings, setShowUpscaleSettings] = useState(false);
   const [upscaleScale, setUpscaleScale] = useState(2);
   const [upscaleModel, setUpscaleModel] = useState("R-ESRGAN 4x+ Anime6B");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Sync currentImage when prop changes (in case gallery cycles images)
+  // Sync currentImage when activeImage changes
   React.useEffect(() => {
-    setCurrentImage(image);
-  }, [image]);
+    setCurrentImage(activeImage);
+  }, [activeImage]);
 
   const { addGeneratedAssets, setCanvasTargetImage, setInpaintSourceImage, setVideoSourceImage } = useWorkspaceStore();
   const { setActiveTab } = useAppStore();
 
   if (!isOpen || !currentImage) return null;
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
+
+  const hasMultiple = images && images.length > 1;
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    if (onIndexChange) {
+      onIndexChange(currentIndex > 0 ? currentIndex - 1 : images.length - 1);
+    }
+  };
+  const handleNext = (e) => {
+    e.stopPropagation();
+    if (onIndexChange) {
+      onIndexChange(currentIndex < images.length - 1 ? currentIndex + 1 : 0);
+    }
+  };
+
+  const handleFaceFix = async (e) => {
+    e.stopPropagation();
+    setIsFaceFixing(true);
+    setShowFaceFixOptions(false);
+    try {
+      const { faceFixImage } = require('../../services/aiService');
+      const fixedImages = await faceFixImage({ sourceImage: currentImage.url, prompt: currentImage.prompt, engine: faceFixEngine });
+      if (fixedImages && fixedImages.length > 0) {
+        const newImage = {
+          ...currentImage,
+          ...fixedImages[0],
+          prompt: currentImage.prompt ? `${currentImage.prompt} (Face Fixed)` : `Face Fixed Image`,
+          isFaceFixed: true
+        };
+        addGeneratedAssets([newImage]);
+        setCurrentImage(newImage);
+        showToast(`Face fixed using ${faceFixEngine}`);
+      }
+    } catch (err) {
+      console.error('Failed to fix face:', err);
+      showToast('Failed to fix face: ' + err.message);
+    } finally {
+      setIsFaceFixing(false);
+    }
+  };
 
   const handleDownload = async () => {
     try {
@@ -61,33 +115,40 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
               await Media.requestPermissions().catch(e => console.log(e));
             }
 
-            // Write to cache directory temporarily
-            const savedFile = await Filesystem.writeFile({
+            // 1. Write to cache directory first
+            const cacheFile = await Filesystem.writeFile({
               path: fileName,
               data: pureBase64,
               directory: Directory.Cache
             });
             
-            try {
-              // Save to native gallery in 'HappyGen Studio' folder
-              await Media.savePhoto({
-                path: savedFile.uri,
-                album: 'HappyGen Studio'
-              });
-              alert('Image successfully saved to Gallery!');
-            } catch (saveErr) {
-              console.error("Gallery save error:", saveErr);
-              // Fallback to share sheet if gallery save fails
-              // Open native share sheet so user can "Save Image" to gallery or share to other apps
-              await Share.share({
-                title: 'Generated Image',
-                url: savedFile.uri,
-                dialogTitle: 'Save or Share Image'
-              });
-            }
+            // 2. Save to gallery using Media plugin
+            await Media.savePhoto({
+              path: cacheFile.uri,
+              album: 'HappyGen Studio'
+            });
+            
+            showToast('Image successfully saved to your gallery!');
           } catch (err) {
             console.error("Capacitor save/share error:", err);
-            alert('Failed to save image: ' + err.message);
+            // Fallback to share sheet if direct save fails
+            try {
+              // Write to cache directory temporarily for sharing
+              const cacheFile = await Filesystem.writeFile({
+                path: fileName,
+                data: pureBase64,
+                directory: Directory.Cache
+              });
+              
+              await Share.share({
+                title: 'Generated Image',
+                url: cacheFile.uri,
+                dialogTitle: 'Save or Share Image'
+              });
+            } catch (shareErr) {
+              console.error("Share fallback error:", shareErr);
+              showToast('Failed to save image: ' + err.message);
+            }
           } finally {
             setIsDownloading(false);
           }
@@ -173,6 +234,14 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex flex-col bg-black/90 backdrop-blur-md animate-fade-in h-[100dvh]">
       
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[10000] bg-[var(--surface-1)] border border-[var(--border-subtle)] text-white px-4 py-2 rounded-lg shadow-xl animate-fade-in flex items-center gap-2 text-sm font-medium transition-all">
+          <Check className="w-4 h-4 text-[var(--success)]" />
+          {toastMessage}
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="shrink-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent z-10">
         <div className="text-white/80 text-sm font-medium">Image Details</div>
@@ -186,10 +255,24 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
 
       {/* Main Image Area */}
       <div className="flex-1 relative flex items-center justify-center p-4 min-h-0">
+        {hasMultiple && (
+          <button 
+            onClick={handlePrev} 
+            className="absolute left-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
+          >
+            <ChevronDown className="w-6 h-6 rotate-90" />
+          </button>
+        )}
         {isUpscaling && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
             <Loader2 className="w-10 h-10 text-purple-500 animate-spin mb-4" />
             <div className="text-white font-bold tracking-widest uppercase text-sm">Enhancing...</div>
+          </div>
+        )}
+        {isFaceFixing && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+            <div className="text-white font-bold tracking-widest uppercase text-sm">Fixing Face...</div>
           </div>
         )}
         <img 
@@ -197,6 +280,14 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
           alt={currentImage.prompt || 'Generated image'} 
           className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
         />
+        {hasMultiple && (
+          <button 
+            onClick={handleNext} 
+            className="absolute right-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
+          >
+            <ChevronDown className="w-6 h-6 -rotate-90" />
+          </button>
+        )}
       </div>
 
       {/* Bottom Bar: Metadata & Actions */}
@@ -232,7 +323,56 @@ export default function ImageViewerModal({ image, isOpen, onClose }) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 w-full md:w-auto hide-scrollbar">
+          <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap pb-1 shrink-0 w-full md:w-auto">
+            
+            {/* Face Fix Button with Dropdown */}
+            <div className="relative">
+              <div className="flex rounded-xl overflow-hidden border border-blue-500/30 transition-all">
+                <button
+                  onClick={handleFaceFix}
+                  disabled={isFaceFixing || currentImage.isFaceFixed}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
+                    currentImage.isFaceFixed 
+                      ? 'bg-blue-500/10 text-blue-400' 
+                      : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+                  }`}
+                >
+                  {currentImage.isFaceFixed ? <Check className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                  {currentImage.isFaceFixed ? 'Face Fixed' : 'Fix Face'}
+                </button>
+                {!currentImage.isFaceFixed && (
+                  <button
+                    onClick={() => setShowFaceFixOptions(!showFaceFixOptions)}
+                    className="px-2 py-2 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border-l border-blue-500/30"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
+              {showFaceFixOptions && !currentImage.isFaceFixed && (
+                <div className="absolute bottom-full mb-2 right-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl shadow-xl overflow-hidden z-50 w-40">
+                  <div className="p-2 border-b border-[var(--border-subtle)] bg-[var(--surface-3)]">
+                    <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Engine</span>
+                  </div>
+                  <button
+                    onClick={() => { setFaceFixEngine("GFPGAN"); setShowFaceFixOptions(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[var(--surface-3)] transition-colors flex items-center justify-between ${faceFixEngine === "GFPGAN" ? 'text-blue-400 font-medium' : 'text-slate-300'}`}
+                  >
+                    GFPGAN
+                    {faceFixEngine === "GFPGAN" && <Check className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => { setFaceFixEngine("ADetailer"); setShowFaceFixOptions(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-[var(--surface-3)] transition-colors flex items-center justify-between ${faceFixEngine === "ADetailer" ? 'text-blue-400 font-medium' : 'text-slate-300'}`}
+                  >
+                    ADetailer
+                    {faceFixEngine === "ADetailer" && <Check className="w-4 h-4" />}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleUpscale}
               disabled={isUpscaling || currentImage.isUpscaled}
