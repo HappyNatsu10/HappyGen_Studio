@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Server, Check, X, Wifi, RefreshCw, Globe, Terminal, Trash2 } from 'lucide-react';
+import { Server, Check, X, Wifi, RefreshCw, Globe, Terminal, Trash2, Eye, AlertCircle } from 'lucide-react';
 import { flushVRAM } from '../services/aiService';
 
 export default function BackendConfigModal({ isOpen, onClose }) {
@@ -9,6 +9,7 @@ export default function BackendConfigModal({ isOpen, onClose }) {
   const [civitaiKey, setCivitaiKey] = useState(() => localStorage.getItem('omnigen_civitai_key') || '');
   const [isChecking, setIsChecking] = useState(false);
   const [isFlushing, setIsFlushing] = useState(false);
+  const [isTestingVLM, setIsTestingVLM] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
 
   useEffect(() => {
@@ -71,6 +72,34 @@ export default function BackendConfigModal({ isOpen, onClose }) {
       setStatusResult({ error: err.message });
     } finally {
       setIsFlushing(false);
+    }
+  };
+
+  const handleTestVLM = async () => {
+    setIsTestingVLM(true);
+    setStatusResult(null);
+    try {
+      const testImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+      const res = await fetch("https://happy-gen-studio.vercel.app/api/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceImage: testImage })
+      });
+      const data = await res.json();
+      if (res.ok && data.caption) {
+        setStatusResult({
+          online: true,
+          latencyMs: 0,
+          gpu: "Vercel VLM Proxy",
+          baseModel: "Gemini 1.5 Flash Connected!",
+        });
+      } else {
+        setStatusResult({ error: `VLM Error: ${data.error || res.statusText}. Check your API Key in Vercel.` });
+      }
+    } catch (err) {
+      setStatusResult({ error: `VLM Error: Cannot reach Vercel proxy.` });
+    } finally {
+      setIsTestingVLM(false);
     }
   };
 
@@ -155,6 +184,30 @@ export default function BackendConfigModal({ isOpen, onClose }) {
             </p>
           </div>
 
+          {/* VLM Setup Info */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+            <h3 className="text-[12px] font-semibold text-blue-400 mb-1 flex items-center gap-1"><Eye className="w-3.5 h-3.5"/> Gemini Vision (VLM) Setup</h3>
+            <p className="text-[11px] text-blue-300/80 mb-2">
+              To use "Image to Prompt", you need a free Google Gemini API Key deployed to Vercel so your users don't have to enter their own keys.
+            </p>
+            <ol className="text-[10px] text-blue-300/70 list-decimal ml-4 space-y-1 mb-3">
+              <li>Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-300 hover:underline">Google AI Studio</a>.</li>
+              <li>Go to your Vercel Project Settings → Environment Variables.</li>
+              <li>Add a new variable: Key = <code>GEMINI_API_KEY</code>, Value = your key.</li>
+              <li>Click "Redeploy" in Vercel to apply the changes!</li>
+            </ol>
+            <button
+              onClick={handleTestVLM}
+              disabled={isTestingVLM || isChecking || isFlushing}
+              className="btn w-full text-[12px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 flex justify-center items-center"
+            >
+              {isTestingVLM ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin inline mr-1.5" /> Testing VLM Proxy...</>
+              ) : (
+                <><Check className="w-3.5 h-3.5 inline mr-1.5" /> Test Vercel VLM Connection</>
+              )}
+            </button>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2">
