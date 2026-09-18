@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   // 3. Ensure API Key exists in Vercel Environment Variables
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
   if (!geminiKey) {
     return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the Vercel server.' });
   }
@@ -45,11 +45,10 @@ export default async function handler(req, res) {
     };
 
     // Forward to Google Gemini API
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'x-goog-api-key': geminiKey
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
