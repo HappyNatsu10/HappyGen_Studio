@@ -54,9 +54,14 @@ export default async function handler(req, res) {
 
     const availableModels = modelsData.models || [];
     
-    // We want a model that supports generateContent. Preference: 1.5-flash, then 1.5-pro, then gemini-pro-vision
+    // We want a model that supports generateContent. Preference: 3.6-flash (current), then older versions.
     let selectedModel = null;
-    const modelPreferences = ['models/gemini-1.5-flash', 'models/gemini-1.5-pro', 'models/gemini-pro-vision'];
+    const modelPreferences = [
+      'models/gemini-3.6-flash', 
+      'models/gemini-3.5-flash',
+      'models/gemini-2.5-flash',
+      'models/gemini-1.5-flash'
+    ];
     
     for (const pref of modelPreferences) {
       const match = availableModels.find(m => m.name === pref && m.supportedGenerationMethods?.includes('generateContent'));
@@ -66,13 +71,22 @@ export default async function handler(req, res) {
       }
     }
     
-    // Fallback: just find ANY model that has "gemini" and supports generateContent
+    // Fallback: just find the NEWEST model that has "gemini" and "flash", and supports generateContent
     if (!selectedModel) {
-      const fallback = availableModels.find(m => m.name.includes('gemini') && m.supportedGenerationMethods?.includes('generateContent'));
+      const fallback = availableModels
+        .filter(m => m.name.includes('gemini') && m.name.includes('flash') && m.supportedGenerationMethods?.includes('generateContent'))
+        .sort((a, b) => b.name.localeCompare(a.name))[0]; // Try to get the highest version number
+        
       if (fallback) {
         selectedModel = fallback.name;
       } else {
-        return res.status(500).json({ error: 'Your API Key does not have access to any Gemini vision models for generateContent.' });
+        // Last resort: literally anything with gemini
+        const lastResort = availableModels.find(m => m.name.includes('gemini') && m.supportedGenerationMethods?.includes('generateContent'));
+        if (lastResort) {
+          selectedModel = lastResort.name;
+        } else {
+          return res.status(500).json({ error: 'Your API Key does not have access to any Gemini vision models for generateContent.' });
+        }
       }
     }
 
