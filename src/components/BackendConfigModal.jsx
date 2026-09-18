@@ -91,10 +91,10 @@ export default function BackendConfigModal({ isOpen, onClose }) {
           online: true,
           latencyMs: 0,
           gpu: "Vercel VLM Proxy",
-          baseModel: "Gemini 1.5 Flash Connected!",
+          baseModel: "Gemini VLM Connected!",
         });
       } else {
-        setStatusResult({ error: `VLM Error: ${data.error || res.statusText}. Check your API Key in Vercel.` });
+        setStatusResult({ error: `VLM Error: ${data.error || res.statusText}` });
       }
     } catch (err) {
       setStatusResult({ error: `VLM Error: Cannot reach Vercel proxy.` });
