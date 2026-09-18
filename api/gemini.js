@@ -44,8 +44,40 @@ export default async function handler(req, res) {
       }]
     };
 
-    // Forward to Google Gemini API
-    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    // 1. Discover available models dynamically
+    const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
+    const modelsData = await modelsRes.json();
+    
+    if (!modelsRes.ok) {
+      return res.status(modelsRes.status).json({ error: `API Key Error: ${modelsData.error?.message || 'Invalid API Key'}` });
+    }
+
+    const availableModels = modelsData.models || [];
+    
+    // We want a model that supports generateContent. Preference: 1.5-flash, then 1.5-pro, then gemini-pro-vision
+    let selectedModel = null;
+    const modelPreferences = ['models/gemini-1.5-flash', 'models/gemini-1.5-pro', 'models/gemini-pro-vision'];
+    
+    for (const pref of modelPreferences) {
+      const match = availableModels.find(m => m.name === pref && m.supportedGenerationMethods?.includes('generateContent'));
+      if (match) {
+        selectedModel = match.name;
+        break;
+      }
+    }
+    
+    // Fallback: just find ANY model that has "gemini" and supports generateContent
+    if (!selectedModel) {
+      const fallback = availableModels.find(m => m.name.includes('gemini') && m.supportedGenerationMethods?.includes('generateContent'));
+      if (fallback) {
+        selectedModel = fallback.name;
+      } else {
+        return res.status(500).json({ error: 'Your API Key does not have access to any Gemini vision models for generateContent.' });
+      }
+    }
+
+    // 2. Forward to Google Gemini API using the dynamically discovered model
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json'
