@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload, X, Eraser, Brush, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChange }) {
+  const { t } = useTranslation();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const isDrawing = useRef(false);
@@ -136,27 +138,27 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   return (
     <div className="space-y-3 mb-4">
       <div className="flex items-center justify-between">
-        <label className="text-[11px] font-medium text-[var(--text-tertiary)]">Inpaint Image & Mask</label>
+        <label className="text-[11px] font-medium text-[var(--text-tertiary)]">{t('inpaint.inpaintMask', 'Inpaint Image & Mask')}</label>
         {sourceImage && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTool('brush')}
               className={`p-1.5 rounded transition-colors ${tool === 'brush' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}
-              title="Brush"
+              title={t('inpaint.brush', 'Brush')}
             >
               <Brush className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setTool('eraser')}
               className={`p-1.5 rounded transition-colors ${tool === 'eraser' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}
-              title="Eraser"
+              title={t('inpaint.eraser', 'Eraser')}
             >
               <Eraser className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={clearMask}
               className="p-1.5 rounded bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white transition-colors ml-1"
-              title="Clear Mask"
+              title={t('inpaint.clearMask', 'Clear Mask')}
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -168,7 +170,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
         <div className="border-2 border-dashed border-[var(--border-default)] rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--border-hover)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors"
              onClick={() => document.getElementById('inpaint-upload').click()}>
           <Upload className="w-6 h-6 mb-2 text-[var(--text-tertiary)]" />
-          <span className="text-[12px] font-medium text-[var(--text-secondary)]">Upload image to inpaint</span>
+          <span className="text-[12px] font-medium text-[var(--text-secondary)]">{t('inpaint.uploadImage', 'Upload image to inpaint')}</span>
           <input 
             id="inpaint-upload"
             type="file" 
@@ -222,7 +224,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[var(--text-tertiary)] w-14">Size: {brushSize}px</span>
+            <span className="text-[10px] text-[var(--text-tertiary)] w-14">{t('inpaint.size', 'Size:')} {brushSize}px</span>
             <input
               type="range"
               min="5"

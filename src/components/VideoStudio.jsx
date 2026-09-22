@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Video, Film, Camera, Play, Sparkles, Upload, ShieldCheck, Zap, Download, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Video, Camera, Clock, Upload, Trash2, ShieldAlert, BadgeCheck, AlertTriangle, RefreshCw } from 'lucide-react';
 import { generateVideoAI } from '../services/aiService';
 import { checkPromptSafety, createSafetyAuditLog } from '../services/safetyService';
 import EngineSelector from './common/EngineSelector';
@@ -20,6 +21,7 @@ import useModelStore from '../store/useModelStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 
 export default function VideoStudio({ onAddSafetyLog = () => {} }) {
+  const { t } = useTranslation();
   const { mode, isAdultMode, openModelModal } = useAppStore();
   const { 
     videoEngine, setVideoEngine, 
@@ -99,10 +101,10 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
       {/* Banner & Engine Selector */}
       <div className="text-center space-y-4 max-w-xl mx-auto">
         <h1 className="text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-[var(--text-primary)] via-[var(--text-accent)] to-purple-400">
-          AI Video Generation Suite
+          {t('video.title', 'AI Video Generation Suite')}
         </h1>
         <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
-          Generate cinematic clips, animate static artwork, or restyle existing video footage with camera motion control.
+          {t('video.subtitle', 'Generate cinematic clips, animate static artwork, or restyle existing video footage with camera motion control.')}
         </p>
         
         <div className="pt-2 text-left space-y-4">
@@ -111,7 +113,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
               engines={VIDEO_ENGINES} 
               selectedEngineId={videoEngine} 
               onSelectEngine={setVideoEngine} 
-              label="Video Inference Engine"
+              label={t('video.engineLabel', 'Video Inference Engine')}
             />
           )}
 
@@ -136,19 +138,19 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
             onClick={() => setActiveSubTab('text-to-video')}
             className={`mode-toggle-option ${activeSubTab === 'text-to-video' ? 'active' : ''}`}
           >
-            Text-to-Video
+            {t('video.textToVideo', 'Text-to-Video')}
           </button>
           <button
             onClick={() => setActiveSubTab('image-to-video')}
             className={`mode-toggle-option ${activeSubTab === 'image-to-video' ? 'active' : ''}`}
           >
-            Image-to-Video
+            {t('video.imageToVideo', 'Image-to-Video')}
           </button>
           <button
             onClick={() => setActiveSubTab('video-to-video')}
             className={`mode-toggle-option ${activeSubTab === 'video-to-video' ? 'active' : ''}`}
           >
-            Video-to-Video
+            {t('video.videoToVideo', 'Video-to-Video')}
           </button>
         </div>
       </div>
@@ -166,16 +168,16 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
                   onClick={() => setSourceImage(null)}
                   className="absolute top-2 right-2 px-2 py-1 bg-red-600 text-white text-[10px] font-bold rounded-md"
                 >
-                  Remove Source
+                  {t('video.removeSource', 'Remove Source')}
                 </button>
               </div>
             ) : (
               <label className="cursor-pointer block space-y-2">
                 <Upload className="w-8 h-8 mx-auto" style={{ color: 'var(--text-accent)' }} />
                 <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {activeSubTab === 'image-to-video' ? 'Upload Source Image to Animate' : 'Upload Source Video to Restyle'}
+                  {activeSubTab === 'image-to-video' ? t('video.uploadSourceImage', 'Upload Source Image to Animate') : t('video.uploadSourceVideo', 'Upload Source Video to Restyle')}
                 </div>
-                <p className="text-xs text-slate-400">PNG, JPG, MP4 supported up to 50MB</p>
+                <p className="text-xs text-slate-400">{t('video.uploadHint', 'PNG, JPG, MP4 supported up to 50MB')}</p>
                 <input type="file" accept="image/*,video/*" onChange={handleImageUpload} className="hidden" />
               </label>
             )}
@@ -184,11 +186,11 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
 
         {/* Prompt Input */}
         <div className="space-y-2">
-          <label className="text-[12px] font-medium block" style={{ color: 'var(--text-secondary)' }}>Video Prompt & Motion Guidance</label>
+          <label className="text-[12px] font-medium block" style={{ color: 'var(--text-secondary)' }}>{t('video.promptLabel', 'Video Prompt & Motion Guidance')}</label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g. Drone flying over futuristic neon city under heavy rain, camera panning smoothly, 4k 60fps cinematic..."
+            placeholder={t('video.promptPlaceholder', 'e.g. Drone flying over futuristic neon city under heavy rain, camera panning smoothly, 4k 60fps cinematic...')}
             rows={3}
             className="input w-full text-[13px] leading-relaxed"
           />
@@ -198,7 +200,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
         <div className="space-y-3">
           <label className="text-[12px] font-medium flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
             <Camera className="w-4 h-4" style={{ color: 'var(--text-accent)' }} />
-            <span>Camera Motion Vector</span>
+            <span>{t('video.cameraMotion', 'Camera Motion Vector')}</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
             {VIDEO_CAMERA_MOTIONS.map((mot) => (
@@ -223,8 +225,8 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
           <div>
             <div className="flex justify-between text-[11px] font-medium mb-1.5">
-              <span style={{ color: 'var(--text-secondary)' }}>Clip Duration</span>
-              <span style={{ color: 'var(--text-accent)' }}>{duration} Seconds</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{t('video.clipDuration', 'Clip Duration')}</span>
+              <span style={{ color: 'var(--text-accent)' }}>{duration} {t('video.seconds', 'Seconds')}</span>
             </div>
             <input
               type="range"
@@ -237,7 +239,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
           </div>
           <div>
             <div className="flex justify-between text-[11px] font-medium mb-1.5">
-              <span style={{ color: 'var(--text-secondary)' }}>Target Framerate</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{t('video.targetFps', 'Target Framerate')}</span>
               <span style={{ color: 'var(--text-accent)' }}>{fps} FPS</span>
             </div>
             <div className="flex space-x-2">
@@ -263,12 +265,12 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
           {isGenerating ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              <span>Rendering Motion Frames & Temporal Flow...</span>
+              <span>{t('video.rendering', 'Rendering Motion Frames & Temporal Flow...')}</span>
             </>
           ) : (
             <>
               <Video className="w-5 h-5" />
-              <span>Generate AI Video Clip</span>
+              <span>{t('video.generateBtn', 'Generate AI Video Clip')}</span>
             </>
           )}
         </button>
@@ -278,12 +280,12 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
       {/* Generated Videos Output Section */}
       <div className="space-y-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <h2 className="text-[16px] font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-          Rendered Video Gallery
+          {t('video.gallery', 'Rendered Video Gallery')}
         </h2>
 
         {generatedVideos.length === 0 ? (
           <div className="card p-10 text-center text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
-            No video clips rendered yet. Configure your prompt and motion above.
+            {t('video.noVideos', 'No video clips rendered yet. Configure your prompt and motion above.')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -299,12 +301,15 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
                   <div className="badge absolute top-2 left-2">
                     {vid.fps} FPS • {vid.duration}s
                   </div>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <button className="btn btn-secondary px-4 py-2 text-sm">{t('common.download', 'Download')}</button>
+                  </div>
                 </div>
                 <div>
                   <div className="font-semibold text-[13px]" style={{ color: 'var(--text-primary)' }}>{vid.title}</div>
                   <div className="text-[11px] mt-1 flex items-center justify-between" style={{ color: 'var(--text-tertiary)' }}>
                     <span>Motion: {vid.motion}</span>
-                    <span className="badge-success badge">C2PA Verified</span>
+                    <span className="badge-success badge">{t('video.c2paVerified', 'C2PA Verified')}</span>
                   </div>
                 </div>
               </div>

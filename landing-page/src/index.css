@@ -204,9 +204,9 @@
   justify-content: center;
   gap: 6px;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 16px;
   border-radius: var(--radius-md);
-  padding: 8px 16px;
+  padding: 20px 18px;
   transition: all var(--transition-fast);
   cursor: pointer;
   border: none;
@@ -234,6 +234,15 @@
 .btn-primary-glow:hover {
   box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
   transform: translateY(-1px);
+}
+
+/* Slow pulse for hero badge */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
 }
 
 .btn-secondary {

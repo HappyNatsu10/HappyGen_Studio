@@ -82,7 +82,7 @@ export default function WalkthroughPage() {
                 <ul className="list-disc pl-5 space-y-2 mt-4 text-sm text-slate-300">
                   <li>Switch to <strong>Draft Mode</strong>. This reduces the sampling steps to 6, delivering results in seconds.</li>
                   <li>Lower your batch count. Generating 4 images at once takes 4x longer on standard GPUs.</li>
-                  <li>Upgrade to <strong>Pro Creator</strong> to access our dedicated High-VRAM GPU cluster.</li>
+                  <li>Ensure your Google Colab instance is running and utilizing a T4 GPU for optimal generation speeds.</li>
                 </ul>
               </div>
             </motion.section>

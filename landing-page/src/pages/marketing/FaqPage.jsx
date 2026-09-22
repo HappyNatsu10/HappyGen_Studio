@@ -5,7 +5,7 @@ import { ChevronDown, MessageCircleQuestion } from 'lucide-react';
 const FAQS = [
   {
     question: "Do I need a powerful GPU to use HappyGen Studio?",
-    answer: "No! By default, HappyGen connects to blazing-fast cloud APIs (like Fal.ai) to process your generations. You can generate professional-grade images on low-end laptops or even mobile devices. We also support pointing to your own local ComfyUI/A1111 backend if you prefer to use your own GPU."
+    answer: "No! HappyGen Studio connects to a free Google Colab notebook that gives you access to a powerful cloud GPU for free. You can also connect the studio directly to your own local ComfyUI or A1111 backend if you have a capable PC. While generation is completely free with no API keys required, you will need a free CivitAI API Key to download models."
   },
   {
     question: "How do LoRAs work in the Studio?",
@@ -13,7 +13,7 @@ const FAQS = [
   },
   {
     question: "Is there a limit to how many images I can generate?",
-    answer: "Free users receive 100 daily credits, which is roughly enough for 50 standard images. Pro subscribers get unlimited generations and priority access to faster GPUs."
+    answer: "There are absolutely no limits! Because HappyGen uses your own local hardware or our provided free Google Colab backend, you can generate as many images as you want for free without worrying about credits, tokens, or subscriptions."
   },
   {
     question: "How does the Adult (18+) Vault work?",

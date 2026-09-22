@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush } from 'lucide-react';
 import ImageViewerModal from '../common/ImageViewerModal';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -6,6 +7,7 @@ import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
 
 export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
+  const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -126,8 +128,8 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="skeleton rounded-lg overflow-hidden relative" style={{ minHeight: 250 }}>
             <div className="absolute inset-0 flex flex-col items-center justify-center opacity-30">
-              <Sparkles className="w-8 h-8 mb-2 text-white animate-pulse" />
-              <div className="h-2 w-1/3 bg-white rounded-full"></div>
+              <Sparkles className="w-8 h-8 mb-2 text-[var(--text-primary)] animate-pulse" />
+              <div className="h-2 w-1/3 bg-[var(--text-primary)] rounded-full"></div>
             </div>
           </div>
         ))}
@@ -145,11 +147,11 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
           <Sparkles className="w-8 h-8 text-purple-400 relative z-10" />
         </div>
         
-        <h3 className="text-xl font-bold text-white relative z-10 mb-2 drop-shadow-md">
-          Your Canvas Awaits
+        <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10 mb-2 drop-shadow-md">
+          {t('gallery.canvasAwaits', 'Your Canvas Awaits')}
         </h3>
-        <p className="text-[14px] text-slate-400 relative z-10 max-w-sm text-center leading-relaxed">
-          Describe your vision, tweak your settings, and let HappyGen Studio bring it to life.
+        <p className="text-[14px] text-[var(--text-secondary)] relative z-10 max-w-sm text-center leading-relaxed">
+          {t('gallery.canvasDesc', 'Describe your vision, tweak your settings, and let HappyGen Studio bring it to life.')}
         </p>
       </div>
     );

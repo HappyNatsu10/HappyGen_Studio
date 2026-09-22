@@ -200,6 +200,8 @@ class FaceFixRequest(BaseModel):
     image: str
     prompt: Optional[str] = ""
     engine: Optional[str] = "GFPGAN"
+    base_model: Optional[Union[dict, str]] = None
+    civitai_api_key: Optional[str] = ""
 
 def download_civitai_model(download_url, dest_path, api_key):
     if os.path.exists(dest_path): return True
@@ -246,7 +248,7 @@ def unload_checkpoint():
     return {"status": "ok", "vram_free_gb": round(vram_free, 2)}
 
 def _switch_model_if_needed(req_base_model, civitai_api_key):
-    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img
+    global CURRENT_BASE_MODEL_FILE, pipe, pipe_img2img, pipe_inpaint
     req_base_model_file = CURRENT_BASE_MODEL_FILE
     req_base_model_url = None
     req_architecture = "SDXL 1.0"
@@ -445,6 +447,9 @@ def _do_face_fix(req: FaceFixRequest):
     return {"images": [_encode_image_to_base64(result_image)], "source": req.engine}
 
 def _do_adetailer(req: FaceFixRequest):
+    global pipe_inpaint
+    if req.base_model:
+        _switch_model_if_needed(req.base_model, req.civitai_api_key)
     try:
         from ultralytics import YOLO
         import PIL.ImageDraw, PIL.ImageFilter

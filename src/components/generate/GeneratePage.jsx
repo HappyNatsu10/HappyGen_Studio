@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImageIcon, Loader2, AlertCircle, Settings, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { 
+  Settings, Loader2, Sparkles, AlertCircle, StopCircle, RefreshCw, 
+  Image as ImageIcon, Upload, X 
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import PromptEditor from './PromptEditor';
 import ModelSelector from './ModelSelector';
@@ -12,6 +16,7 @@ import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintIm
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
 import useAppStore from '../../store/useAppStore';
+import { useAuth } from '../../context/AuthContext';
 import useModelStore from '../../store/useModelStore';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useGenerateStore from '../../store/useGenerateStore';
@@ -32,7 +37,9 @@ const itemVariants = {
 };
 
 export default function GeneratePage() {
+  const { t } = useTranslation();
   const { isAdultMode, openModelModal } = useAppStore();
+  const { isAuthenticated, openAuth, incrementGeneratedCount, updateProfile } = useAuth();
   const { 
     imageEngine, setImageEngine, 
     baseModel, loras, embeddings,
@@ -203,11 +210,12 @@ export default function GeneratePage() {
       } else if (generationMode === 'upscale') {
         images = await upscaleImage({ sourceImage, scale: 2 });
       } else if (generationMode === 'facefix') {
-        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine });
+        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine, baseModel, civitaiApiKey: useAppStore.getState().civitaiApiKey });
       }
 
       setResults(images);
       addGeneratedAssets(images);
+      incrementGeneratedCount();
       
       const warnedImage = images.find(img => img.hasWarning);
       if (warnedImage) {
@@ -244,7 +252,7 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5 bg-[var(--surface-0)] relative">
+    <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden pb-24 md:pb-5 bg-[var(--surface-0)] relative">
       {/* Background Decorative Blur - Removed to fix GPU freeze on low-end hardware */}
 
       {/* Left Panel: Controls */}
@@ -252,7 +260,7 @@ export default function GeneratePage() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex flex-col gap-6 w-full md:w-[400px] flex-shrink-0 md:overflow-y-auto z-10 glass-panel border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md rounded-[22px] p-6 shadow-xl relative scrollbar-hide"
+        className="flex flex-col gap-6 w-full md:w-[450px] flex-shrink-0 md:overflow-y-auto z-10 glass-panel border border-[var(--border-subtle)] bg-[var(--surface-1)]/80 backdrop-blur-md rounded-[22px] p-6 shadow-xl relative scrollbar-hide"
       >
         
         {/* Mode Selector */}
@@ -328,7 +336,7 @@ export default function GeneratePage() {
               engines={IMAGE_ENGINES} 
               selectedEngineId={imageEngine} 
               onSelectEngine={setImageEngine} 
-              label="Base Inference Engine"
+              label={t('generate.baseEngine', 'Base Inference Engine')}
             />
           </motion.div>
         )}
@@ -369,7 +377,7 @@ export default function GeneratePage() {
           <motion.div variants={itemVariants}>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[12px] font-semibold text-slate-300 flex items-center gap-1.5">
-                Batch Count
+                {t('generate.batchSize', 'Batch Count')}
               </label>
               <span className="text-[12px] font-mono bg-white/5 px-2 py-0.5 rounded text-purple-300">{batchCount}</span>
             </div>
@@ -390,10 +398,10 @@ export default function GeneratePage() {
           <motion.div variants={itemVariants}>
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="w-full flex items-center justify-center gap-2 bg-[var(--surface-0)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-white py-3 px-4 rounded-xl transition-all font-medium text-[13px]"
+              className="w-full flex items-center justify-center gap-2 bg-[var(--surface-0)] border border-[var(--border-subtle)] hover:border-[var(--accent)] text-[var(--text-primary)] py-3 px-4 rounded-xl transition-all font-medium text-[13px]"
             >
               <Settings className="w-4 h-4 text-purple-400" />
-              Advanced Settings
+              {t('generate.advancedSettings', 'Advanced Settings')}
             </button>
           </motion.div>
         )}
@@ -408,7 +416,7 @@ export default function GeneratePage() {
         )}
 
         {/* Generate Button */}
-        <motion.div id="tour-generate-button" variants={itemVariants} className="sticky bottom-0 z-20 -mx-0 pt-3 pb-1 md:static md:pt-0 md:pb-0" style={{ background: 'linear-gradient(to top, var(--surface-1) 70%, transparent)' }}>
+        <motion.div id="tour-generate-button" variants={itemVariants} className="pt-2">
           <button
             onClick={handleGenerate}
             disabled={isGenerating || (generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate' && !prompt.trim())}
@@ -417,12 +425,12 @@ export default function GeneratePage() {
           {isGenerating ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Generating...
+              {t('generate.generating', 'Generating...')}
             </>
           ) : (
             <>
               <ImageIcon className="w-5 h-5" />
-              {generationMode === 'upscale' ? 'Upscale Image' : (generationMode === 'facefix' ? 'Fix Faces' : (generationMode === 'interrogate' ? 'Extract Prompt' : 'Generate'))}
+              {generationMode === 'upscale' ? 'Upscale Image' : (generationMode === 'facefix' ? 'Fix Faces' : (generationMode === 'interrogate' ? 'Extract Prompt' : t('generate.generateBtn', 'Generate')))}
             </>
           )}
           </button>
@@ -446,11 +454,11 @@ export default function GeneratePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="card max-w-sm w-full bg-[var(--surface-1)] border border-[var(--border-subtle)] shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
             <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--surface-2)]">
-              <h3 className="font-bold text-white flex items-center gap-2">
+              <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <Settings className="w-4 h-4 text-purple-400" />
-                Advanced Settings
+                {t('generate.advancedSettings', 'Advanced Settings')}
               </h3>
-              <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors hover:bg-white/10">
+              <button onClick={() => setShowSettingsModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-1 rounded-lg transition-colors hover:bg-[var(--surface-3)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -470,7 +478,11 @@ export default function GeneratePage() {
                 setSampler={setSampler}
                 baseModel={baseModel}
                 hasCustomProfile={baseModel ? !!modelProfiles[baseModel.id] : false}
-                onSaveProfile={() => saveModelProfile(baseModel.id, { steps, cfg, sampler })}
+                onSaveProfile={() => {
+                  saveModelProfile(baseModel.id, { steps, cfg, sampler });
+                  const newProfiles = { ...modelProfiles, [baseModel.id]: { steps, cfg, sampler } };
+                  updateProfile({ modelProfiles: newProfiles });
+                }}
               />
             </div>
             <div className="px-5 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-2)]">
@@ -478,7 +490,7 @@ export default function GeneratePage() {
                 onClick={() => setShowSettingsModal(false)}
                 className="btn btn-primary w-full py-2.5 rounded-xl font-semibold text-sm"
               >
-                Apply & Close
+                {t('common.applyAndClose', 'Apply & Close')}
               </button>
             </div>
           </div>

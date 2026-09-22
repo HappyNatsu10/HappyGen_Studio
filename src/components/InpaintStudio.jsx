@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Brush, Loader2, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import InpaintCanvas from './generate/InpaintCanvas';
 import PromptEditor from './generate/PromptEditor';
 import { inpaintImage } from '../services/aiService';
@@ -11,6 +12,7 @@ import useGenerateStore from '../store/useGenerateStore';
 import useModelStore from '../store/useModelStore';
 
 export default function InpaintStudio() {
+  const { t } = useTranslation();
   const { isAdultMode, mode } = useAppStore();
   const { inpaintSourceImage: sourceImage, setInpaintSourceImage: setSourceImage, addGeneratedAssets } = useWorkspaceStore();
   const [maskImage, setMaskImage] = useState(null);
@@ -23,15 +25,15 @@ export default function InpaintStudio() {
 
   const handleGenerate = async () => {
     if (!sourceImage) {
-      setError('Please upload a source image first.');
+      setError(t('inpaint.errorNoSource', 'Please upload a source image first.'));
       return;
     }
     if (!maskImage) {
-      setError('Please draw a mask over the area you want to change.');
+      setError(t('inpaint.errorNoMask', 'Please draw a mask over the area you want to change.'));
       return;
     }
     if (!prompt.trim()) {
-      setError('Please provide a prompt describing what you want to generate in the masked area.');
+      setError(t('inpaint.errorNoPrompt', 'Please provide a prompt describing what you want to generate in the masked area.'));
       return;
     }
 
@@ -84,10 +86,10 @@ export default function InpaintStudio() {
         <div className="card p-4">
           <h2 className="text-[16px] font-semibold flex items-center gap-2 mb-1 text-[var(--text-primary)]">
             <Brush className="w-4 h-4 text-purple-400" />
-            Inpaint Studio
+            {t('sidebar.inpaint', 'Inpaint Studio')}
           </h2>
           <p className="text-[12px] text-[var(--text-tertiary)]">
-            Upload an image, draw a mask over the area you want to replace, and describe what should go there.
+            {t('inpaint.subtitle', 'Upload an image, draw a mask over the area you want to replace, and describe what should go there.')}
           </p>
         </div>
 
@@ -95,19 +97,19 @@ export default function InpaintStudio() {
         <div className="flex-1 min-h-[400px] flex flex-col">
           {!sourceImage ? (
             <ImageUploadZone 
-              label="Source Image for Inpainting" 
+              label={t('inpaint.sourceLabel', 'Source Image for Inpainting')} 
               value={sourceImage} 
               onChange={setSourceImage} 
             />
           ) : (
             <div className="flex-1 bg-[var(--surface-1)] rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col">
               <div className="p-2 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface-2)]">
-                <span className="text-xs font-medium text-[var(--text-secondary)] px-2">Draw your mask</span>
+                <span className="text-xs font-medium text-[var(--text-secondary)] px-2">{t('inpaint.drawMask', 'Draw your mask')}</span>
                 <button 
                   onClick={() => { setSourceImage(null); setMaskImage(null); setResultImage(null); }}
                   className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
                 >
-                  Clear Image
+                  {t('common.clearImage', 'Clear Image')}
                 </button>
               </div>
               <div className="flex-1 relative p-4 flex items-center justify-center">
@@ -149,12 +151,12 @@ export default function InpaintStudio() {
           {isGenerating ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Inpainting...
+              {t('inpaint.inpainting', 'Inpainting...')}
             </>
           ) : (
             <>
               <Brush className="w-4 h-4" />
-              Inpaint Region
+              {t('inpaint.inpaintRegion', 'Inpaint Region')}
             </>
           )}
         </button>
@@ -163,7 +165,7 @@ export default function InpaintStudio() {
           {isGenerating ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-1)] z-10">
               <Loader2 className="w-8 h-8 text-[var(--accent)] animate-spin mb-4" />
-              <p className="text-sm text-[var(--text-secondary)] font-medium">Inpainting Region...</p>
+              <p className="text-sm text-[var(--text-secondary)] font-medium">{t('inpaint.inpaintingRegion', 'Inpainting Region...')}</p>
             </div>
           ) : resultImage ? (
             <div className="relative w-full h-full flex items-center justify-center p-4 bg-black/20">
@@ -176,9 +178,9 @@ export default function InpaintStudio() {
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
               <Brush className="w-12 h-12 text-[var(--text-tertiary)] opacity-30 mb-4" />
-              <p className="text-[var(--text-secondary)] font-medium text-sm">Waiting for generation...</p>
+              <p className="text-[var(--text-secondary)] font-medium text-sm">{t('generate.waiting', 'Waiting for generation...')}</p>
               <p className="text-[var(--text-tertiary)] text-xs mt-1 max-w-[200px]">
-                Draw a mask and enter a prompt to see your result here.
+                {t('inpaint.waitingSubtitle', 'Draw a mask and enter a prompt to see your result here.')}
               </p>
             </div>
           )}

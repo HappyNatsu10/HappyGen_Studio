@@ -6,7 +6,10 @@ import {
   onAuthStateChanged,
   updateProfile as firebaseUpdateProfile,
   updatePassword,
-  deleteUser
+  deleteUser,
+  GoogleAuthProvider,
+  TwitterAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -52,19 +55,20 @@ export function AuthProvider({ children }) {
           const docRef = doc(db, 'users', user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setCurrentUser({ id: user.uid, email: user.email, ...docSnap.data() });
+            setCurrentUser({ id: user.uid, email: user.email, creationTime: user.metadata?.creationTime, ...docSnap.data() });
           } else {
             setCurrentUser({ 
               id: user.uid, 
               email: user.email, 
               name: user.displayName || 'User', 
-              avatar: user.photoURL || DEFAULT_AVATARS[0] 
+              avatar: user.photoURL || DEFAULT_AVATARS[0],
+              creationTime: user.metadata?.creationTime
             });
           }
         } catch (error) {
           console.error("Error fetching user data (Firebase may not be configured):", error);
           // Fallback if firestore fails
-          setCurrentUser({ id: user.uid, email: user.email, name: user.displayName, avatar: user.photoURL });
+          setCurrentUser({ id: user.uid, email: user.email, name: user.displayName, avatar: user.photoURL, creationTime: user.metadata?.creationTime });
         }
       } else {
         // If not authenticated via Firebase, check if they were a guest
@@ -204,6 +208,180 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Login with Google
+  const loginWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      // Inherit guest state if present
+      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
+      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
+
+      let finalData = {};
+      
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+           finalData = docSnap.data();
+        } else {
+           // New user from Google
+           finalData = {
+             name: user.displayName || 'Creator',
+             email: user.email,
+             avatar: user.photoURL || DEFAULT_AVATARS[0],
+             tier: 'Pro Studio Creator',
+             createdAt: new Date().toISOString(),
+             generatedCount: 0,
+             savedPrompts: [],
+             favoriteImages: [],
+             favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
+             favouriteModels: guestModels,
+             customSettings: {
+               preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
+               defaultSteps: 20,
+               defaultCfg: 6.5,
+               defaultResolution: '512x768'
+             }
+           };
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data during Google login:", err);
+        finalData = {
+           name: user.displayName || 'Creator',
+           email: user.email,
+           avatar: user.photoURL || DEFAULT_AVATARS[0]
+        };
+      }
+      
+      if (guestModels.length > 0 || guestFolders.length > 0) {
+          const existingModels = finalData.favouriteModels || [];
+          const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
+          
+          const mergedModels = [...existingModels];
+          for (const gm of guestModels) {
+            if (!mergedModels.find(m => m.id === gm.id)) {
+              mergedModels.push(gm);
+            }
+          }
+          
+          const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+          
+          finalData.favouriteModels = mergedModels;
+          finalData.favouriteFolders = mergedFolders;
+          
+          try {
+             await setDoc(doc(db, 'users', user.uid), {
+               favouriteModels: mergedModels,
+               favouriteFolders: mergedFolders
+             }, { merge: true });
+          } catch (e) {
+             console.error("Could not merge guest data on login", e);
+          }
+      } else {
+         try {
+            await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
+         } catch (e) {
+            console.error("Could not set user doc", e);
+         }
+      }
+      
+      setCurrentUser({ id: user.uid, email: user.email, ...finalData });
+      return user;
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      throw new Error(error.message || 'An error occurred during Google sign in.');
+    }
+  };
+
+  // Login with Twitter
+  const loginWithTwitter = async () => {
+    try {
+      const provider = new TwitterAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
+      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
+
+      let finalData = {};
+      
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+           finalData = docSnap.data();
+        } else {
+           finalData = {
+             name: user.displayName || 'Creator',
+             email: user.email,
+             avatar: user.photoURL || DEFAULT_AVATARS[0],
+             tier: 'Pro Studio Creator',
+             createdAt: new Date().toISOString(),
+             generatedCount: 0,
+             savedPrompts: [],
+             favoriteImages: [],
+             favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
+             favouriteModels: guestModels,
+             customSettings: {
+               preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
+               defaultSteps: 20,
+               defaultCfg: 6.5,
+               defaultResolution: '512x768'
+             }
+           };
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data during Twitter login:", err);
+        finalData = {
+           name: user.displayName || 'Creator',
+           email: user.email,
+           avatar: user.photoURL || DEFAULT_AVATARS[0]
+        };
+      }
+      
+      if (guestModels.length > 0 || guestFolders.length > 0) {
+          const existingModels = finalData.favouriteModels || [];
+          const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
+          
+          const mergedModels = [...existingModels];
+          for (const gm of guestModels) {
+            if (!mergedModels.find(m => m.id === gm.id)) {
+              mergedModels.push(gm);
+            }
+          }
+          
+          const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+          
+          finalData.favouriteModels = mergedModels;
+          finalData.favouriteFolders = mergedFolders;
+          
+          try {
+             await setDoc(doc(db, 'users', user.uid), {
+               favouriteModels: mergedModels,
+               favouriteFolders: mergedFolders
+             }, { merge: true });
+          } catch (e) {
+             console.error("Could not merge guest data on login", e);
+          }
+      } else {
+         try {
+            await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
+         } catch (e) {
+            console.error("Could not set user doc", e);
+         }
+      }
+      
+      setCurrentUser({ id: user.uid, email: user.email, ...finalData });
+      return user;
+    } catch (error) {
+      console.error("Twitter Login Error:", error);
+      throw new Error(error.message || 'An error occurred during Twitter sign in.');
+    }
+  };
+
   // Quick Demo Guest Account
   const loginAsGuest = () => {
     const guestUser = {
@@ -262,7 +440,7 @@ export function AuthProvider({ children }) {
   };
 
   // Increment Generation Counter
-  const consumeCredits = async () => {
+  const incrementGeneratedCount = async () => {
     if (currentUser?.isGuest) {
       const newCount = (currentUser.generatedCount || 0) + 1;
       const updatedGuest = { ...currentUser, generatedCount: newCount };
@@ -334,12 +512,14 @@ export function AuthProvider({ children }) {
       isAuthenticated: !!currentUser,
       register,
       login,
+      loginWithGoogle,
+      loginWithTwitter,
       loginAsGuest,
       logout,
       updateProfile,
+      incrementGeneratedCount,
       changePassword,
       deleteAccount,
-      consumeCredits,
       showAuthModal,
       authModalMode,
       openAuth,

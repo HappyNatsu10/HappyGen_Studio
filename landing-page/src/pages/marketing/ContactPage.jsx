@@ -27,7 +27,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold mb-1 drop-shadow-md">Email</h3>
-                  <p className="text-slate-300 text-sm">support@happygenstudio.ai</p>
+                  <p className="text-slate-300 text-sm">support@happygenstudio.online</p>
                 </div>
               </div>
               

@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShieldCheck, AlertOctagon, FileCheck, CheckCircle2, Lock, Cpu, Eye, Scale, Server } from 'lucide-react';
 
 export default function SafetyDashboard({ safetyLogs, isAdultMode }) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       
@@ -10,16 +12,16 @@ export default function SafetyDashboard({ safetyLogs, isAdultMode }) {
         <div>
           <div className="flex items-center space-x-2">
             <ShieldCheck className="w-7 h-7 text-emerald-400" />
-            <h1 className="text-2xl font-extrabold text-white font-display">Trust & Safety Audit Console</h1>
+            <h1 className="text-2xl font-extrabold text-[var(--text-primary)] font-display">{t('safety.consoleTitle', 'Trust & Safety Audit Console')}</h1>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time compliance monitoring, multi-modal classifiers, C2PA digital provenance, & NCMEC reporting engine.
+            {t('safety.consoleDesc', 'Real-time compliance monitoring, multi-modal classifiers, C2PA digital provenance, & NCMEC reporting engine.')}
           </p>
         </div>
 
         <div className="flex items-center space-x-2 bg-emerald-950/80 border border-emerald-500/40 px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-300">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <span>Classifier Pipeline Active • 99.9% Recall Rate</span>
+          <span>{t('safety.pipelineActive', 'Classifier Pipeline Active • 99.9% Recall Rate')}</span>
         </div>
       </div>
 
@@ -27,68 +29,68 @@ export default function SafetyDashboard({ safetyLogs, isAdultMode }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-panel p-4 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>CSAM Zero Tolerance</span>
+            <span>{t('safety.csamTolerance', 'CSAM Zero Tolerance')}</span>
             <Lock className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-extrabold text-white">0 Incidents</div>
-          <div className="text-[10px] text-emerald-400 font-mono">100% Age-Inference Screened</div>
+          <div className="text-2xl font-extrabold text-[var(--text-primary)]">0 {t('safety.incidents', 'Incidents')}</div>
+          <div className="text-[10px] text-emerald-400 font-mono">100% {t('safety.ageScreened', 'Age-Inference Screened')}</div>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Input Prompt Scans</span>
+            <span>{t('safety.inputScans', 'Input Prompt Scans')}</span>
             <Cpu className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-2xl font-extrabold text-white">{safetyLogs.length + 142} Prompts</div>
-          <div className="text-[10px] text-indigo-300 font-mono">Sub-10ms Latency</div>
+          <div className="text-2xl font-extrabold text-[var(--text-primary)]">{safetyLogs.length + 142} {t('safety.prompts', 'Prompts')}</div>
+          <div className="text-[10px] text-indigo-300 font-mono">{t('safety.latency', 'Sub-10ms Latency')}</div>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>C2PA Digital Signatures</span>
+            <span>{t('safety.c2paSignatures', 'C2PA Digital Signatures')}</span>
             <FileCheck className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-extrabold text-white">100% Embedded</div>
-          <div className="text-[10px] text-purple-300 font-mono">SHA-256 Tamper Evident</div>
+          <div className="text-2xl font-extrabold text-[var(--text-primary)]">100% {t('safety.embedded', 'Embedded')}</div>
+          <div className="text-[10px] text-purple-300 font-mono">SHA-256 {t('safety.tamperEvident', 'Tamper Evident')}</div>
         </div>
 
         <div className="glass-panel p-4 rounded-2xl space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>KYC Verification Gate</span>
+            <span>{t('safety.kycGate', 'KYC Verification Gate')}</span>
             <Scale className="w-4 h-4 text-rose-400" />
           </div>
-          <div className="text-2xl font-extrabold text-white">ID + Liveness</div>
-          <div className="text-[10px] text-rose-300 font-mono">18+ Identity Verified</div>
+          <div className="text-2xl font-extrabold text-[var(--text-primary)]">{t('safety.idLiveness', 'ID + Liveness')}</div>
+          <div className="text-[10px] text-rose-300 font-mono">18+ {t('safety.identityVerified', 'Identity Verified')}</div>
         </div>
       </div>
 
       {/* Safety Audit Log Stream Table */}
       <div className="glass-panel rounded-3xl p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center space-x-2">
+          <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center space-x-2">
             <Server className="w-5 h-5 text-indigo-400" />
-            <span>Live System Classifier Log Audit Feed</span>
+            <span>{t('safety.liveFeed', 'Live System Classifier Log Audit Feed')}</span>
           </h2>
-          <span className="text-xs font-mono text-slate-400">Updated Real-Time</span>
+          <span className="text-xs font-mono text-slate-400">{t('safety.updatedRealTime', 'Updated Real-Time')}</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/80 text-slate-400 uppercase font-mono text-[10px] border-b border-white/10">
               <tr>
-                <th className="p-3">Log ID</th>
-                <th className="p-3">Time</th>
-                <th className="p-3">Event Type</th>
-                <th className="p-3">Prompt Snippet</th>
-                <th className="p-3">Category</th>
-                <th className="p-3">Verdict</th>
+                <th className="p-3">{t('safety.logId', 'Log ID')}</th>
+                <th className="p-3">{t('safety.time', 'Time')}</th>
+                <th className="p-3">{t('safety.eventType', 'Event Type')}</th>
+                <th className="p-3">{t('safety.promptSnippet', 'Prompt Snippet')}</th>
+                <th className="p-3">{t('safety.category', 'Category')}</th>
+                <th className="p-3">{t('safety.verdict', 'Verdict')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-sans">
               {safetyLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-4 text-center text-slate-500">
-                    No violations detected. All prompt and output classifier checks passed.
+                    {t('safety.noViolations', 'No violations detected. All prompt and output classifier checks passed.')}
                   </td>
                 </tr>
               ) : (

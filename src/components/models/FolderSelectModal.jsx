@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { X, FolderPlus } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function FolderSelectModal({ model, folders, onClose, onConfirm, onCreateFolder }) {
+  const { t } = useTranslation();
   const [selectedFolder, setSelectedFolder] = useState('Uncategorized');
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -29,7 +31,7 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-2)' }}>
-          <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>Save to Favourites</h3>
+          <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>{t('explorer.saveToFavourites', 'Save to Favourites')}</h3>
           <button onClick={onClose} className="p-1.5 rounded-md hover:bg-white/10 transition-colors">
             <X className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
           </button>
@@ -49,13 +51,13 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
             </div>
             <div>
               <h4 className="text-[13px] font-medium line-clamp-1" style={{ color: 'var(--text-primary)' }}>{model.name}</h4>
-              <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>by {model.creator}</p>
+              <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.by', 'by')} {model.creator}</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit}>
             <label className="text-[11px] font-medium block mb-2" style={{ color: 'var(--text-secondary)' }}>
-              Choose a folder:
+              {t('explorer.chooseFolder', 'Choose a folder:')}
             </label>
             
             {isCreating ? (
@@ -65,11 +67,11 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
                   autoFocus
                   value={newFolderName}
                   onChange={e => setNewFolderName(e.target.value)}
-                  placeholder="Folder name..."
+                  placeholder={t('explorer.folderNamePlaceholder', 'Folder name...')}
                   className="input flex-1 text-xs py-2 px-3"
                 />
                 <button type="button" onClick={() => setIsCreating(false)} className="btn btn-secondary py-2 px-3 text-xs">
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </button>
               </div>
             ) : (
@@ -79,7 +81,7 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
                   onChange={e => setSelectedFolder(e.target.value)}
                   className="input flex-1 text-xs py-2 px-3"
                 >
-                  <option value="Uncategorized">Uncategorized</option>
+                  <option value="Uncategorized">{t('explorer.uncategorized', 'Uncategorized')}</option>
                   {folders.filter(f => f !== 'Uncategorized').map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
@@ -88,7 +90,7 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
                   type="button"
                   onClick={() => setIsCreating(true)}
                   className="btn btn-secondary py-2 px-3 flex items-center gap-1 text-xs"
-                  title="Create new folder"
+                  title={t('explorer.createNewFolder', 'Create new folder')}
                 >
                   <FolderPlus className="w-4 h-4" />
                 </button>
@@ -97,10 +99,10 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
 
             <div className="flex justify-end gap-2 mt-6">
               <button type="button" onClick={onClose} className="btn btn-secondary py-1.5 px-4 text-xs">
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button type="submit" className="btn btn-primary py-1.5 px-4 text-xs" disabled={isCreating && !newFolderName.trim()}>
-                Save to Favourites
+                {t('explorer.saveToFavourites', 'Save to Favourites')}
               </button>
             </div>
           </form>

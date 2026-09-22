@@ -10,7 +10,13 @@ const useAppStore = create(persist((set) => ({
   sidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   
+  showThemeModal: false,
+  setShowThemeModal: (val) => set({ showThemeModal: val }),
+  
   // App Settings
+  hasSelectedLanguage: false,
+  setHasSelectedLanguage: (val) => set({ hasSelectedLanguage: val }),
+
   hasSeenTutorial: false,
   setHasSeenTutorial: (val) => set({ hasSeenTutorial: val }),
   

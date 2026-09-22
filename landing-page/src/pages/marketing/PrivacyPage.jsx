@@ -95,7 +95,7 @@ export default function PrivacyPage() {
             <li><strong>Opt-Out:</strong> Unsubscribe from marketing communications at any time.</li>
           </ul>
           <p className="mt-4">
-            To exercise these rights, please navigate to your Account Settings or email us at <code>privacy@happygenstudio.ai</code>.
+            To exercise these rights, please navigate to your Account Settings or email us at <code>support@happygenstudio.online</code>.
           </p>
         </>
       )

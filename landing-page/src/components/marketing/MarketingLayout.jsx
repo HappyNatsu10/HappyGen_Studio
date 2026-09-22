@@ -14,30 +14,36 @@ const MarketingNavbar = () => {
         animate={{ y: 0 }}
         className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/40 backdrop-blur-xl border-b border-[var(--border-subtle)]"
       >
-        <div className="w-full px-6 md:px-12 xl:px-24 mx-auto flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
-            <span className="font-bold text-xl tracking-tight text-white">HappyGen Studio</span>
-          </Link>
+        <div className="w-full px-6 md:px-12 xl:px-24 mx-auto flex items-center h-20 relative">
+          {/* Logo - Left */}
+          <div className="flex-1 flex justify-start">
+            <Link to="/" className="flex items-center gap-3 group">
+              <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
+              <span className="font-bold text-xl tracking-tight text-white">HappyGen Studio</span>
+            </Link>
+          </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop Nav - Center */}
+          <div className="hidden md:flex items-center justify-center gap-8 absolute left-1/2 -translate-x-1/2">
             <Link to="/walkthrough" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Walkthrough</Link>
             <Link to="/faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</Link>
             <Link to="/download" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Download</Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link to="/contact" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Contact</Link>
+          {/* Contact - Right */}
+          <div className="hidden md:flex items-center justify-end gap-4 flex-1">
+            <Link to="/contact" className="btn btn-primary btn-primary-glow font-medium text-slate-300 hover:text-white transition-colors">Contact</Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 text-slate-300 hover:text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Menu Button - Right */}
+          <div className="md:hidden flex flex-1 justify-end">
+            <button 
+              className="p-2 text-slate-300 hover:text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </motion.nav>
 
@@ -68,9 +74,7 @@ const MarketingFooter = () => {
       <div className="w-full px-6 md:px-12 xl:px-24 mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
         <div className="md:col-span-1">
           <Link to="/" className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-              <Rocket className="w-4 h-4 text-white" />
-            </div>
+            <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
             <span className="font-bold text-lg text-white">HappyGen Studio</span>
           </Link>
           <p className="text-slate-400 text-sm leading-relaxed mb-6">
@@ -106,10 +110,8 @@ const MarketingFooter = () => {
       
       <div className="w-full px-6 md:px-12 xl:px-24 mx-auto border-t border-[var(--border-subtle)] pt-8 flex flex-col md:flex-row items-center justify-between">
         <p className="text-slate-500 text-sm">© 2026 HappyGen Studio. All rights reserved.</p>
-        <div className="flex gap-4 mt-4 md:mt-0">
-          <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all"><FileText className="w-4 h-4" /></a>
-          <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all"><Download className="w-4 h-4" /></a>
-          <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all"><Mail className="w-4 h-4" /></a>
+        <div className="flex gap-4 mt-4 md:mt-0 text-xs text-slate-600">
+          Built with ♥ by HappyNatsu10
         </div>
       </div>
     </footer>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Download, ThumbsUp, Filter, X, Loader2, Heart, Clock } from 'lucide-react';
 import { searchModels, formatCount } from '../../services/civitaiService';
 import ModelDetailDrawer from './ModelDetailDrawer';
@@ -24,6 +25,7 @@ const STYLE_TAGS = ['anime', 'realistic', 'photorealistic', '3d', 'cartoon', 'il
 const STYLE_FILTERS = ['All', 'Anime', 'Realistic', 'Photorealistic', '3D', 'Cartoon', 'Illustration'];
 
 export default function ModelExplorer(props) {
+  const { t } = useTranslation();
   const storeIsAdultMode = useAppStore(state => state.isAdultMode);
   const { setBaseModel: storeSetBaseModel, addLora: storeAddLora } = useModelStore();
 
@@ -177,7 +179,7 @@ export default function ModelExplorer(props) {
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search models & LoRAs on CivitAI..."
+              placeholder={t('explorer.searchPlaceholder', 'Search models & LoRAs on CivitAI...')}
               className="input w-full pl-10 pr-10"
             />
             {query && (
@@ -196,13 +198,13 @@ export default function ModelExplorer(props) {
               onClick={() => setActiveTab('Search')}
               className={`mode-toggle-option ${activeTab === 'Search' ? 'active' : ''}`}
             >
-              Search
+              {t('explorer.search', 'Search')}
             </button>
             <button
               onClick={() => setActiveTab('Favourites')}
               className={`mode-toggle-option ${activeTab === 'Favourites' ? 'active' : ''}`}
             >
-              <Heart className="inline w-3 h-3 mr-1" /> Favourites
+              <Heart className="inline w-3 h-3 mr-1" /> {t('explorer.favourites', 'Favourites')}
             </button>
           </div>
         </div>
@@ -212,23 +214,23 @@ export default function ModelExplorer(props) {
           <div className="flex flex-col gap-3 pb-2 border-b border-white/5 overflow-x-auto hide-scrollbar">
             <div className="flex gap-2 items-center min-w-max">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
-                <Filter className="inline w-3 h-3 mr-1" />Type:
+                <Filter className="inline w-3 h-3 mr-1" />{t('explorer.type', 'Type:')}
               </span>
-              {TYPE_FILTERS.map(t => (
+              {TYPE_FILTERS.map(t_val => (
                 <button
-                  key={t}
-                  onClick={() => setTypeFilter(t)}
-                  className={`chip ${typeFilter === t ? 'active' : ''}`}
+                  key={t_val}
+                  onClick={() => setTypeFilter(t_val)}
+                  className={`chip ${typeFilter === t_val ? 'active' : ''}`}
                   disabled={!!forcedType}
-                  style={{ opacity: forcedType && typeFilter !== t ? 0.5 : 1, cursor: forcedType ? 'not-allowed' : 'pointer' }}
+                  style={{ opacity: forcedType && typeFilter !== t_val ? 0.5 : 1, cursor: forcedType ? 'not-allowed' : 'pointer' }}
                 >
-                  {t === 'LORA' ? 'LoRA' : (t === 'TextualInversion' ? 'Embedding' : t)}
+                  {t_val === 'All' ? t('explorer.all', 'All') : t_val === 'LORA' ? t('explorer.lora', 'LoRA') : (t_val === 'TextualInversion' ? t('explorer.embedding', 'Embedding') : t('explorer.checkpoint', 'Checkpoint'))}
                 </button>
               ))}
 
               {!forcedBaseModel && (
                 <div className="flex items-center gap-2 ml-3">
-                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.base', 'Base:')}</span>
                   <select
                     value={baseModelFilter}
                     onChange={e => setBaseModelFilter(e.target.value)}
@@ -243,7 +245,7 @@ export default function ModelExplorer(props) {
               )}
               {forcedBaseModel && forcedBaseModel !== 'All' && (
                 <div className="flex items-center gap-2 ml-3">
-                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Base:</span>
+                  <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.base', 'Base:')}</span>
                   <select className="input text-xs py-1.5 px-2 opacity-80 cursor-not-allowed" disabled style={{ minWidth: 120 }}>
                     <option>{forcedBaseModel}</option>
                   </select>
@@ -251,7 +253,7 @@ export default function ModelExplorer(props) {
               )}
 
               <div className="ml-auto flex items-center gap-2">
-                <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Sort:</span>
+                <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.sort', 'Sort:')}</span>
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
@@ -259,7 +261,9 @@ export default function ModelExplorer(props) {
                   style={{ minWidth: 140 }}
                 >
                   {SORT_OPTIONS.map(s => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {s === 'Most Downloaded' ? t('explorer.sortMostDownloaded', 'Most Downloaded') : s === 'Highest Rated' ? t('explorer.sortHighestRated', 'Highest Rated') : t('explorer.sortNewest', 'Newest')}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -267,7 +271,7 @@ export default function ModelExplorer(props) {
 
             <div className="flex gap-2 items-center min-w-max">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
-                Category:
+                {t('explorer.category', 'Category:')}
               </span>
               <select
                 value={categoryFilter}
@@ -284,12 +288,12 @@ export default function ModelExplorer(props) {
                 style={{ minWidth: 140 }}
               >
                 {CATEGORY_FILTERS.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{c === 'All' ? t('explorer.all', 'All') : c}</option>
                 ))}
               </select>
 
               <span className="text-[11px] font-medium ml-4 mr-1" style={{ color: 'var(--text-tertiary)' }}>
-                Style:
+                {t('explorer.style', 'Style:')}
               </span>
               {STYLE_FILTERS.map(s => (
                 <button
@@ -303,9 +307,9 @@ export default function ModelExplorer(props) {
                       setActiveTagFilter('none');
                     }
                   }}
-                  className={`chip ${styleFilter === s ? 'active' : ''}`}
+                  className={`chip ${styleFilter === s && activeTagFilter !== 'category' ? 'active' : ''}`}
                 >
-                  {s}
+                  {s === 'All' ? t('explorer.all', 'All') : s}
                 </button>
               ))}
             </div>
@@ -319,7 +323,7 @@ export default function ModelExplorer(props) {
               {/* Folders */}
               <div className="flex gap-2 items-center min-w-max">
                 <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
-                  Folder:
+                  {t('explorer.folder', 'Folder:')}
                 </span>
                 {['All', ...folders].map(f => {
                   const isCustom = f !== 'All' && f !== 'Uncategorized';
@@ -357,7 +361,7 @@ export default function ModelExplorer(props) {
                         onClick={() => setActiveFolder(f)}
                         className={`chip ${isActive ? 'active' : ''} ${isCustom && isActive ? 'rounded-r-none pr-1.5' : ''}`}
                       >
-                        {f}
+                        {f === 'All' ? t('explorer.all', 'All') : f === 'Uncategorized' ? t('explorer.uncategorized', 'Uncategorized') : f}
                       </button>
                       {isCustom && isActive && (
                         <div className="flex items-center h-7 bg-[var(--surface-2)] rounded-r-full border border-l-0 border-white/10 pr-1.5">
@@ -367,7 +371,7 @@ export default function ModelExplorer(props) {
                               setEditingFolder(f);
                             }}
                             className="p-1 hover:text-white text-white/50 cursor-pointer"
-                            title="Rename Folder"
+                            title={t('explorer.renameFolder', 'Rename Folder')}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                           </button>
@@ -379,7 +383,7 @@ export default function ModelExplorer(props) {
                               }
                             }}
                             className="p-1 hover:text-red-400 text-white/50 cursor-pointer"
-                            title="Delete Folder"
+                            title={t('explorer.deleteFolder', 'Delete Folder')}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                           </button>
@@ -406,7 +410,7 @@ export default function ModelExplorer(props) {
                       autoFocus
                       value={newFolderName}
                       onChange={e => setNewFolderName(e.target.value)}
-                      placeholder="Folder name..."
+                      placeholder={t('explorer.folderNamePlaceholder', 'Folder name...')}
                       className="input text-[11px] py-1 px-2 h-7 w-28"
                       onBlur={() => setIsCreatingFolder(false)}
                     />
@@ -416,23 +420,23 @@ export default function ModelExplorer(props) {
                     onClick={() => setIsCreatingFolder(true)}
                     className="chip opacity-60 hover:opacity-100"
                   >
-                    + New
+                    + {t('explorer.new', 'New')}
                   </button>
                 )}
               </div>
 
               {/* Sort */}
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>Sort:</span>
+                <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.sort', 'Sort:')}</span>
                 <select
                   value={favSortBy}
                   onChange={e => setFavSortBy(e.target.value)}
                   className="input text-xs py-1.5 px-2"
                   style={{ minWidth: 140 }}
                 >
-                  <option value="Date Added">Date Added</option>
-                  <option value="Name (A-Z)">Name (A-Z)</option>
-                  <option value="Most Downloaded">Most Downloaded</option>
+                  <option value="Date Added">{t('explorer.dateAdded', 'Date Added')}</option>
+                  <option value="Name (A-Z)">{t('explorer.nameAZ', 'Name (A-Z)')}</option>
+                  <option value="Most Downloaded">{t('explorer.mostDownloaded', 'Most Downloaded')}</option>
                 </select>
               </div>
             </div>
@@ -478,8 +482,8 @@ export default function ModelExplorer(props) {
             <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
               <Search className="w-6 h-6 opacity-50" />
             </div>
-            <p className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>Search for models on CivitAI</p>
-            <p className="text-[12px] mt-1">Try "anime", "realistic", or a character name</p>
+            <p className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>{t('explorer.searchCivitai', 'Search for models on CivitAI')}</p>
+            <p className="text-[12px] mt-1">{t('explorer.searchHint', 'Try "anime", "realistic", or a character name')}</p>
           </div>
         )}
 
@@ -488,8 +492,8 @@ export default function ModelExplorer(props) {
             <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
               <Heart className="w-6 h-6 opacity-50 text-pink-500" />
             </div>
-            <p className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>No favourite models yet</p>
-            <p className="text-[12px] mt-1">Click the heart icon on any model to save it here</p>
+            <p className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>{t('explorer.noFavourites', 'No favourite models yet')}</p>
+            <p className="text-[12px] mt-1">{t('explorer.noFavouritesHint', 'Click the heart icon on any model to save it here')}</p>
           </div>
         )}
       </div>

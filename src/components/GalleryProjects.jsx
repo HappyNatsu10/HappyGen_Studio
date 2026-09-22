@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush } from 'lucide-react';
 import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 
 export default function GalleryProjects() {
+  const { t } = useTranslation();
   const { isAdultMode } = useAppStore();
   const { generatedAssets } = useWorkspaceStore();
   const isVerifiedAdult = true; // Placeholder for future auth integration
@@ -23,9 +25,9 @@ export default function GalleryProjects() {
         <div>
           <h1 className="text-[18px] font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <Folder className="w-5 h-5" style={{ color: 'var(--text-accent)' }} />
-            Projects & Asset Vault
+            {t('projects.title', 'Projects & Asset Vault')}
           </h1>
-          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>Isolated project partitions and encrypted asset storage.</p>
+          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{t('projects.subtitle', 'Isolated project partitions and encrypted asset storage.')}</p>
         </div>
 
         {/* Gallery Vault Filter */}
@@ -34,14 +36,14 @@ export default function GalleryProjects() {
             onClick={() => setActiveTab('general')}
             className={`mode-toggle-option ${activeTab === 'general' ? 'active' : ''}`}
           >
-            General Gallery
+            {t('projects.generalGallery', 'General Gallery')}
           </button>
           <button
             onClick={() => setActiveTab('adult_vault')}
             className={`mode-toggle-option flex items-center gap-1 ${activeTab === 'adult_vault' ? 'active' : ''}`}
           >
             <Lock className="w-3.5 h-3.5" />
-            Adult 18+ Private Vault
+            {t('projects.adultVault', 'Adult 18+ Private Vault')}
           </button>
         </div>
       </div>
@@ -50,16 +52,16 @@ export default function GalleryProjects() {
       {activeTab === 'adult_vault' && !isVerifiedAdult ? (
         <div className="glass-panel-adult rounded-2xl p-12 text-center space-y-4 max-w-xl mx-auto">
           <Lock className="w-12 h-12 mx-auto" style={{ color: 'var(--error)' }} />
-          <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-primary)' }}>Adult Vault Partition Locked</h2>
+          <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-primary)' }}>{t('projects.lockedTitle', 'Adult Vault Partition Locked')}</h2>
           <p className="text-[12px]" style={{ color: 'var(--text-tertiary)' }}>
-            Per PRD Section 4.5 safety rules, adult content assets are stored in an isolated, encrypted partition. Complete identity verification to unlock.
+            {t('projects.lockedDesc', 'Per PRD Section 4.5 safety rules, adult content assets are stored in an isolated, encrypted partition. Complete identity verification to unlock.')}
           </p>
         </div>
       ) : (
         <div>
           {filteredAssets.length === 0 ? (
             <div className="card p-12 text-center text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
-              No assets stored in this gallery partition.
+              {t('projects.emptyGallery', 'No assets stored in this gallery partition.')}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -74,14 +76,14 @@ export default function GalleryProjects() {
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
                       <button 
                         className="btn btn-primary p-2"
-                        title="View Fullscreen"
+                        title={t('projects.viewFullscreen', 'View Fullscreen')}
                         onClick={(e) => { e.stopPropagation(); setActiveViewerImage(asset); }}
                       >
                         <Maximize2 className="w-4 h-4" />
                       </button>
                       <button 
                         className="btn btn-secondary p-2 bg-white/20 hover:bg-white/40 text-white"
-                        title="Send to Inpaint Studio"
+                        title={t('projects.sendToInpaint', 'Send to Inpaint Studio')}
                         onClick={(e) => {
                           e.stopPropagation();
                           useWorkspaceStore.getState().setInpaintSourceImage(asset.url);

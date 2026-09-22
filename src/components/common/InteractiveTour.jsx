@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import useAppStore from '../../store/useAppStore';
 
 export default function InteractiveTour() {
+  const { t } = useTranslation();
   const { hasSeenInteractiveTour, setHasSeenInteractiveTour, setActiveTab, activeTab, hasSeenTutorial } = useAppStore();
   const hasStartedRef = useRef(false);
 
@@ -32,44 +34,47 @@ export default function InteractiveTour() {
         showProgress: true,
         allowClose: true,
         overlayColor: 'rgba(0, 0, 0, 0.75)',
+        nextBtnText: t('tour.next', 'Next'),
+        prevBtnText: t('tour.prev', 'Previous'),
+        doneBtnText: t('tour.done', 'Done'),
         steps: [
           {
             element: '#tour-backend-config',
             popover: {
-              title: 'Backend Configuration',
-              description: 'First, make sure you are connected to your Local GPU or Cloud GPU here.',
+              title: t('tour.step1.title', 'Backend Configuration'),
+              description: t('tour.step1.desc', 'First, make sure you are connected to your Local GPU or Cloud GPU here.'),
               side: "bottom", align: 'start'
             }
           },
           {
             element: '#tour-model-selector',
             popover: {
-              title: 'Select a Model',
-              description: 'Choose an AI model (like a Realistic or Anime model) from your collection.',
+              title: t('tour.step2.title', 'Select a Model'),
+              description: t('tour.step2.desc', 'Choose an AI model (like a Realistic or Anime model) from your collection.'),
               side: isMobile ? "bottom" : "right", align: 'center'
             }
           },
           {
             element: '#tour-prompt-box',
             popover: {
-              title: 'Write your Prompt',
-              description: 'Describe exactly what you want the AI to create in this box.',
+              title: t('tour.step3.title', 'Write your Prompt'),
+              description: t('tour.step3.desc', 'Describe exactly what you want the AI to create in this box.'),
               side: isMobile ? "bottom" : "right", align: 'start'
             }
           },
           {
             element: '#tour-generate-button',
             popover: {
-              title: 'Generate!',
-              description: 'Click here to bring your imagination to life!',
+              title: t('tour.step4.title', 'Generate!'),
+              description: t('tour.step4.desc', 'Click here to bring your imagination to life!'),
               side: isMobile ? "bottom" : "right", align: 'center'
             }
           },
           {
             element: isMobile ? '.tour-gallery-mobile' : '.tour-gallery-desktop',
             popover: {
-              title: 'Your Gallery',
-              description: 'All your generated images and videos will automatically be saved here. Enjoy HappyGen Studio!',
+              title: t('tour.step5.title', 'Your Gallery'),
+              description: t('tour.step5.desc', 'All your generated images and videos will automatically be saved here. Enjoy HappyGen Studio!'),
               side: isMobile ? "top" : "right", align: isMobile ? 'center' : 'start'
             }
           }

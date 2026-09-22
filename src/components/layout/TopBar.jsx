@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Server, User } from 'lucide-react';
+import { Wifi, WifiOff, Server, User, Palette } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import useAppStore from '../../store/useAppStore';
+import LanguageSwitcher from '../common/LanguageSwitcher';
 
 export default function TopBar({ title, onOpenBackendModal }) {
+  const { t } = useTranslation();
   const { isAuthenticated, currentUser, openAuth } = useAuth();
-  const { setShowProfileModal } = useAppStore();
+  const { setShowProfileModal, setShowThemeModal } = useAppStore();
   const [backendOnline, setBackendOnline] = useState(false);
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function TopBar({ title, onOpenBackendModal }) {
         >
           <div className={`status-dot ${backendOnline ? 'online' : 'offline'}`} />
           <Server className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">{backendOnline ? 'Connected' : 'Offline'}</span>
+          <span className="hidden sm:inline">{backendOnline ? t('topBar.connected', 'Connected') : t('topBar.offline', 'Offline')}</span>
         </button>
 
         {/* User Account / Login Button */}
@@ -70,13 +73,13 @@ export default function TopBar({ title, onOpenBackendModal }) {
               openAuth('login');
             }
           }}
-          className="w-8 h-8 rounded-full overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center bg-gray-800"
+          className="w-8 h-8 rounded-full overflow-hidden border cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center bg-[var(--surface-2)]"
           style={{ borderColor: 'var(--border-subtle)' }}
         >
           {isAuthenticated && currentUser?.avatar ? (
             <img src={currentUser.avatar} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <User className="w-4 h-4 text-gray-400" />
+            <User className="w-4 h-4 text-[var(--text-secondary)]" />
           )}
         </button>
       </div>

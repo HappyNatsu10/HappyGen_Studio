@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Cpu, HelpCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Tooltip from './Tooltip';
 
 export default function EngineSelector({ engines, selectedEngineId, onSelectEngine, label = "AI Engine" }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -28,7 +30,7 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
     <div className="relative w-full" ref={dropdownRef}>
       <label className="text-[12px] font-medium flex items-center gap-1.5 mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
         {label}
-        <Tooltip position="center" text="The backend provider or hardware powering the generation.">
+        <Tooltip position="center" text={t('generate.engineTooltip', 'The backend provider or hardware powering the generation.')}>
           <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
         </Tooltip>
       </label>
@@ -44,8 +46,8 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <Cpu className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-secondary)' }} />
-          <span className="text-[13px] font-semibold truncate text-white">
-            {selectedEngine ? selectedEngine.name : 'Select Engine'}
+          <span className="text-[13px] font-semibold truncate text-[var(--text-primary)]">
+            {selectedEngine ? selectedEngine.name : t('generate.selectEngine', 'Select Engine')}
           </span>
         </div>
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--text-tertiary)' }} />
@@ -56,7 +58,7 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
         <div 
           className="absolute z-50 w-full mt-1 rounded-xl border shadow-xl overflow-y-auto"
           style={{ 
-            background: '#1e1e24', // A dark color matching the screenshot
+            background: 'var(--surface-1)',
             borderColor: 'var(--border-subtle)',
             maxHeight: '350px' 
           }}
@@ -65,7 +67,7 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
             {engines.map((group, gIdx) => (
               <div key={gIdx} className="mb-2 last:mb-0">
                 {group.provider !== 'DEFAULT' && (
-                  <div className="px-4 py-1.5 text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+                  <div className="px-4 py-1.5 text-[10px] font-bold tracking-wider text-[var(--text-tertiary)] uppercase">
                     {group.provider}
                   </div>
                 )}
@@ -80,12 +82,12 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
                           setIsOpen(false);
                         }}
                         className={`text-left px-4 py-2 text-[13px] transition-colors flex items-center gap-2 ${
-                          isSelected ? 'bg-purple-600/20 text-purple-300 font-semibold' : 'text-gray-300 hover:bg-white/5'
+                          isSelected ? 'bg-[var(--surface-3)] text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]'
                         }`}
                       >
                         <span>{model.name}</span>
                         {model.badge && (
-                          <span className="px-1.5 rounded-sm bg-purple-900/50 text-purple-300 text-[10px]">
+                          <span className="px-1.5 rounded-sm bg-[var(--accent-subtle)] text-[var(--text-accent)] text-[10px]">
                             {model.badge}
                           </span>
                         )}

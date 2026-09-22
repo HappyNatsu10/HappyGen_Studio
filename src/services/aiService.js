@@ -3,9 +3,48 @@
  * Communicates with configured backend (Local GPU / Google Colab).
  */
 
+const resolveBackendUrl = (baseModel = null) => {
+  if (typeof window === 'undefined') return 'http://localhost:8000';
+  
+  const backendType = localStorage.getItem('omnigen_backend_type') || 'local';
+  if (backendType === 'colab' && baseModel) {
+    const isAnimaModel = () => {
+      const name = (typeof baseModel === 'object' ? (baseModel.name || baseModel.fileName || '') : baseModel).toLowerCase();
+      const fileName = typeof baseModel === 'object' ? (baseModel.version?.fileName || '') : '';
+      return name.includes('anima') || fileName.includes('anima');
+    };
+    
+    if (isAnimaModel()) {
+      const animaUrl = localStorage.getItem('omnigen_anima_url');
+      if (animaUrl && animaUrl.trim()) {
+        return animaUrl.trim().replace(/\/+$/, '');
+      }
+    }
+  }
+  
+  const rawUrl = localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000';
+  return rawUrl.trim().replace(/\/+$/, '');
+};
+
 const DEFAULT_NEGATIVE_PROMPT = "score_6, score_5, score_4, bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality";
 
 
+
+export const translateToEnglish = async (text) => {
+  if (!text || text.trim() === '') return text;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return text;
+    const data = await res.json();
+    if (data && data[0]) {
+      return data[0].map(segment => segment[0]).join('');
+    }
+  } catch (error) {
+    console.warn("[AI Service] Translation failed, using original text:", error);
+  }
+  return text;
+};
 const asyncFetch = async (url, options) => {
   const res = await fetch(url, options);
   if (!res.ok) {
@@ -51,10 +90,7 @@ const flushMemoryIfModelChanged = async (backendUrl, targetModelName) => {
 };
 
 export const flushVRAM = async () => {
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
   
   try {
     const res = await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
@@ -89,11 +125,11 @@ export const generateImageAI = async ({
     activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
   }
 
+  // Auto-translate prompt to English to ensure model compatibility
+  const translatedPrompt = await translateToEnglish(prompt);
+
   const images = [];
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
   const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
@@ -112,7 +148,7 @@ export const generateImageAI = async ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt,
+          prompt: translatedPrompt,
           negative_prompt: activeNegativePrompt,
           steps: steps || 20,
           cfg_scale: guidanceScale || 6.5,
@@ -173,6 +209,11 @@ export const generateImageAI = async ({
       prompt,
       negativePrompt: activeNegativePrompt,
       modelUsed: usedEngineName,
+      model: currentModelName,
+      loras: loras ? loras.map(l => l.name || l.id || l) : [],
+      steps: steps || 20,
+      cfg: guidanceScale || 6.5,
+      sampler: sampler || 'Euler a',
       width,
       height,
       seed: currentSeed,
@@ -211,10 +252,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
     }
   }
 
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
 
   // Send image as-is (backend handles stripping the data URI prefix)
   const imagePayload = sourceImage;
@@ -241,10 +279,7 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
 };
 
 export const upscaleImageAI = async ({ sourceImage, scale = 2, upscalerName = "R-ESRGAN 4x+ Anime6B" }) => {
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
 
   try {
     const data = await asyncFetch(`${backendUrl}/sdapi/v1/extra-single-image`, {
@@ -301,10 +336,7 @@ export const generateImg2Img = async ({
   if (!isAdultMode) {
     activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
   }
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
 
   const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
@@ -354,12 +386,18 @@ export const generateImg2Img = async ({
         id: `img2img-${Date.now()}`,
         url: imageUrl,
         prompt,
-        seed,
+        negativePrompt: activeNegativePrompt,
+        modelUsed: data.source || `GPU (${currentModelName || 'default'})`,
+        model: currentModelName,
+        loras: loras ? loras.map(l => l.name || l.id || l) : [],
+        steps: steps || 20,
+        cfg: guidanceScale || 6.5,
+        sampler: sampler || 'Euler a',
         width,
         height,
-        modelUsed: currentModelName || 'Google Colab Cloud GPU',
+        seed,
         createdAt: new Date().toISOString(),
-        isAdult: isAdultMode,
+        isAdult: isAdultMode
       }];
     }
     throw new Error("No image data returned from img2img.");
@@ -372,11 +410,8 @@ export const generateImg2Img = async ({
   }
 };
 
-export const faceFixImage = async ({ sourceImage, prompt, engine = "GFPGAN" }) => {
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+export const faceFixImage = async ({ sourceImage, prompt, engine = "GFPGAN", baseModel, civitaiApiKey }) => {
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
 
   try {
     const data = await asyncFetch(`${backendUrl}/sdapi/v1/face-fix`, {
@@ -386,6 +421,13 @@ export const faceFixImage = async ({ sourceImage, prompt, engine = "GFPGAN" }) =
         image: sourceImage,
         prompt: prompt || '',
         engine: engine,
+        base_model: typeof baseModel === 'object' && baseModel ? {
+            name: baseModel.name,
+            fileName: baseModel.version?.fileName || baseModel.fileName,
+            downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
+            architecture: baseModel.version?.baseModel || "SDXL 1.0"
+        } : (baseModel || engine),
+        civitai_api_key: civitaiApiKey || "",
       }),
     });
 
@@ -431,11 +473,10 @@ export const inpaintImage = async ({
   if (!isAdultMode) {
     activeNegativePrompt += `, ${NSFW_BLOCKLIST}`;
   }
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
   const civitaiApiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
+
+  const translatedPrompt = await translateToEnglish(prompt);
 
   const currentModelName = typeof baseModel === 'object' && baseModel ? baseModel.name : baseModel;
   await flushMemoryIfModelChanged(backendUrl, currentModelName);
@@ -445,7 +486,7 @@ export const inpaintImage = async ({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt,
+        prompt: translatedPrompt,
         negative_prompt: activeNegativePrompt,
         init_images: [sourceImage],
         mask: maskImage,
@@ -503,17 +544,15 @@ export const generateVideoAI = async ({
   sourceImage = null,
   isAdultMode = false,
 }) => {
-  const rawBackendUrl = typeof window !== 'undefined'
-    ? (localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000')
-    : 'http://localhost:8000';
-  const backendUrl = rawBackendUrl.trim().replace(/\/+$/, '');
+  const backendUrl = resolveBackendUrl(typeof baseModel !== 'undefined' ? baseModel : null);
+  const translatedPrompt = await translateToEnglish(prompt);
 
   try {
     const res = await fetch(`${backendUrl}/api/video`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt,
+        prompt: translatedPrompt,
         init_image: sourceImage,
         motion,
         duration
@@ -543,3 +582,5 @@ export const generateVideoAI = async ({
     throw new Error(`Video Backend Error (${backendUrl}): ${err.message || "Connection failed"}. Check your proxy server.`);
   }
 };
+
+

@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import GalleryPickerModal from '../common/GalleryPickerModal';
 
 export default function ImageUploadZone({ label, value, onChange }) {
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isGalleryPickerOpen, setIsGalleryPickerOpen] = useState(false);
@@ -39,15 +41,15 @@ export default function ImageUploadZone({ label, value, onChange }) {
             }`}
           >
             <Upload className={`w-6 h-6 mb-2 ${isDragging ? 'text-[var(--accent)]' : 'text-[var(--text-tertiary)]'}`} />
-            <span className="text-[12px] font-medium text-[var(--text-secondary)]">Click or drag image here</span>
-            <span className="text-[10px] text-[var(--text-tertiary)] mt-1">PNG, JPG, WEBP up to 10MB</span>
+            <span className="text-[12px] font-medium text-[var(--text-secondary)]">{t('upload.clickOrDrag', 'Click or drag image here')}</span>
+            <span className="text-[10px] text-[var(--text-tertiary)] mt-1">{t('upload.fileTypes', 'PNG, JPG, WEBP up to 10MB')}</span>
           </div>
           <button 
             onClick={() => setIsGalleryPickerOpen(true)}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--surface-1)] hover:bg-[var(--surface-2)] border border-[var(--border-subtle)] text-[12px] font-medium text-[var(--text-secondary)] transition-colors"
           >
             <ImageIcon className="w-4 h-4" />
-            Select from Gallery
+            {t('upload.selectFromGallery', 'Select from Gallery')}
           </button>
         </div>
       ) : (

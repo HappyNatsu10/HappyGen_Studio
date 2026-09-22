@@ -1,19 +1,20 @@
 import React from 'react';
 import { Image, Layers, FolderOpen, Settings, Video, Brush } from 'lucide-react';
-
+import { useTranslation } from 'react-i18next';
 import useAppStore from '../../store/useAppStore';
 
-const TABS = [
-  { id: 'generate', label: 'Create', icon: Image },
-  { id: 'video', label: 'Video', icon: Video },
-  { id: 'inpaint', label: 'Inpaint', icon: Brush },
-  { id: 'models', label: 'Explore', icon: Layers },
-  { id: 'gallery', label: 'Gallery', icon: FolderOpen },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
-
 export default function MobileTabBar() {
+  const { t } = useTranslation();
   const { activeTab, setActiveTab } = useAppStore();
+  
+  const TABS = [
+    { id: 'generate', label: t('nav.create', 'Create'), icon: Image },
+    { id: 'video', label: t('nav.video', 'Video'), icon: Video },
+    { id: 'inpaint', label: t('nav.inpaint', 'Inpaint'), icon: Brush },
+    { id: 'models', label: t('nav.explore', 'Explore'), icon: Layers },
+    { id: 'gallery', label: t('nav.gallery', 'Gallery'), icon: FolderOpen },
+    { id: 'settings', label: t('nav.settings', 'Settings'), icon: Settings },
+  ];
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--surface-1)] border-t border-[var(--border-subtle)] flex items-center justify-around px-2 pb-safe pt-1 h-[60px]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 4px)' }}>
       {TABS.map(tab => {

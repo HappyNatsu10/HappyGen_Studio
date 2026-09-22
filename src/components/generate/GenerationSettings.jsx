@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Zap, Sparkles, Crown, HelpCircle, Save, CheckCircle2 } from 'lucide-react';
 import Tooltip from '../common/Tooltip';
 
@@ -47,6 +48,7 @@ export default function GenerationSettings({
   hasCustomProfile,
   onSaveProfile,
 }) {
+  const { t } = useTranslation();
   const [justSaved, setJustSaved] = React.useState(false);
 
   const handleSave = () => {
@@ -60,18 +62,18 @@ export default function GenerationSettings({
       {baseModel && (
         <div className="bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[12px] font-semibold text-white truncate max-w-[200px]">{baseModel.name}</span>
-            <span className="text-[10px] text-slate-400">{hasCustomProfile ? 'Using Custom Settings' : 'Using Standard Settings'}</span>
+            <span className="text-[12px] font-semibold text-[var(--text-primary)] truncate max-w-[200px]">{baseModel.name}</span>
+            <span className="text-[10px] text-[var(--text-secondary)]">{hasCustomProfile ? t('generate.customSettings', 'Using Custom Settings') : t('generate.standardSettings', 'Using Standard Settings')}</span>
           </div>
           <button
             onClick={handleSave}
             disabled={justSaved}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-              justSaved ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-purple-300 border border-purple-500/30'
+              justSaved ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-[var(--surface-1)] hover:bg-[var(--surface-2)] text-[var(--accent)] border border-[var(--border-subtle)]'
             }`}
           >
             {justSaved ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-            {justSaved ? 'Saved!' : 'Save as Default'}
+            {justSaved ? t('generate.saved', 'Saved!') : t('generate.saveDefault', 'Save as Default')}
           </button>
         </div>
       )}
@@ -79,7 +81,7 @@ export default function GenerationSettings({
       {/* Aspect Ratio */}
       <div>
         <label className="text-[11px] font-medium block mb-2" style={{ color: 'var(--text-tertiary)' }}>
-          Aspect Ratio / Canvas Size
+          {t('generate.aspectRatio', 'Aspect Ratio / Canvas Size')}
         </label>
         <select
           value={aspectRatio.label}
@@ -87,33 +89,43 @@ export default function GenerationSettings({
             const selected = ASPECT_RATIOS.find(ar => ar.label === e.target.value);
             if (selected) setAspectRatio(selected);
           }}
-          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
+          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
         >
-          {ASPECT_RATIOS.map(ar => (
-            <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-white">
-              {ar.label}
-            </option>
-          ))}
+          {ASPECT_RATIOS.map(ar => {
+            const translatedLabel = ar.label.replace('Square', t('generate.square', 'Square'))
+                                           .replace('Portrait', t('generate.portrait', 'Portrait'))
+                                           .replace('Landscape', t('generate.landscape', 'Landscape'))
+                                           .replace('Panorama', t('generate.panorama', 'Panorama'))
+                                           .replace('Vertical', t('generate.vertical', 'Vertical'))
+                                           .replace('Cinematic', t('generate.cinematic', 'Cinematic'))
+                                           .replace('Extended', t('generate.extended', 'Extended'))
+                                           .replace('Wide', t('generate.wide', 'Wide'));
+            return (
+              <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
+                {translatedLabel}
+              </option>
+            );
+          })}
         </select>
       </div>
 
       {/* Sampling Method */}
       <div>
         <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
-          Sampling Method
-          <Tooltip text="The algorithm used to denoise the image. Different samplers yield different artistic styles and details.">
+          {t('generate.samplingMethod', 'Sampling Method')}
+          <Tooltip text={t('generate.samplingTooltip', 'The algorithm used to denoise the image. Different samplers yield different artistic styles and details.')}>
             <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
           </Tooltip>
         </label>
         <select
           value={sampler}
           onChange={e => setSampler(e.target.value)}
-          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
+          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
         >
           {SAMPLERS.map(s => (
-            <option key={s.id} value={s.id} className="bg-[var(--surface-1)] text-white">
+            <option key={s.id} value={s.id} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
               {s.label}
             </option>
           ))}
@@ -124,13 +136,13 @@ export default function GenerationSettings({
         {/* Steps */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              Inference Steps
-              <Tooltip text="How many refinement steps the AI takes. Higher means more detail but takes longer.">
-                <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+            <label className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              {t('generate.inferenceSteps', 'Inference Steps')}
+              <Tooltip text={t('generate.stepsTooltip', 'How many refinement steps the AI takes. Higher means more detail but takes longer.')}>
+                <HelpCircle className="w-3.5 h-3.5 text-[var(--text-secondary)] cursor-help" />
               </Tooltip>
             </label>
-            <span className="text-xs font-mono bg-white/5 px-2 py-0.5 rounded text-purple-300">{steps}</span>
+            <span className="text-xs font-mono bg-[var(--surface-3)] px-2 py-0.5 rounded text-[var(--text-primary)]">{steps}</span>
           </div>
           <input
             type="range"
@@ -146,13 +158,13 @@ export default function GenerationSettings({
         {/* CFG */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              CFG Scale
-              <Tooltip text="How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.">
-                <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+            <label className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+              {t('generate.cfgScale', 'CFG Scale')}
+              <Tooltip text={t('generate.cfgTooltip', 'How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.')}>
+                <HelpCircle className="w-3.5 h-3.5 text-[var(--text-secondary)] cursor-help" />
               </Tooltip>
             </label>
-            <span className="text-xs font-mono bg-white/5 px-2 py-0.5 rounded text-purple-300">{cfg}</span>
+            <span className="text-xs font-mono bg-[var(--surface-3)] px-2 py-0.5 rounded text-[var(--text-primary)]">{cfg}</span>
           </div>
           <input
             type="range"
@@ -168,8 +180,8 @@ export default function GenerationSettings({
         {/* Seed */}
         <div>
           <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
-            Seed
-            <Tooltip text="A random number that generates the initial noise. Use the same seed to reproduce the exact same image.">
+            {t('generate.seed', 'Seed')}
+            <Tooltip text={t('generate.seedTooltip', 'A random number that generates the initial noise. Use the same seed to reproduce the exact same image.')}>
               <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
             </Tooltip>
           </label>
@@ -177,8 +189,8 @@ export default function GenerationSettings({
             type="text"
             value={seed}
             onChange={e => setSeed(e.target.value)}
-            placeholder="-1 for random"
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+            placeholder={t('generate.seedPlaceholder', '-1 for random')}
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
           />
         </div>
       </div>

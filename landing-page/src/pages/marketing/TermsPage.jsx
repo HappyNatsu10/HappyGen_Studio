@@ -82,7 +82,7 @@ export default function TermsPage() {
       content: (
         <>
           <p>
-            HappyGen Studio respects the intellectual property rights of others. If you believe that your copyrighted work has been copied or used in a way that constitutes copyright infringement, please submit a takedown request to <code>dmca@happygenstudio.ai</code> containing:
+            HappyGen Studio respects the intellectual property rights of others. If you believe that your copyrighted work has been copied or used in a way that constitutes copyright infringement, please submit a takedown request to <code>support@happygenstudio.online</code> containing:
           </p>
           <ul className="list-disc pl-5 space-y-2 mt-4 text-slate-300">
             <li>A description of the copyrighted work.</li>

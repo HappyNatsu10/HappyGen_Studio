@@ -1,5 +1,6 @@
 import React from 'react';
 import { Wand2, Lightbulb } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ImageToPromptModal from './ImageToPromptModal';
 
 const QUICK_TAGS = [
@@ -15,6 +16,7 @@ export default function PromptEditor({
   setNegativePrompt,
   onEnhance,
 }) {
+  const { t } = useTranslation();
   const [isPromptModalOpen, setIsPromptModalOpen] = React.useState(false);
 
   const handleAppendTag = (tag) => {
@@ -46,36 +48,37 @@ export default function PromptEditor({
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-3">
             <label className="text-[12px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-              Prompt
+              {t('viewer.prompt', 'Prompt')}
             </label>
             <button
               onClick={() => setIsPromptModalOpen(true)}
               className="text-[10px] font-medium px-2 py-1 rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:text-purple-300 transition-colors flex items-center gap-1"
             >
               <Lightbulb className="w-3 h-3" />
-              Image To Prompt
+              {t('viewer.imageToPrompt', 'Image To Prompt')}
             </button>
           </div>
           <span className="text-[10px] font-mono" style={{ color: 'var(--text-tertiary)' }}>
-            {prompt.length} chars
+            {prompt.length} {t('promptEditor.chars', 'chars')}
           </span>
         </div>
         <div className="relative">
           <textarea
+            spellCheck={false}
             value={prompt}
             onInput={e => setPrompt(e.target.value)}
             onChange={e => setPrompt(e.target.value)}
             onBlur={e => setPrompt(e.target.value)}
-            placeholder="Describe what you want to create..."
+            placeholder={t('promptEditor.placeholder', "Describe what you want to create...")}
             rows={4}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all resize-none shadow-inner"
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all resize-none shadow-inner"
             style={{ paddingRight: '44px' }}
           />
           <button
             onClick={handleEnhance}
             disabled={!prompt.trim()}
             className="absolute right-3 bottom-3 p-2 rounded-xl cursor-pointer transition-all disabled:opacity-30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:scale-105"
-            title="Enhance prompt"
+            title={t('promptEditor.enhance', 'Enhance prompt')}
           >
             <Wand2 className="w-4 h-4" />
           </button>
@@ -93,14 +96,14 @@ export default function PromptEditor({
       <div>
         <label className="flex items-center gap-1 text-[11px] font-medium mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
           <Lightbulb className="w-3 h-3" />
-          Quick Tags
+          {t('promptEditor.quickTags', 'Quick Tags')}
         </label>
         <div className="flex flex-wrap gap-1.5">
           {QUICK_TAGS.map(tag => (
             <button
               key={tag}
               onClick={() => handleAppendTag(tag)}
-              className="px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 hover:text-purple-300 border border-[var(--border-subtle)] rounded-full text-[11px] text-slate-300 transition-all duration-300 hover:scale-105 cursor-pointer"
+              className="px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--surface-4)] hover:text-[var(--accent)] border border-[var(--border-subtle)] rounded-full text-[11px] text-[var(--text-secondary)] transition-all duration-300 hover:scale-105 cursor-pointer"
             >
               {tag}
             </button>
@@ -111,14 +114,15 @@ export default function PromptEditor({
       {/* Negative Prompt */}
       <div>
           <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-            Negative Prompt
+            {t('viewer.negativePrompt', 'Negative Prompt')}
           </label>
           <textarea
+            spellCheck={false}
             value={negativePrompt}
             onChange={e => setNegativePrompt(e.target.value)}
-            placeholder="Things to avoid in the generation..."
+            placeholder={t('promptEditor.negativePlaceholder', "Things to avoid in the generation...")}
             rows={2}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-slate-300 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all resize-none shadow-inner"
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all resize-none shadow-inner"
           />
         </div>
     </div>

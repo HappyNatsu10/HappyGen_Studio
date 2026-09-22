@@ -107,9 +107,9 @@ const HOW_IT_WORKS = [
 
 const STATS = [
   { value: '50,000+', label: 'AI Models Available', icon: Box },
-  { value: '15+', label: 'AI Engines Supported', icon: Cpu },
+  { value: '30+', label: 'AI Engines Supported', icon: Cpu },
   { value: '100%', label: 'Free & Open Source', icon: Star },
-  { value: '3', label: 'Platforms Supported', icon: Globe },
+  { value: '4+', label: 'Platforms Supported', icon: Globe },
 ];
 
 export default function LandingPage() {
@@ -132,9 +132,9 @@ export default function LandingPage() {
             initial="hidden"
             animate="visible"
           >
-            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-medium text-sm mb-8 shadow-lg shadow-purple-500/10">
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 text-purple-300 font-medium text-sm mb-8 shadow-lg shadow-purple-500/10 animate-pulse-slow">
               <Sparkles className="w-4 h-4" />
-              <span>Now with Native ADetailer Face Fix</span>
+              <span>Now with Multi-Language & Theme Support</span>
             </motion.div>
             
             <motion.h1 variants={fadeInUp} className="text-5xl sm:text-6xl md:text-8xl font-extrabold tracking-tight mb-8 leading-[1.1] text-white">
@@ -145,7 +145,7 @@ export default function LandingPage() {
             </motion.h1>
             
             <motion.div variants={fadeInUp} className="text-lg md:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed min-h-[80px]">
-              <TextGenerateEffect words="Professional-grade image and video generation. Browse 50,000+ models from CivitAI, stack LoRAs, fix faces with AI, and edit on infinite canvas." />
+              <TextGenerateEffect words="Professional-grade image and video generation. Browse 50,000+ models from CivitAI, stack LoRAs, fix faces with AI, and generate videos with 30+ engines." />
             </motion.div>
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
@@ -187,7 +187,7 @@ export default function LandingPage() {
                 >
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-4 md:h-5 bg-slate-800 rounded-b-xl md:rounded-b-2xl z-10"></div>
                   <div className="rounded-[1.5rem] md:rounded-[2rem] overflow-hidden relative bg-black" style={{ aspectRatio: '570/1080' }}>
-                    <img src="/hero-mobile.png" alt="HappyGen Studio Mobile" className="w-full h-full object-fit object-center" />
+                    <img src="/hero-mobile.png" alt="HappyGen Studio Mobile" className="w-full h-full object-cover object-center" />
                   </div>
                 </motion.div>
               </div>
@@ -365,6 +365,8 @@ export default function LandingPage() {
             <motion.p variants={fadeInUp} className="text-lg text-slate-400 max-w-2xl mx-auto">Download for your platform and start creating in minutes. All versions are completely free.</motion.p>
           </motion.div>
 
+
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Windows */}
             <motion.div 
@@ -444,17 +446,7 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Web app note */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="mt-8 text-center"
-          >
-            <p className="text-sm text-slate-500">
-              Don't want to download? <Link to="/studio" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">Use the web version →</Link>
-            </p>
-          </motion.div>
+
         </div>
       </div>
 

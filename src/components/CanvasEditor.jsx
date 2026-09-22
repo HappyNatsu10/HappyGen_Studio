@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Edit3, Eraser, Brush, Download, Upload, Zap, Layers, RefreshCw, Scissors, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 
 export default function CanvasEditor() {
+  const { t } = useTranslation();
   const { isAdultMode } = useAppStore();
   const { canvasTargetImage: initialImageUrl } = useWorkspaceStore();
   const [imageUrl, setImageUrl] = useState(initialImageUrl || null);
@@ -87,7 +89,7 @@ export default function CanvasEditor() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      alert("Background removed! Subject isolated successfully.");
+      alert(t('canvasEditor.bgRemoved', "Background removed! Subject isolated successfully."));
     }, 1500);
   };
 
@@ -97,11 +99,11 @@ export default function CanvasEditor() {
       {/* Title */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold font-display text-white flex items-center space-x-2">
+          <h1 className="text-2xl font-extrabold font-display text-[var(--text-primary)] flex items-center space-x-2">
             <Edit3 className="w-6 h-6 text-indigo-400" />
-            <span>Interactive Inpainting & Generative Studio</span>
+            <span>{t('canvasEditor.title', 'Interactive Inpainting & Generative Studio')}</span>
           </h1>
-          <p className="text-xs text-slate-400">Draw masks over regions of your image to edit, replace elements, or erase background.</p>
+          <p className="text-xs text-slate-400">{t('canvasEditor.subtitle', 'Draw masks over regions of your image to edit, replace elements, or erase background.')}</p>
         </div>
       </div>
 
@@ -111,25 +113,25 @@ export default function CanvasEditor() {
         {/* Left Toolbar */}
         <div className="glass-panel p-5 rounded-2xl space-y-5 lg:col-span-1">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-300">Tool Selection</label>
+            <label className="text-xs font-bold text-slate-300">{t('canvasEditor.toolSelection', 'Tool Selection')}</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setTool('brush')}
                 className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
-                  tool === 'brush' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  tool === 'brush' ? 'bg-indigo-600 text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 <Brush className="w-4 h-4" />
-                <span>Mask Brush</span>
+                <span>{t('canvasEditor.maskBrush', 'Mask Brush')}</span>
               </button>
               <button
                 onClick={() => setTool('eraser')}
                 className={`py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
-                  tool === 'eraser' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white'
+                  tool === 'eraser' ? 'bg-indigo-600 text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 <Eraser className="w-4 h-4" />
-                <span>Mask Eraser</span>
+                <span>{t('canvasEditor.maskEraser', 'Mask Eraser')}</span>
               </button>
             </div>
           </div>
@@ -137,7 +139,7 @@ export default function CanvasEditor() {
           {/* Brush Size Slider */}
           <div className="space-y-1">
             <div className="flex justify-between text-xs font-bold text-slate-300">
-              <span>Brush Diameter</span>
+              <span>{t('canvasEditor.brushDiameter', 'Brush Diameter')}</span>
               <span className="text-indigo-400">{brushSize}px</span>
             </div>
             <input
@@ -154,19 +156,19 @@ export default function CanvasEditor() {
             onClick={handleClearMask}
             className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-bold transition-all"
           >
-            Clear Mask Layer
+            {t('canvasEditor.clearMaskLayer', 'Clear Mask Layer')}
           </button>
 
           {/* AI Workflow Tools */}
           <div className="space-y-2 pt-4 border-t border-white/10">
-            <label className="text-xs font-bold text-slate-300 block">Smart AI Actions</label>
+            <label className="text-xs font-bold text-slate-300 block">{t('canvasEditor.smartAiActions', 'Smart AI Actions')}</label>
             <button
               onClick={handleRemoveBackground}
               disabled={isProcessing || !imageUrl}
               className="w-full py-2.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/30 text-purple-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all"
             >
               <Scissors className="w-4 h-4 text-purple-400" />
-              <span>Remove Background</span>
+              <span>{t('canvasEditor.removeBackground', 'Remove Background')}</span>
             </button>
           </div>
         </div>
@@ -191,8 +193,8 @@ export default function CanvasEditor() {
             ) : (
               <label className="cursor-pointer text-center space-y-2">
                 <Upload className="w-10 h-10 text-indigo-400 mx-auto animate-bounce" />
-                <div className="text-sm font-bold text-slate-200">Upload Image to Inpaint / Edit</div>
-                <p className="text-xs text-slate-500">Or send an image directly from the Image Studio tab</p>
+                <div className="text-sm font-bold text-slate-200">{t('canvasEditor.uploadImage', 'Upload Image to Inpaint / Edit')}</div>
+                <p className="text-xs text-slate-500">{t('canvasEditor.uploadHint', 'Or send an image directly from the Image Studio tab')}</p>
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -212,8 +214,8 @@ export default function CanvasEditor() {
               type="text"
               value={inpaintPrompt}
               onChange={(e) => setInpaintPrompt(e.target.value)}
-              placeholder="Describe what to generate inside masked area (e.g. 'replace jacket with futuristic cyber armor')..."
-              className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-indigo-500 outline-none"
+              placeholder={t('canvasEditor.promptPlaceholder', "Describe what to generate inside masked area (e.g. 'replace jacket with futuristic cyber armor')...")}
+              className="flex-1 bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] focus:border-indigo-500 outline-none"
             />
             <button
               onClick={handleInpaintGenerate}
@@ -221,7 +223,7 @@ export default function CanvasEditor() {
               className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-all flex items-center justify-center space-x-1.5"
             >
               {isProcessing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span>Generative Fill</span>
+              <span>{t('canvasEditor.generativeFill', 'Generative Fill')}</span>
             </button>
           </div>
 

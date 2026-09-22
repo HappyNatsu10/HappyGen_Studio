@@ -56,13 +56,13 @@ export default function ModelSelectionModal() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div>
-            <h2 className="text-[16px] font-semibold flex items-center gap-2 text-white">
+            <h2 className="text-[16px] font-semibold flex items-center gap-2 text-[var(--text-primary)]">
               <Cpu className="w-4 h-4 text-purple-400" />
               {intent === 'lora' ? 'Browse & Add LoRA' : (intent === 'embedding' ? 'Browse & Add Embedding' : 'Select Base Model')}
             </h2>
             {forcedBaseModel !== 'All' && intent === 'lora' && (
               <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
-                Showing only <strong className="text-purple-300 font-medium">{forcedBaseModel}</strong> compatible LoRAs to match your Base Model.
+                Showing only <strong className="text-[var(--accent)] font-medium">{forcedBaseModel}</strong> compatible LoRAs to match your Base Model.
               </p>
             )}
             {intent === 'base' && (

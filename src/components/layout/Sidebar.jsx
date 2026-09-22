@@ -1,38 +1,41 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import useAppStore from '../../store/useAppStore';
 import { useAuth } from '../../context/AuthContext';
 import { Image, Layers, FolderOpen, Settings, ChevronLeft, ChevronRight, Zap, Video, Brush } from 'lucide-react';
 
-const NAV_GROUPS = [
-  { 
-    label: 'CREATE', 
-    items: [
-      { id: 'generate', label: 'Image', icon: Image },
-      { id: 'video', label: 'Video', icon: Video },
-      { id: 'inpaint', label: 'Inpaint', icon: Brush }
-    ] 
-  },
-  { 
-    label: 'DISCOVER', 
-    items: [
-      { id: 'models', label: 'Models & LoRAs', icon: Layers }
-    ] 
-  },
-  { 
-    label: 'LIBRARY', 
-    items: [
-      { id: 'gallery', label: 'Gallery', icon: FolderOpen }
-    ] 
-  },
-  { 
-    label: 'SYSTEM', 
-    items: [
-      { id: 'settings', label: 'Settings', icon: Settings }
-    ] 
-  }
-];
-
 export default function Sidebar() {
+  const { t } = useTranslation();
+  
+  const NAV_GROUPS = [
+    { 
+      label: t('sidebar.create', 'CREATE'), 
+      items: [
+        { id: 'generate', label: t('sidebar.generate', 'Image'), icon: Image },
+        { id: 'video', label: t('sidebar.video', 'Video'), icon: Video },
+        { id: 'inpaint', label: t('sidebar.inpaint', 'Inpaint'), icon: Brush }
+      ] 
+    },
+    { 
+      label: t('sidebar.discover', 'DISCOVER'), 
+      items: [
+        { id: 'models', label: t('sidebar.modelExplorer', 'Models & LoRAs'), icon: Layers }
+      ] 
+    },
+    { 
+      label: t('sidebar.library', 'LIBRARY'), 
+      items: [
+        { id: 'gallery', label: t('sidebar.gallery', 'Gallery'), icon: FolderOpen }
+      ] 
+    },
+    { 
+      label: t('sidebar.system', 'SYSTEM'), 
+      items: [
+        { id: 'settings', label: t('sidebar.settings', 'Settings'), icon: Settings }
+      ] 
+    }
+  ];
+
   const {
     activeTab,
     setActiveTab,
@@ -129,7 +132,11 @@ export default function Sidebar() {
                     {currentUser.name}
                   </div>
                   <div className="text-[11px] text-[var(--text-tertiary)] truncate mt-0.5">
-                    {currentUser.tier || 'Free User'}
+                    {currentUser.tier === 'Pro Studio Creator' 
+                      ? t('sidebar.proUser', 'Pro Studio Creator') 
+                      : (currentUser.tier === 'Free User' 
+                          ? t('sidebar.freeUser', 'Free User') 
+                          : (currentUser.tier || t('sidebar.freeUser', 'Free User')))}
                   </div>
                 </div>
             }
@@ -139,7 +146,7 @@ export default function Sidebar() {
             onClick={() => onOpenAuth('login')}
             className={`w-full btn btn-secondary text-xs ${collapsed ? 'px-2' : ''}`}
           >
-            {collapsed ? '→' : 'Sign In'}
+            {collapsed ? '→' : t('topBar.signIn', 'Sign In')}
           </button>
         )}
 

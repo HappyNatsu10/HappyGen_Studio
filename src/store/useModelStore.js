@@ -28,6 +28,12 @@ const useModelStore = create(persist((set, get) => ({
     localStorage.setItem(STORAGE_KEY_MODEL_PROFILES, JSON.stringify(newProfiles));
     return { modelProfiles: newProfiles };
   }),
+  syncModelProfiles: (profiles) => set((state) => {
+    if (!profiles) return state;
+    const merged = { ...state.modelProfiles, ...profiles };
+    localStorage.setItem(STORAGE_KEY_MODEL_PROFILES, JSON.stringify(merged));
+    return { modelProfiles: merged };
+  }),
 
   // Base model
   baseModel: (() => {
