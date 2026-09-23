@@ -7,20 +7,7 @@ const resolveBackendUrl = (baseModel = null) => {
   if (typeof window === 'undefined') return 'http://localhost:8000';
   
   const backendType = localStorage.getItem('omnigen_backend_type') || 'local';
-  if (backendType === 'colab' && baseModel) {
-    const isAnimaModel = () => {
-      const name = (typeof baseModel === 'object' ? (baseModel.name || baseModel.fileName || '') : baseModel).toLowerCase();
-      const fileName = typeof baseModel === 'object' ? (baseModel.version?.fileName || '') : '';
-      return name.includes('anima') || fileName.includes('anima');
-    };
-    
-    if (isAnimaModel()) {
-      const animaUrl = localStorage.getItem('omnigen_anima_url');
-      if (animaUrl && animaUrl.trim()) {
-        return animaUrl.trim().replace(/\/+$/, '');
-      }
-    }
-  }
+
   
   const rawUrl = localStorage.getItem('omnigen_backend_url') || 'http://localhost:8000';
   return rawUrl.trim().replace(/\/+$/, '');
@@ -160,7 +147,7 @@ export const generateImageAI = async ({
             name: baseModel.name,
             fileName: baseModel.version?.fileName || baseModel.fileName,
             downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
-            architecture: baseModel.version?.baseModel || "SDXL 1.0"
+            architecture: baseModel.version?.baseModel || baseModel.baseModel || "SDXL 1.0"
           } : (baseModel || engine),
           loras: loras.map(l => ({
             name: l.id || l.name,
@@ -361,7 +348,7 @@ export const generateImg2Img = async ({
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,
           downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
-          architecture: baseModel.version?.baseModel || "SDXL 1.0"
+          architecture: baseModel.version?.baseModel || baseModel.baseModel || "SDXL 1.0"
         } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
@@ -425,7 +412,7 @@ export const faceFixImage = async ({ sourceImage, prompt, engine = "GFPGAN", bas
             name: baseModel.name,
             fileName: baseModel.version?.fileName || baseModel.fileName,
             downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
-            architecture: baseModel.version?.baseModel || "SDXL 1.0"
+            architecture: baseModel.version?.baseModel || baseModel.baseModel || "SDXL 1.0"
         } : (baseModel || engine),
         civitai_api_key: civitaiApiKey || "",
       }),
@@ -501,7 +488,7 @@ export const inpaintImage = async ({
           name: baseModel.name,
           fileName: baseModel.version?.fileName || baseModel.fileName,
           downloadUrl: baseModel.version?.downloadUrl || baseModel.downloadUrl,
-          architecture: baseModel.version?.baseModel || "SDXL 1.0"
+          architecture: baseModel.version?.baseModel || baseModel.baseModel || "SDXL 1.0"
         } : baseModel,
         loras: loras.map(l => ({
           name: l.id || l.name,
