@@ -77,10 +77,9 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
     ctx.lineJoin = 'round';
 
     if (tool === 'brush') {
-      // Semi-transparent white or solid white based on requirement
-      // Usually masks are black/white. We'll draw solid white on a transparent canvas,
-      // and when exporting, we can fill a black background if needed, or just send the alpha channel.
-      ctx.strokeStyle = 'rgba(255, 255, 255, 1)'; 
+      // Use theme accent color for visual feedback
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6366f1';
+      ctx.strokeStyle = accent;
       ctx.globalCompositeOperation = 'source-over';
     } else {
       ctx.globalCompositeOperation = 'destination-out';
@@ -120,8 +119,21 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
     tCtx.fillStyle = 'black';
     tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
     
-    // Draw the mask on top
-    tCtx.drawImage(canvasRef.current, 0, 0);
+    // Create another temp canvas to isolate the drawn mask and convert to pure white
+    const maskOnlyCanvas = document.createElement('canvas');
+    maskOnlyCanvas.width = canvasRef.current.width;
+    maskOnlyCanvas.height = canvasRef.current.height;
+    const mCtx = maskOnlyCanvas.getContext('2d');
+    
+    // Draw the user's mask (which is in accent color)
+    mCtx.drawImage(canvasRef.current, 0, 0);
+    // Change all non-transparent pixels to white
+    mCtx.globalCompositeOperation = 'source-in';
+    mCtx.fillStyle = 'white';
+    mCtx.fillRect(0, 0, maskOnlyCanvas.width, maskOnlyCanvas.height);
+    
+    // Draw the pure white mask on top of the black background
+    tCtx.drawImage(maskOnlyCanvas, 0, 0);
     
     const maskDataUrl = tempCanvas.toDataURL('image/png');
     onMaskChange(maskDataUrl);
@@ -205,8 +217,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
               onTouchCancel={stopDrawing}
               className="absolute top-0 left-0 w-full h-full cursor-crosshair touch-none"
               style={{
-                opacity: 0.6,
-                mixBlendMode: 'screen'
+                opacity: 0.8,
               }}
             />
 

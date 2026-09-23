@@ -71,7 +71,7 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
         prompt: currentImage.prompt, 
         engine: faceFixEngine,
         baseModel: useModelStore.getState().baseModel,
-        civitaiApiKey: useAppStore.getState().civitaiApiKey
+        civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || ''
       });
       if (fixedImages && fixedImages.length > 0) {
         const newImage = {
@@ -246,7 +246,7 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[10000] bg-[var(--surface-1)] border border-[var(--border-subtle)] text-white px-4 py-2 rounded-lg shadow-xl animate-fade-in flex items-center gap-2 text-sm font-medium transition-all">
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[10000] bg-[var(--surface-1)] border border-[var(--border-subtle)] text-[var(--text-primary)] px-4 py-2 rounded-lg shadow-xl animate-fade-in flex items-center gap-2 text-sm font-medium transition-all">
           <Check className="w-4 h-4 text-[var(--success)]" />
           {toastMessage}
         </div>
@@ -302,62 +302,61 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
         
         {/* Generation Details Panel */}
         {showDetails && (
-          <div className="absolute right-4 top-4 bottom-4 w-72 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 overflow-y-auto z-40 text-left shadow-2xl animate-fade-in custom-scrollbar">
-            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Info className="w-4 h-4 text-purple-400" /> {t('viewer.generationDetails', 'Generation Details')}
+          <div className="absolute right-4 top-4 bottom-4 w-72 bg-[var(--surface-1)]/90 backdrop-blur-xl border border-[var(--border-subtle)] rounded-2xl p-5 overflow-y-auto z-40 text-left shadow-2xl animate-fade-in custom-scrollbar">
+            <h3 className="text-[var(--text-primary)] font-semibold mb-4 flex items-center gap-2">
+              <Info className="w-4 h-4 text-[#a855f7]" /> {t('viewer.generationDetails', 'Generation Details')}
             </h3>
             
             <div className="space-y-4">
               <div>
-                <div className="text-xs text-slate-400 mb-1">{t('viewer.baseModel', 'Base Model')}</div>
-                <div className="text-sm text-slate-200 font-medium break-words bg-white/5 p-2 rounded-lg border border-white/5">
+                <div className="text-xs text-[var(--text-tertiary)] mb-1">{t('viewer.baseModel', 'Base Model')}</div>
+                <div className="text-sm text-[var(--text-secondary)] font-medium break-words bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
                   {currentImage.model || currentImage.modelUsed || t('viewer.unknown', 'Unknown')}
                 </div>
               </div>
               
               {(currentImage.lora || currentImage.loras) && (
                 <div>
-                  <div className="text-xs text-slate-400 mb-1">{t('viewer.lora', 'LoRA')}</div>
-                  <div className="text-sm text-slate-200 font-medium break-words bg-white/5 p-2 rounded-lg border border-white/5">
+                  <div className="text-sm text-[var(--text-secondary)] font-medium break-words bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
                     {currentImage.lora || (currentImage.loras && currentImage.loras.join(', '))}
                   </div>
                 </div>
               )}
 
               <div>
-                <div className="text-xs text-slate-400 mb-1">{t('viewer.prompt', 'Prompt')}</div>
-                <div className="text-sm text-slate-200 break-words bg-white/5 p-2 rounded-lg border border-white/5 max-h-32 overflow-y-auto custom-scrollbar">
+                <div className="text-xs text-[var(--text-tertiary)] mb-1">{t('viewer.prompt', 'Prompt')}</div>
+                <div className="text-sm text-[var(--text-secondary)] break-words bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)] max-h-32 overflow-y-auto custom-scrollbar">
                   {currentImage.prompt || t('viewer.none', 'None')}
                 </div>
               </div>
 
               {currentImage.negativePrompt && (
                 <div>
-                  <div className="text-xs text-slate-400 mb-1">{t('viewer.negativePrompt', 'Negative Prompt')}</div>
-                  <div className="text-sm text-red-200/80 break-words bg-red-500/5 p-2 rounded-lg border border-red-500/10 max-h-32 overflow-y-auto custom-scrollbar">
+                  <div className="text-xs text-[var(--text-tertiary)] mb-1">{t('viewer.negativePrompt', 'Negative Prompt')}</div>
+                  <div className="text-sm text-red-500/80 break-words bg-red-500/5 p-2 rounded-lg border border-red-500/10 max-h-32 overflow-y-auto custom-scrollbar">
                     {currentImage.negativePrompt}
                   </div>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">{t('viewer.steps', 'Steps')}</div>
-                  <div className="text-sm text-slate-200 font-mono">{currentImage.steps || 20}</div>
+                <div className="bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
+                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">{t('viewer.steps', 'Steps')}</div>
+                  <div className="text-sm text-[var(--text-secondary)] font-mono">{currentImage.steps || 20}</div>
                 </div>
-                <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">{t('viewer.cfgScale', 'CFG Scale')}</div>
-                  <div className="text-sm text-slate-200 font-mono">{currentImage.cfg || 7.0}</div>
+                <div className="bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
+                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">{t('viewer.cfgScale', 'CFG Scale')}</div>
+                  <div className="text-sm text-[var(--text-secondary)] font-mono">{currentImage.cfg || 7.0}</div>
                 </div>
-                <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">{t('viewer.sampler', 'Sampler')}</div>
-                  <div className="text-sm text-slate-200 truncate" title={currentImage.sampler || 'DPM++ 2M Karras'}>
+                <div className="bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
+                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">{t('viewer.sampler', 'Sampler')}</div>
+                  <div className="text-sm text-[var(--text-secondary)] truncate" title={currentImage.sampler || 'DPM++ 2M Karras'}>
                     {currentImage.sampler || 'DPM++ 2M Karras'}
                   </div>
                 </div>
-                <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">{t('viewer.dimensions', 'Dimensions')}</div>
-                  <div className="text-sm text-slate-200 font-mono">
+                <div className="bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)]">
+                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">{t('viewer.dimensions', 'Dimensions')}</div>
+                  <div className="text-sm text-[var(--text-secondary)] font-mono">
                     {currentImage.width && currentImage.height ? `${currentImage.width}x${currentImage.height}` : '512x768'}
                   </div>
                 </div>
@@ -387,21 +386,21 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
             </p>
             <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
               {currentImage.width && currentImage.height && (
-                <span className="text-xs text-slate-400 font-mono">
+                <span className="text-xs text-[var(--text-tertiary)] font-mono">
                   {currentImage.width}x{currentImage.height}
                 </span>
               )}
               {currentImage.seed && (
                 <button
                   onClick={handleCopySeed}
-                  className="flex items-center gap-1 text-xs font-mono text-slate-400 hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   Seed: {currentImage.seed}
-                  {copiedSeed ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedSeed ? <Check className="w-3 h-3 text-[var(--success)]" /> : <Copy className="w-3 h-3" />}
                 </button>
               )}
               {currentImage.modelUsed && (
-                <span className="text-xs text-slate-400 truncate max-w-[150px]">
+                <span className="text-xs text-[var(--text-tertiary)] truncate max-w-[150px]">
                   {currentImage.modelUsed}
                 </span>
               )}
@@ -439,7 +438,7 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
               {showFaceFixOptions && !currentImage.isFaceFixed && (
                 <div className="absolute bottom-full mb-2 right-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl shadow-xl overflow-hidden z-50 w-40">
                   <div className="p-2 border-b border-[var(--border-subtle)] bg-[var(--surface-3)]">
-                    <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">{t('viewer.engine', 'Engine')}</span>
+                    <span className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">{t('viewer.engine', 'Engine')}</span>
                   </div>
                   <button
                     onClick={() => { setFaceFixEngine("GFPGAN"); setShowFaceFixOptions(false); }}

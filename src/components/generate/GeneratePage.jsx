@@ -210,12 +210,12 @@ export default function GeneratePage() {
       } else if (generationMode === 'upscale') {
         images = await upscaleImage({ sourceImage, scale: 2 });
       } else if (generationMode === 'facefix') {
-        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine, baseModel, civitaiApiKey: useAppStore.getState().civitaiApiKey });
+        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine, baseModel, civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || '' });
       }
 
       setResults(images);
       addGeneratedAssets(images);
-      incrementGeneratedCount();
+      incrementGeneratedCount(images.length);
       
       const warnedImage = images.find(img => img.hasWarning);
       if (warnedImage) {
@@ -244,6 +244,7 @@ export default function GeneratePage() {
       const images = await upscaleImage({ sourceImage: imageUrl, scale: upscaleScale, upscalerName: upscaleModel });
       setResults(images);
       addGeneratedAssets(images);
+      incrementGeneratedCount(images.length);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -349,7 +350,11 @@ export default function GeneratePage() {
               loras={loras}
               embeddings={embeddings}
               onOpenExplorerBase={() => openModelModal({ intent: 'base' })}
-              onOpenExplorerLora={() => openModelModal({ intent: 'lora', arch: baseModel?.version?.baseModel })}
+              onOpenExplorerLora={() => {
+                const name = (baseModel?.name || baseModel?.version?.fileName || '').toLowerCase();
+                const isAnima = name.includes('anima');
+                openModelModal({ intent: 'lora', arch: isAnima ? 'Anima' : baseModel?.version?.baseModel });
+              }}
               onOpenExplorerEmbedding={() => openModelModal({ intent: 'embedding' })}
               onRemoveLora={removeLora}
               onUpdateLoraWeight={updateLoraWeight}
