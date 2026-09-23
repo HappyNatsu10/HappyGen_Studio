@@ -82,7 +82,7 @@ export default function InpaintStudio() {
   return (
     <div className="flex-1 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5">
       {/* Left Panel: Controls & Canvas */}
-      <div className="flex flex-col gap-4 w-full md:flex-[3] md:min-w-0 md:overflow-y-auto md:pr-2">
+      <div className="flex flex-col gap-4 w-full md:flex-[3] md:min-w-0 md:overflow-y-auto md:pr-2 p-1">
         
         {/* Header */}
         <div className="card p-4">
@@ -127,7 +127,7 @@ export default function InpaintStudio() {
       </div>
 
       {/* Right Panel: Prompt & Output */}
-      <div className="flex flex-col gap-4 w-full md:flex-[2] md:min-w-0 md:overflow-y-auto">
+      <div className="flex flex-col gap-4 w-full md:flex-[2] md:min-w-0 md:overflow-y-auto p-1">
         <PromptEditor
           prompt={prompt}
           setPrompt={setPrompt}
