@@ -10,9 +10,10 @@ import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import useGenerateStore from '../store/useGenerateStore';
 import useModelStore from '../store/useModelStore';
-
+import { useAuth } from '../context/AuthContext';
 export default function InpaintStudio() {
   const { t } = useTranslation();
+  const { incrementGeneratedCount } = useAuth();
   const { isAdultMode, mode } = useAppStore();
   const { inpaintSourceImage: sourceImage, setInpaintSourceImage: setSourceImage, addGeneratedAssets } = useWorkspaceStore();
   const [maskImage, setMaskImage] = useState(null);
@@ -70,6 +71,7 @@ export default function InpaintStudio() {
       
       setResultImage(images[0]);
       addGeneratedAssets(images);
+      incrementGeneratedCount(images.length);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -80,7 +82,7 @@ export default function InpaintStudio() {
   return (
     <div className="flex-1 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5">
       {/* Left Panel: Controls & Canvas */}
-      <div className="flex flex-col gap-4 w-full md:w-[60%] flex-shrink-0 md:overflow-y-auto md:pr-2">
+      <div className="flex flex-col gap-4 w-full md:w-[60%] md:overflow-y-auto md:pr-2">
         
         {/* Header */}
         <div className="card p-4">
@@ -94,7 +96,7 @@ export default function InpaintStudio() {
         </div>
 
         {/* Upload or Canvas */}
-        <div className="flex-1 min-h-[400px] flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col min-h-[400px]">
           {!sourceImage ? (
             <ImageUploadZone 
               label={t('inpaint.sourceLabel', 'Source Image for Inpainting')} 
@@ -102,8 +104,8 @@ export default function InpaintStudio() {
               onChange={setSourceImage} 
             />
           ) : (
-            <div className="flex-1 bg-[var(--surface-1)] rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col">
-              <div className="p-2 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface-2)]">
+            <div className="flex-1 min-h-0 bg-[var(--surface-1)] rounded-2xl border border-[var(--border-subtle)] overflow-hidden flex flex-col">
+              <div className="p-2 border-b border-[var(--border-subtle)] shrink-0 flex justify-between items-center bg-[var(--surface-2)]">
                 <span className="text-xs font-medium text-[var(--text-secondary)] px-2">{t('inpaint.drawMask', 'Draw your mask')}</span>
                 <button 
                   onClick={() => { setSourceImage(null); setMaskImage(null); setResultImage(null); }}
@@ -112,7 +114,7 @@ export default function InpaintStudio() {
                   {t('common.clearImage', 'Clear Image')}
                 </button>
               </div>
-              <div className="flex-1 relative p-4 flex items-center justify-center">
+              <div className="flex-1 min-h-0 relative p-4 flex items-center justify-center">
                 <InpaintCanvas 
                   sourceImage={sourceImage}
                   onChangeSource={setSourceImage}
@@ -125,7 +127,7 @@ export default function InpaintStudio() {
       </div>
 
       {/* Right Panel: Prompt & Output */}
-      <div className="flex flex-col gap-4 w-full md:w-[40%] flex-shrink-0 md:overflow-y-auto">
+      <div className="flex flex-col gap-4 w-full md:w-[40%] md:overflow-y-auto">
         <PromptEditor
           prompt={prompt}
           setPrompt={setPrompt}
