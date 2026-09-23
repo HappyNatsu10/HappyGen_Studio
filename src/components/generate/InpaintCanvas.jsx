@@ -148,8 +148,8 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   };
 
   return (
-    <div className="space-y-3 mb-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col w-full h-full min-h-0 pb-4">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         <label className="text-[11px] font-medium text-[var(--text-tertiary)]">{t('inpaint.inpaintMask', 'Inpaint Image & Mask')}</label>
         {sourceImage && (
           <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
       </div>
 
       {!sourceImage ? (
-        <div className="border-2 border-dashed border-[var(--border-default)] rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--border-hover)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors"
+        <div className="flex-1 min-h-0 border-2 border-dashed border-[var(--border-default)] rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--border-hover)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors"
              onClick={() => document.getElementById('inpaint-upload').click()}>
           <Upload className="w-6 h-6 mb-2 text-[var(--text-tertiary)]" />
           <span className="text-[12px] font-medium text-[var(--text-secondary)]">{t('inpaint.uploadImage', 'Upload image to inpaint')}</span>
@@ -192,57 +192,63 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           />
         </div>
       ) : (
-        <div className="flex justify-center w-full relative">
-          <div 
-            ref={containerRef}
-            className="relative inline-block rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)]"
-          >
-            {/* The base image */}
-            <img 
-              src={sourceImage} 
-              alt="Source for Inpainting" 
-              className="block w-auto h-auto max-w-full max-h-[70vh] select-none pointer-events-none" 
-            />
-            
-            {/* The drawing canvas overlay */}
-            <canvas
-              ref={canvasRef}
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              onTouchStart={startDrawing}
-              onTouchMove={draw}
-              onTouchEnd={stopDrawing}
-              onTouchCancel={stopDrawing}
-              className="absolute top-0 left-0 w-full h-full cursor-crosshair touch-none"
-              style={{
-                opacity: 0.8,
-              }}
-            />
+        <div className="flex-1 flex flex-col w-full relative min-h-[300px]">
+          
+          {/* Absolute wrapper to provide definite height to image without circular dependency */}
+          <div className="flex-1 relative w-full mb-3">
+            <div className="absolute inset-0 flex justify-center items-center">
+              <div 
+                ref={containerRef}
+                className="relative inline-flex rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
+                style={{ maxWidth: '100%', maxHeight: '100%' }}
+              >
+                {/* The base image */}
+                <img 
+                  src={sourceImage} 
+                  alt="Source for Inpainting" 
+                  className="block w-auto h-auto max-w-full max-h-full object-contain select-none pointer-events-none" 
+                />
+                
+                {/* The drawing canvas overlay */}
+                <canvas
+                  ref={canvasRef}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  onTouchCancel={stopDrawing}
+                  className="absolute top-0 left-0 w-full h-full cursor-crosshair touch-none"
+                  style={{ opacity: 0.8 }}
+                />
 
-            {/* Remove Image Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onChangeSource(null);
-                onMaskChange(null);
-              }}
-              className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-10"
-            >
-              <X className="w-4 h-4" />
-            </button>
+                {/* Remove Image Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChangeSource(null);
+                    onMaskChange(null);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[var(--text-tertiary)] w-14">{t('inpaint.size', 'Size:')} {brushSize}px</span>
+          {/* Brush Slider */}
+          <div className="shrink-0 flex items-center justify-center gap-3 px-4">
+            <span className="text-[11px] font-medium text-[var(--text-tertiary)]">{t('inpaint.size', 'Brush Size:')} {brushSize}px</span>
             <input
               type="range"
               min="5"
               max="100"
               value={brushSize}
               onChange={(e) => setBrushSize(parseInt(e.target.value))}
-              className="flex-1"
+              className="w-48"
             />
           </div>
         </div>
