@@ -88,9 +88,9 @@ function MainApp() {
         {/* Global Banner */}
         <div className="border-b px-4 py-2 flex items-center justify-center text-center relative overflow-hidden" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
           <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 pointer-events-none" />
-          <p className="text-[12px] font-medium flex items-center gap-2 relative z-10" style={{ color: 'var(--text-primary)' }}>
-            <span className="text-xl drop-shadow-sm">🚀</span>
-            <span>{t('app.bannerText', 'More base models and the advanced Video Suite are coming soon! Stay tuned.')}</span>
+          <p className="text-[12px] font-medium relative z-10 text-center leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+            <span className="text-xl drop-shadow-sm align-middle inline-block mr-2">🚀</span>
+            <span className="align-middle inline">{t('app.bannerText', 'More base models and the advanced Video Suite are coming soon! Stay tuned.')}</span>
           </p>
         </div>
 
@@ -122,12 +122,6 @@ function MainApp() {
         {activeTab === 'canvas' && (
           <div className="flex-1 overflow-y-auto p-5 pb-24 md:pb-5">
             <CanvasEditor />
-          </div>
-        )}
-
-        {activeTab === 'inpaint' && (
-          <div className="flex-1 overflow-y-auto p-5 pb-24 md:pb-5">
-            <InpaintStudio />
           </div>
         )}
 

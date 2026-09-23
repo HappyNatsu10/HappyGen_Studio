@@ -56,9 +56,6 @@
     }
   },
   "dependencies": {
-    "i18next": "^24.2.2",
-    "react-i18next": "^15.4.1",
-    "i18next-browser-languagedetector": "^8.0.3",
     "@capacitor-community/media": "^8.0.1",
     "@capacitor/core": "^7.0.1",
     "@capacitor/filesystem": "^7.1.8",
@@ -69,11 +66,15 @@
     "firebase": "^12.18.0",
     "framer-motion": "^12.4.10",
     "gsap": "^3.15.0",
+    "i18next": "^24.2.2",
+    "i18next-browser-languagedetector": "^8.0.3",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-i18next": "^15.4.1",
     "react-router-dom": "^7.18.2",
+    "react-zoom-pan-pinch": "^4.2.0",
     "tailwind-merge": "^3.0.1",
     "zustand": "^5.0.15"
   },

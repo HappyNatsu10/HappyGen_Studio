@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Upload, X, Eraser, Brush, RotateCcw } from 'lucide-react';
+import { Upload, X, Eraser, Brush, RotateCcw, Hand } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useTranslation } from 'react-i18next';
 
 export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChange }) {
@@ -8,7 +9,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const containerRef = useRef(null);
   const isDrawing = useRef(false);
   const [brushSize, setBrushSize] = useState(25);
-  const [tool, setTool] = useState('brush'); // 'brush' or 'eraser'
+  const [tool, setTool] = useState('brush'); // 'brush', 'eraser', 'pan'
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -154,6 +155,14 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
         {sourceImage && (
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setTool('pan')}
+              className={`p-1.5 rounded transition-colors ${tool === 'pan' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}
+              title={t('inpaint.pan', 'Pan / Zoom')}
+            >
+              <Hand className="w-3.5 h-3.5" />
+            </button>
+            <div className="w-[1px] h-4 bg-[var(--border-subtle)] mx-0.5"></div>
+            <button
               onClick={() => setTool('brush')}
               className={`p-1.5 rounded transition-colors ${tool === 'brush' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}
               title={t('inpaint.brush', 'Brush')}
@@ -196,46 +205,57 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           
           {/* Absolute wrapper to provide definite height to image without circular dependency */}
           <div className="flex-1 relative w-full mb-3">
-            <div className="absolute inset-0 flex justify-center items-center">
-              <div 
-                ref={containerRef}
-                className="relative inline-flex rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
-                style={{ maxWidth: '100%', maxHeight: '100%' }}
+            <div className="absolute inset-0 flex justify-center items-center overflow-hidden">
+              <TransformWrapper
+                disabled={tool !== 'pan'}
+                panning={{ disabled: tool !== 'pan' }}
+                pinch={{ disabled: tool !== 'pan' }}
+                doubleClick={{ disabled: tool !== 'pan' }}
+                wheel={{ step: 0.1, disabled: tool !== 'pan' }}
+                limitToBounds={false}
               >
-                {/* The base image */}
-                <img 
-                  src={sourceImage} 
-                  alt="Source for Inpainting" 
-                  className="block w-auto h-auto max-w-full max-h-full object-contain select-none pointer-events-none" 
-                />
-                
-                {/* The drawing canvas overlay */}
-                <canvas
-                  ref={canvasRef}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  onTouchCancel={stopDrawing}
-                  className="absolute top-0 left-0 w-full h-full cursor-crosshair touch-none"
-                  style={{ opacity: 0.8 }}
-                />
+                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
+                  <div 
+                    ref={containerRef}
+                    className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
+                    style={{ maxWidth: '100%', maxHeight: '100%' }}
+                  >
+                    {/* The base image */}
+                    <img 
+                      src={sourceImage} 
+                      alt="Source for Inpainting" 
+                      className="block w-auto h-auto max-w-full max-h-full object-contain select-none pointer-events-none" 
+                    />
+                    
+                    {/* The drawing canvas overlay */}
+                    <canvas
+                      ref={canvasRef}
+                      onMouseDown={(e) => tool !== 'pan' && startDrawing(e)}
+                      onMouseMove={(e) => tool !== 'pan' && draw(e)}
+                      onMouseUp={(e) => tool !== 'pan' && stopDrawing()}
+                      onMouseLeave={(e) => tool !== 'pan' && stopDrawing()}
+                      onTouchStart={(e) => tool !== 'pan' && startDrawing(e)}
+                      onTouchMove={(e) => tool !== 'pan' && draw(e)}
+                      onTouchEnd={(e) => tool !== 'pan' && stopDrawing()}
+                      onTouchCancel={(e) => tool !== 'pan' && stopDrawing()}
+                      className={`absolute top-0 left-0 w-full h-full touch-none ${tool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
+                      style={{ opacity: 0.8 }}
+                    />
 
-                {/* Remove Image Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChangeSource(null);
-                    onMaskChange(null);
-                  }}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-10"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+                    {/* Remove Image Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChangeSource(null);
+                        onMaskChange(null);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-10"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </TransformComponent>
+              </TransformWrapper>
             </div>
           </div>
 
