@@ -206,6 +206,9 @@ export default function GeneratePage() {
       if (['create', 'draft', 'hires'].includes(generationMode)) {
         images = await generateImageAI(params);
       } else if (['img2img', 'variations'].includes(generationMode)) {
+        if (baseModel?.name?.toLowerCase().includes('anima')) {
+          throw new Error("The Anima model natively operates as a Text-to-Image architecture and does not support Image to Image variations on this backend. Please switch to an SDXL or Pony model.");
+        }
         images = await generateImg2Img({ ...params, sourceImage, denoisingStrength: generationMode === 'variations' ? 0.7 : denoisingStrength });
       } else if (generationMode === 'upscale') {
         images = await upscaleImage({ sourceImage, scale: 2 });
