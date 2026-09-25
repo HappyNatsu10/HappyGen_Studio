@@ -13,6 +13,18 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const [tool, setTool] = useState('brush'); // 'brush', 'eraser', 'pan'
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [fitSize, setFitSize] = useState({ width: 0, height: 0 });
+  const [cursorUrl, setCursorUrl] = useState('');
+
+  useEffect(() => {
+    // Generate a custom SVG cursor that exactly matches the screen pixels of the brush
+    const size = Math.max(1, parseInt(brushSize) || 25);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${size/2}" cy="${size/2}" r="${Math.max(0.5, size/2 - 1)}" fill="none" stroke="white" stroke-width="1.5" />
+      <circle cx="${size/2}" cy="${size/2}" r="${Math.max(1, size/2 - 0.5)}" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="2,2" />
+    </svg>`;
+    const encoded = btoa(svg);
+    setCursorUrl(`url(data:image/svg+xml;base64,${encoded}) ${size/2} ${size/2}, crosshair`);
+  }, [brushSize]);
 
   useEffect(() => {
     if (sourceImage) {
@@ -272,8 +284,11 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                       onTouchMove={(e) => tool !== 'pan' && draw(e)}
                       onTouchEnd={(e) => tool !== 'pan' && stopDrawing()}
                       onTouchCancel={(e) => tool !== 'pan' && stopDrawing()}
-                      className={`absolute top-0 left-0 w-full h-full touch-none ${tool === 'pan' ? 'cursor-grab active:cursor-grabbing' : 'cursor-crosshair'}`}
-                      style={{ opacity: 0.8 }}
+                      className={`absolute top-0 left-0 w-full h-full touch-none ${tool === 'pan' ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                      style={{ 
+                        opacity: 0.8,
+                        cursor: tool !== 'pan' ? cursorUrl : undefined
+                      }}
                     />
 
                     {/* Remove Image Button */}
