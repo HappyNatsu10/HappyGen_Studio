@@ -177,10 +177,24 @@ export default function ModelExplorer(props) {
       displayResults = displayResults.filter(m => m.type === typeFilter);
     }
     // Filter by base model
-    if (baseModelFilter !== 'All') {
+    const actualBase = (forcedBaseModel && forcedBaseModel !== 'All') ? forcedBaseModel : baseModelFilter;
+    if (actualBase !== 'All') {
       displayResults = displayResults.filter(m => {
-        const base = m.version?.baseModel || m.selectedVersion?.baseModel || m.versions?.[0]?.baseModel;
-        return base && base.includes(baseModelFilter);
+        const supported = m.versions ? m.versions.map(v => v.baseModel) : (m.version?.baseModel ? [m.version.baseModel] : []);
+        
+        const getFamily = (base) => {
+          if (!base) return '';
+          if (base.includes('SDXL') || base === 'Animagine') return 'SDXL';
+          if (base.includes('SD 1.5')) return 'SD 1.5';
+          if (base.includes('Pony') || base === 'Anima') return 'Pony';
+          if (base.includes('Illustrious') || base === 'NoobAI') return 'Illustrious';
+          if (base.includes('Flux')) return 'Flux';
+          if (base.includes('SD 3.5')) return 'SD 3.5';
+          return base;
+        };
+        
+        const activeFamily = getFamily(actualBase);
+        return supported.some(b => getFamily(b) === activeFamily) || supported.includes(actualBase);
       });
     }
     // Filter by tags
@@ -239,6 +253,15 @@ export default function ModelExplorer(props) {
             >
               <Heart className="inline w-3 h-3 mr-1" /> {t('explorer.favourites', 'Favourites')}
             </button>
+            {activeTab === 'Favourites' && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleSyncFavs(); }} 
+                className={`ml-2 p-1.5 rounded hover:bg-white/10 ${isSyncingFavs ? 'opacity-50' : ''}`}
+                title="Sync Favourites Metadata"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingFavs ? 'animate-spin' : ''}`} />
+              </button>
+            )}
           </div>
         </div>
 
