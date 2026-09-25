@@ -239,15 +239,6 @@ export default function ModelExplorer(props) {
             >
               <Heart className="inline w-3 h-3 mr-1" /> {t('explorer.favourites', 'Favourites')}
             </button>
-            {activeTab === 'Favourites' && (
-              <button 
-                onClick={(e) => { e.stopPropagation(); handleSyncFavs(); }} 
-                className={`ml-2 p-1.5 rounded hover:bg-white/10 ${isSyncingFavs ? 'opacity-50' : ''}`}
-                title="Sync Favourites Metadata"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingFavs ? 'animate-spin' : ''}`} />
-              </button>
-            )}
           </div>
         </div>
 
