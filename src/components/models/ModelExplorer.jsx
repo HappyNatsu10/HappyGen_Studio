@@ -181,20 +181,7 @@ export default function ModelExplorer(props) {
     if (actualBase !== 'All') {
       displayResults = displayResults.filter(m => {
         const supported = m.versions ? m.versions.map(v => v.baseModel) : (m.version?.baseModel ? [m.version.baseModel] : []);
-        
-        const getFamily = (base) => {
-          if (!base) return '';
-          if (base.includes('SDXL') || base === 'Animagine') return 'SDXL';
-          if (base.includes('SD 1.5')) return 'SD 1.5';
-          if (base.includes('Pony') || base === 'Anima') return 'Pony';
-          if (base.includes('Illustrious') || base === 'NoobAI') return 'Illustrious';
-          if (base.includes('Flux')) return 'Flux';
-          if (base.includes('SD 3.5')) return 'SD 3.5';
-          return base;
-        };
-        
-        const activeFamily = getFamily(actualBase);
-        return supported.some(b => getFamily(b) === activeFamily) || supported.includes(actualBase);
+        return supported.includes(actualBase);
       });
     }
     // Filter by tags
@@ -518,20 +505,7 @@ export default function ModelExplorer(props) {
             let displayModel = model;
             // Dynamically select the version that matches the forced base model for Favorites
             if (activeTab === 'Favourites' && forcedBaseModel && forcedBaseModel !== 'All' && model.versions) {
-              const getFamily = (base) => {
-                if (!base) return '';
-                if (base.includes('SDXL') || base === 'Animagine') return 'SDXL';
-                if (base.includes('SD 1.5')) return 'SD 1.5';
-                if (base.includes('Pony') || base === 'Anima') return 'Pony';
-                if (base.includes('Illustrious') || base === 'NoobAI') return 'Illustrious';
-                if (base.includes('Flux')) return 'Flux';
-                if (base.includes('SD 3.5')) return 'SD 3.5';
-                return base;
-              };
-              const activeFamily = getFamily(forcedBaseModel);
-              
-              const matchingVersion = model.versions.find(v => v.baseModel === forcedBaseModel) 
-                                   || model.versions.find(v => getFamily(v.baseModel) === activeFamily);
+              const matchingVersion = model.versions.find(v => v.baseModel === forcedBaseModel);
                                    
               if (matchingVersion) {
                 displayModel = {

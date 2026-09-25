@@ -11,7 +11,7 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
     // If the model is opened from Favourites, it will be missing a lot of data (versions, images, description)
     // because we deliberately strip it down in localStorage to save space.
     // So we fetch the full model data from CivitAI here.
-    if (initialModel && !initialModel.previewUrl && !initialModel.versions) {
+    if (initialModel && !initialModel.description) {
       setLoading(true);
       getModelById(initialModel.id)
         .then(fullModel => {
@@ -89,19 +89,7 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
                 ))}
               </select>
             )}
-            {isFav && (
-              <select
-                value={currentFav?.folder || 'Uncategorized'}
-                onChange={(e) => moveModelToFolder(model.id, e.target.value)}
-                className="input text-xs py-1 px-2 h-7 border-none bg-transparent hover:bg-white/5 cursor-pointer"
-                title="Move to Folder"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                {folders.map(f => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </select>
-            )}
+
             <button onClick={onToggleFav} className="btn-ghost p-1.5 rounded-md cursor-pointer" title={isFav ? "Remove from Favourites" : "Save to Favourites"}>
               <Heart className={`w-4 h-4 ${isFav ? 'fill-pink-500 text-pink-500' : 'text-slate-400'}`} />
             </button>
