@@ -500,13 +500,40 @@ export default function ModelExplorer(props) {
 
         {/* The Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {displayResults.map(model => (
+          {displayResults.map(model => {
+            let displayModel = model;
+            // Dynamically select the version that matches the forced base model for Favorites
+            if (activeTab === 'Favourites' && forcedBaseModel && forcedBaseModel !== 'All' && model.versions) {
+              const getFamily = (base) => {
+                if (!base) return '';
+                if (base.includes('SDXL') || base === 'Animagine') return 'SDXL';
+                if (base.includes('SD 1.5')) return 'SD 1.5';
+                if (base.includes('Pony') || base === 'Anima') return 'Pony';
+                if (base.includes('Illustrious') || base === 'NoobAI') return 'Illustrious';
+                if (base.includes('Flux')) return 'Flux';
+                if (base.includes('SD 3.5')) return 'SD 3.5';
+                return base;
+              };
+              const activeFamily = getFamily(forcedBaseModel);
+              
+              const matchingVersion = model.versions.find(v => v.baseModel === forcedBaseModel) 
+                                   || model.versions.find(v => getFamily(v.baseModel) === activeFamily);
+                                   
+              if (matchingVersion) {
+                displayModel = {
+                  ...model,
+                  thumbnailUrl: matchingVersion.imageUrl || model.thumbnailUrl,
+                  version: matchingVersion,
+                };
+              }
+            }
+            return (
             <ModelCard
-              key={model.id}
-              model={model}
-              onClick={() => setSelectedModel(model)}
-              isFav={isFavourited(model.id)}
-              onToggleFav={(e) => handleFavouriteClick(model, e)}
+              key={displayModel.id}
+              model={displayModel}
+              onClick={() => setSelectedModel(displayModel)}
+              isFav={isFavourited(displayModel.id)}
+              onToggleFav={(e) => handleFavouriteClick(displayModel, e)}
             />
           ))}
 

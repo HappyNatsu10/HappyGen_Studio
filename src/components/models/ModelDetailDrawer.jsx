@@ -25,6 +25,16 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
   }, [initialModel]);
 
   const [selectedVersionIdx, setSelectedVersionIdx] = useState(0);
+
+  useEffect(() => {
+    if (model?.versions && initialModel?.version) {
+      const idx = model.versions.findIndex(v => v.id === initialModel.version.id);
+      if (idx !== -1) {
+        setSelectedVersionIdx(idx);
+      }
+    }
+  }, [model?.versions, initialModel?.version]);
+
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [copiedWord, setCopiedWord] = useState(null);
   
