@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Download, ThumbsUp, Filter, X, Loader2, Heart, Clock } from 'lucide-react';
+import { Search, Download, ThumbsUp, Filter, X, Loader2, Heart, Clock, Folder, RefreshCw } from 'lucide-react';
 import { searchModels, formatCount } from '../../services/civitaiService';
 import ModelDetailDrawer from './ModelDetailDrawer';
 import FolderSelectModal from './FolderSelectModal';
@@ -60,8 +60,20 @@ export default function ModelExplorer(props) {
   const [editingFolder, setEditingFolder] = useState(null);
   const [editFolderName, setEditFolderName] = useState('');
   const [favModalModel, setFavModalModel] = useState(null);
+  const [isSyncingFavs, setIsSyncingFavs] = useState(false);
 
-  const { favourites, folders, toggleFavourite, isFavourited, createFolder, renameFolder, deleteFolder, addFavourite, removeFavourite } = useFavouriteModels();
+  const { favourites, folders, toggleFavourite, isFavourited, createFolder, renameFolder, deleteFolder, addFavourite, removeFavourite, refreshAllFavourites } = useFavouriteModels();
+
+  const handleSyncFavs = useCallback(async () => {
+    setIsSyncingFavs(true);
+    try {
+      await refreshAllFavourites();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSyncingFavs(false);
+    }
+  }, [refreshAllFavourites]);
 
   const { currentUser, openAuth } = useAuth();
 
@@ -214,7 +226,7 @@ export default function ModelExplorer(props) {
             )}
           </div>
           
-          <div className="mode-toggle">
+          <div className="mode-toggle flex items-center">
             <button
               onClick={() => setActiveTab('Search')}
               className={`mode-toggle-option ${activeTab === 'Search' ? 'active' : ''}`}
@@ -223,10 +235,19 @@ export default function ModelExplorer(props) {
             </button>
             <button
               onClick={() => setActiveTab('Favourites')}
-              className={`mode-toggle-option ${activeTab === 'Favourites' ? 'active' : ''}`}
+              className={`mode-toggle-option flex items-center ${activeTab === 'Favourites' ? 'active' : ''}`}
             >
               <Heart className="inline w-3 h-3 mr-1" /> {t('explorer.favourites', 'Favourites')}
             </button>
+            {activeTab === 'Favourites' && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); handleSyncFavs(); }} 
+                className={`ml-2 p-1.5 rounded hover:bg-white/10 ${isSyncingFavs ? 'opacity-50' : ''}`}
+                title="Sync Favourites Metadata"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingFavs ? 'animate-spin' : ''}`} />
+              </button>
+            )}
           </div>
         </div>
 
