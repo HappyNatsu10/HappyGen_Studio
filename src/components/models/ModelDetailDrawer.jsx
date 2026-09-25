@@ -79,6 +79,19 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
                 ))}
               </select>
             )}
+            {isFav && (
+              <select
+                value={currentFav?.folder || 'Uncategorized'}
+                onChange={(e) => moveModelToFolder(model.id, e.target.value)}
+                className="input text-xs py-1 px-2 h-7 border-none bg-transparent hover:bg-white/5 cursor-pointer"
+                title="Move to Folder"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                {folders.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            )}
             <button onClick={onToggleFav} className="btn-ghost p-1.5 rounded-md cursor-pointer" title={isFav ? "Remove from Favourites" : "Save to Favourites"}>
               <Heart className={`w-4 h-4 ${isFav ? 'fill-pink-500 text-pink-500' : 'text-slate-400'}`} />
             </button>
@@ -135,12 +148,14 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
               )}
               <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
                 <Download className="w-3 h-3" />
-                {formatCount(model.stats.downloads)}
+                {formatCount(model.stats?.downloads || 0)}
               </span>
-              <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
-                <ThumbsUp className="w-3 h-3" />
-                {model.stats.rating}% positive
-              </span>
+              {model.stats?.rating !== undefined && (
+                <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+                  <ThumbsUp className="w-3 h-3" />
+                  {model.stats.rating}% positive
+                </span>
+              )}
             </div>
 
             {/* Creator */}
