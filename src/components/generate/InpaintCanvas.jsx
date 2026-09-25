@@ -7,17 +7,37 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const { t } = useTranslation();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const transformRef = useRef(null);
   const isDrawing = useRef(false);
   const [brushSize, setBrushSize] = useState(25);
   const [tool, setTool] = useState('brush'); // 'brush', 'eraser', 'pan'
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [minScale, setMinScale] = useState(0.1);
 
   useEffect(() => {
     if (sourceImage) {
       const img = new Image();
       img.onload = () => {
-        setImageSize({ width: img.width, height: img.height });
-        initCanvas(img.width, img.height);
+        const natWidth = img.width || img.naturalWidth;
+        const natHeight = img.height || img.naturalHeight;
+        setImageSize({ width: natWidth, height: natHeight });
+        initCanvas(natWidth, natHeight);
+        
+        if (wrapperRef.current) {
+          const wrapperRect = wrapperRef.current.getBoundingClientRect();
+          const scaleX = wrapperRect.width / natWidth;
+          const scaleY = wrapperRect.height / natHeight;
+          const fitScale = Math.min(scaleX, scaleY, 1) * 0.95; // 5% padding
+          
+          setMinScale(Math.min(fitScale, 0.1));
+          
+          setTimeout(() => {
+            if (transformRef.current) {
+              transformRef.current.centerView(fitScale, 0);
+            }
+          }, 10);
+        }
       };
       img.src = sourceImage;
     }
@@ -205,10 +225,11 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           
           {/* Absolute wrapper to provide definite height to image without circular dependency */}
           <div className="flex-1 relative w-full mb-3">
-            <div className="absolute inset-0 flex justify-center items-center overflow-hidden">
+            <div className="absolute inset-0 flex justify-center items-center overflow-hidden" ref={wrapperRef}>
               <TransformWrapper
+                ref={transformRef}
                 initialScale={1}
-                minScale={0.2}
+                minScale={minScale}
                 maxScale={8}
                 disabled={tool !== 'pan'}
                 panning={{ disabled: tool !== 'pan' }}
@@ -217,17 +238,20 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                 wheel={{ step: 0.01, disabled: tool !== 'pan' }}
                 limitToBounds={false}
               >
-                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center" contentStyle={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 0, minHeight: 0 }}>
+                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
                   <div 
                     ref={containerRef}
-                    className="relative flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
-                    style={{ maxWidth: '100%', maxHeight: '100%', minWidth: 0, minHeight: 0 }}
+                    className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
+                    style={{ 
+                       width: imageSize.width || 'auto', 
+                       height: imageSize.height || 'auto' 
+                    }}
                   >
                     {/* The base image */}
                     <img 
                       src={sourceImage} 
                       alt="Source for Inpainting" 
-                      className="block w-auto h-auto max-w-full max-h-full select-none pointer-events-none" 
+                      className="block w-full h-full select-none pointer-events-none" 
                     />
                     
                     {/* The drawing canvas overlay */}

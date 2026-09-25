@@ -85,11 +85,10 @@ function MainApp() {
           onOpenBackendModal={() => setShowBackendModal(true)}
         />
 
-        {/* Global Banner */}
-        <div className="border-b px-4 py-2 flex items-center justify-center text-center relative overflow-hidden" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
+        <div className="border-b px-2 sm:px-4 py-2 flex items-center justify-center text-center relative overflow-hidden shrink-0" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
           <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 pointer-events-none" />
-          <p className="text-[12px] font-medium relative z-10 text-center leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-            <span className="text-xl drop-shadow-sm align-middle inline-block mr-2">🚀</span>
+          <p className="text-[12px] font-medium relative z-10 text-center leading-relaxed w-full break-words whitespace-normal" style={{ color: 'var(--text-primary)' }}>
+            <span className="text-xl drop-shadow-sm align-middle inline-block mr-1 sm:mr-2">🚀</span>
             <span className="align-middle inline">{t('app.bannerText', 'More base models and the advanced Video Suite are coming soon! Stay tuned.')}</span>
           </p>
         </div>
