@@ -45,10 +45,6 @@ export default function InpaintStudio() {
     try {
       const { baseModel, loras, embeddings } = useModelStore.getState();
       const { aspectRatio, steps, cfg, sampler } = useGenerateStore.getState();
-
-      if (baseModel?.name?.toLowerCase().includes('anima')) {
-        throw new Error("The Anima model natively operates as a Text-to-Image architecture and does not support Inpainting. Please switch to an SDXL or Pony model.");
-      }
       
       // Get exact image dimensions to prevent squashing/scaling
       const img = new Image();
