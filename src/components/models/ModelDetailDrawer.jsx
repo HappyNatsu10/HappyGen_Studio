@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
-import { X, Download, ThumbsUp, Copy, Check, ExternalLink, Heart, FolderPlus } from 'lucide-react';
-import { formatCount } from '../../services/civitaiService';
+import React, { useState, useEffect } from 'react';
+import { X, Download, ThumbsUp, Copy, Check, ExternalLink, Heart, FolderPlus, Loader2 } from 'lucide-react';
+import { formatCount, getModelById } from '../../services/civitaiService';
 import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 
-export default function ModelDetailDrawer({ model, onClose, onSelectAsBase, onAddLora, onAddEmbedding, isFav, onToggleFav }) {
+export default function ModelDetailDrawer({ model: initialModel, onClose, onSelectAsBase, onAddLora, onAddEmbedding, isFav, onToggleFav }) {
+  const [model, setModel] = useState(initialModel);
+  const [loading, setLoading] = useState(!initialModel?.previewUrl && !initialModel?.versions);
+  
+  useEffect(() => {
+    // If the model is opened from Favourites, it will be missing a lot of data (versions, images, description)
+    // because we deliberately strip it down in localStorage to save space.
+    // So we fetch the full model data from CivitAI here.
+    if (initialModel && !initialModel.previewUrl && !initialModel.versions) {
+      setLoading(true);
+      getModelById(initialModel.id)
+        .then(fullModel => {
+          setModel({ ...initialModel, ...fullModel });
+        })
+        .catch(err => console.error("Failed to fetch full model details:", err))
+        .finally(() => setLoading(false));
+    } else {
+      setModel(initialModel);
+    }
+  }, [initialModel]);
+
   const [selectedVersionIdx, setSelectedVersionIdx] = useState(0);
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [copiedWord, setCopiedWord] = useState(null);
   
   const { folders, moveModelToFolder, favourites } = useFavouriteModels();
-  const currentFav = favourites.find(m => m.id === model.id);
+  const currentFav = favourites.find(m => m.id === model?.id);
 
   if (!model) return null;
 
@@ -70,9 +90,16 @@ export default function ModelDetailDrawer({ model, onClose, onSelectAsBase, onAd
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Preview Image */}
-          {(version?.images?.length > 0 || model.previewUrl) && (
-            <div className="px-5 pt-4">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <Loader2 className="w-8 h-8 animate-spin mb-4" />
+              <p className="text-sm font-medium">Loading model details...</p>
+            </div>
+          ) : (
+            <>
+              {/* Preview Image */}
+              {(version?.images?.length > 0 || model.previewUrl) && (
+                <div className="px-5 pt-4">
               <div className="rounded-lg overflow-hidden flex items-center justify-center bg-black" style={{ minHeight: '300px' }}>
                 <img
                   src={version?.images?.[selectedImageIdx]?.url || model.previewUrl}
@@ -196,6 +223,8 @@ export default function ModelDetailDrawer({ model, onClose, onSelectAsBase, onAd
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
 
         {/* Action Footer */}
