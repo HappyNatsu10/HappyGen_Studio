@@ -217,17 +217,17 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                 wheel={{ step: 0.01, disabled: tool !== 'pan' }}
                 limitToBounds={false}
               >
-                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center" contentClass="max-w-full max-h-full flex justify-center items-center">
+                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center" contentStyle={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 0, minHeight: 0 }}>
                   <div 
                     ref={containerRef}
-                    className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
-                    style={{ maxWidth: '100%', maxHeight: '100%' }}
+                    className="relative flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
+                    style={{ maxWidth: '100%', maxHeight: '100%', minWidth: 0, minHeight: 0 }}
                   >
                     {/* The base image */}
                     <img 
                       src={sourceImage} 
                       alt="Source for Inpainting" 
-                      className="block w-auto h-auto max-w-full max-h-full object-contain select-none pointer-events-none" 
+                      className="block w-auto h-auto max-w-full max-h-full select-none pointer-events-none" 
                     />
                     
                     {/* The drawing canvas overlay */}
