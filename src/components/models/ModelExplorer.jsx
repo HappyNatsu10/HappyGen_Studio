@@ -160,6 +160,27 @@ export default function ModelExplorer(props) {
       const q = query.toLowerCase();
       displayResults = displayResults.filter(m => m.name.toLowerCase().includes(q) || m.creator.toLowerCase().includes(q));
     }
+    // Filter by type
+    if (typeFilter !== 'All') {
+      displayResults = displayResults.filter(m => m.type === typeFilter);
+    }
+    // Filter by base model
+    if (baseModelFilter !== 'All') {
+      displayResults = displayResults.filter(m => {
+        const base = m.version?.baseModel || m.selectedVersion?.baseModel || m.versions?.[0]?.baseModel;
+        return base && base.includes(baseModelFilter);
+      });
+    }
+    // Filter by tags
+    if (activeTagFilter === 'style' && styleFilter !== 'All') {
+      const target = styleFilter.toLowerCase();
+      displayResults = displayResults.filter(m => m.tags?.some(t => t.toLowerCase() === target));
+    }
+    if (activeTagFilter === 'category' && categoryFilter !== 'All') {
+      const target = categoryFilter.toLowerCase();
+      displayResults = displayResults.filter(m => m.tags?.some(t => t.toLowerCase() === target));
+    }
+
     // Sort
     displayResults = [...displayResults].sort((a, b) => {
       if (favSortBy === 'Name (A-Z)') return a.name.localeCompare(b.name);
@@ -209,10 +230,9 @@ export default function ModelExplorer(props) {
           </div>
         </div>
 
-        {/* Filters (only for Search) */}
-        {activeTab === 'Search' && (
-          <div className="flex flex-col gap-3 pb-2 border-b border-white/5 overflow-x-auto hide-scrollbar">
-            <div className="flex gap-2 items-center min-w-max">
+        {/* Filters (Shared) */}
+        <div className="flex flex-col gap-3 pb-2 border-b border-white/5 overflow-x-auto hide-scrollbar">
+          <div className="flex gap-2 items-center min-w-max">
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                 <Filter className="inline w-3 h-3 mr-1" />{t('explorer.type', 'Type:')}
               </span>
@@ -314,7 +334,7 @@ export default function ModelExplorer(props) {
               ))}
             </div>
           </div>
-        )}
+
 
         {/* Favourites Controls */}
         {activeTab === 'Favourites' && (
