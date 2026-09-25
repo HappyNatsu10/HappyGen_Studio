@@ -175,15 +175,15 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
             >
               <button
                 onClick={() => setViewerOpen(true)}
-                className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                 title="Full Screen View"
               >
                 <Maximize2 className="w-4 h-4" />
               </button>
-              <div className="w-px h-4 bg-white/20 mx-1"></div>
+              <div className="w-px h-4 mx-1" style={{ backgroundColor: 'var(--border-subtle)' }}></div>
               <button
                 onClick={() => handleDownload(activeImage)}
-                className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                 title="Download"
               >
                 <Download className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               {onUpscale && (
                 <button
                   onClick={() => onUpscale(activeImage.url)}
-                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                   title="Upscale Image (2x)"
                 >
                   <Sparkles className="w-4 h-4" />
@@ -200,7 +200,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               {onCreateVariant && (
                 <button
                   onClick={() => onCreateVariant(activeImage)}
-                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                   title="Create Variant"
                 >
                   <ImagePlus className="w-4 h-4" />
@@ -213,7 +213,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
                   useWorkspaceStore.getState().setInpaintSourceImage(activeImage.url);
                   useAppStore.getState().setActiveTab('inpaint');
                 }}
-                className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                 title="Send to Inpaint Studio"
               >
                 <Brush className="w-4 h-4" />
@@ -221,7 +221,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               {onSendToCanvas && (
                 <button
                   onClick={() => onSendToCanvas(activeImage.url)}
-                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-white/10 hover:text-white text-slate-300"
+                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] text-[var(--text-secondary)]"
                   title="Send to Canvas"
                 >
                   <Send className="w-4 h-4" />
