@@ -348,6 +348,11 @@ export default function ModelExplorer(props) {
                 {['All', ...folders].map(f => {
                   const isCustom = f !== 'All' && f !== 'Uncategorized';
                   const isActive = activeFolder === f;
+                  const folderCount = f === 'All' 
+                    ? favourites.length 
+                    : f === 'Uncategorized'
+                      ? favourites.filter(m => !m.folder || m.folder === 'Uncategorized').length
+                      : favourites.filter(m => m.folder === f).length;
                   
                   if (editingFolder === f) {
                     return (
@@ -381,7 +386,7 @@ export default function ModelExplorer(props) {
                         onClick={() => setActiveFolder(f)}
                         className={`chip ${isActive ? 'active' : ''} ${isCustom && isActive ? 'rounded-r-none pr-1.5' : ''}`}
                       >
-                        {f === 'All' ? t('explorer.all', 'All') : f === 'Uncategorized' ? t('explorer.uncategorized', 'Uncategorized') : f}
+                        {f === 'All' ? t('explorer.all', 'All') : f === 'Uncategorized' ? t('explorer.uncategorized', 'Uncategorized') : f} <span className="opacity-60 ml-1">({folderCount})</span>
                       </button>
                       {isCustom && isActive && (
                         <div className="flex items-center h-7 bg-[var(--surface-2)] rounded-r-full border border-l-0 border-white/10 pr-1.5">

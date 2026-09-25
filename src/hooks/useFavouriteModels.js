@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getModelById } from '../services/civitaiService';
 
 export function useFavouriteModels() {
   const { currentUser, updateProfile, openAuth } = useAuth();
@@ -17,27 +18,36 @@ export function useFavouriteModels() {
     updateProfile({ favouriteModels: newFavourites });
   }, [currentUser, favourites, updateProfile]);
 
-  const addFavourite = useCallback((model, folderName = 'Uncategorized') => {
+  const addFavourite = useCallback(async (model, folderName = 'Uncategorized') => {
     if (!currentUser) {
       openAuth('login');
       return;
     }
     if (isFavourited(model.id)) return;
 
+    let fullModel = model;
+    try {
+      const fetched = await getModelById(model.id);
+      if (fetched) fullModel = fetched;
+    } catch (err) {
+      console.error("Failed to fetch full model for favorite:", err);
+    }
+
     // Sanitize data for Firestore to avoid "undefined" errors and massive payload sizes
-    const safeVersion = model.version || model.versions?.[0] || {};
+    const safeVersion = fullModel.version || fullModel.versions?.[0] || {};
     
     const modelDataToSave = {
-      id: model.id,
-      name: model.name || 'Unknown',
-      type: model.type || 'Unknown',
-      creator: typeof model.creator === 'string' ? model.creator : (model.creator?.username || 'Unknown'),
-      thumbnailUrl: model.thumbnailUrl || null,
+      id: fullModel.id,
+      name: fullModel.name || 'Unknown',
+      type: fullModel.type || 'Unknown',
+      creator: typeof fullModel.creator === 'string' ? fullModel.creator : (fullModel.creator?.username || 'Unknown'),
+      thumbnailUrl: fullModel.images?.[0]?.url || fullModel.thumbnailUrl || null,
+      images: fullModel.images || null,
       stats: {
-        downloads: model.stats?.downloadCount || model.stats?.downloads || 0,
-        thumbsUp: model.stats?.favoriteCount || model.stats?.thumbsUp || 0
+        downloadCount: fullModel.stats?.downloadCount || fullModel.stats?.downloads || 0,
+        thumbsUpCount: fullModel.stats?.thumbsUpCount || fullModel.stats?.thumbsUp || fullModel.stats?.favoriteCount || 0
       },
-      tags: Array.isArray(model.tags) ? model.tags.filter(t => typeof t === 'string') : [],
+      tags: Array.isArray(fullModel.tags) ? fullModel.tags.filter(t => typeof t === 'string') : [],
       version: {
         id: safeVersion.id || null,
         name: safeVersion.name || 'Unknown',
@@ -109,6 +119,46 @@ export function useFavouriteModels() {
     });
   }, [currentUser, folders, favourites, updateProfile]);
 
+  const refreshAllFavourites = useCallback(async () => {
+    if (!currentUser) return 0;
+    
+    let updatedCount = 0;
+    const newFavourites = [...favourites];
+    
+    for (let i = 0; i < newFavourites.length; i++) {
+      const model = newFavourites[i];
+      try {
+        const fullModel = await getModelById(model.id);
+        if (fullModel) {
+          const safeVersion = fullModel.version || fullModel.versions?.[0] || {};
+          newFavourites[i] = {
+            ...model,
+            thumbnailUrl: fullModel.images?.[0]?.url || fullModel.thumbnailUrl || null,
+            images: fullModel.images || null,
+            stats: {
+              downloadCount: fullModel.stats?.downloadCount || fullModel.stats?.downloads || 0,
+              thumbsUpCount: fullModel.stats?.thumbsUpCount || fullModel.stats?.thumbsUp || fullModel.stats?.favoriteCount || 0
+            },
+            version: {
+              id: safeVersion.id || null,
+              name: safeVersion.name || 'Unknown',
+              baseModel: safeVersion.baseModel || 'Unknown',
+              downloadUrl: safeVersion.downloadUrl || null
+            }
+          };
+          updatedCount++;
+        }
+      } catch (err) {
+        console.error("Failed to refresh model:", model.id, err);
+      }
+    }
+    
+    if (updatedCount > 0) {
+      updateProfile({ favouriteModels: newFavourites });
+    }
+    return updatedCount;
+  }, [currentUser, favourites, updateProfile]);
+
   return {
     favourites,
     folders,
@@ -116,6 +166,7 @@ export function useFavouriteModels() {
     toggleFavourite,
     addFavourite,
     removeFavourite,
+    refreshAllFavourites,
     createFolder,
     moveModelToFolder,
     renameFolder,
