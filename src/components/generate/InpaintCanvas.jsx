@@ -217,7 +217,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                 wheel={{ step: 0.01, disabled: tool !== 'pan' }}
                 limitToBounds={false}
               >
-                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
+                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center" contentClass="max-w-full max-h-full flex justify-center items-center">
                   <div 
                     ref={containerRef}
                     className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
