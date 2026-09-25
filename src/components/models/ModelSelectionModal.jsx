@@ -101,11 +101,12 @@ export default function ModelSelectionModal() {
                 const loraArch = lora.version?.baseModel || lora.baseModel;
                 const normalize = (a) => {
                   if (!a) return '';
-                  if (a.includes('SDXL')) return 'SDXL';
+                  if (a.includes('SDXL') || a === 'Animagine') return 'SDXL';
                   if (a.includes('SD 1.5')) return 'SD 1.5';
-                  if (a.includes('Pony')) return 'Pony';
-                  if (a.includes('Illustrious')) return 'Illustrious';
+                  if (a.includes('Pony') || a === 'Anima') return 'Pony';
+                  if (a.includes('Illustrious') || a === 'NoobAI') return 'Illustrious';
                   if (a.includes('Flux')) return 'Flux';
+                  if (a.includes('SD 3.5')) return 'SD 3.5';
                   return a;
                 };
                 const normArch = normalize(arch);
