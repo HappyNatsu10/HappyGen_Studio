@@ -80,9 +80,9 @@ export default function InpaintStudio() {
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5">
+    <div className="flex-1 flex flex-col md:flex-row gap-3 md:gap-5 p-3 md:p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5">
       {/* Left Panel: Controls & Canvas */}
-      <div className="flex flex-col gap-4 w-full md:flex-[3] md:min-w-0 md:overflow-y-auto md:pr-2 p-1">
+      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-[3] md:min-w-0 md:overflow-y-auto md:pr-2">
         
         {/* Header */}
         <div className="card p-4">
@@ -96,7 +96,7 @@ export default function InpaintStudio() {
         </div>
 
         {/* Upload or Canvas */}
-        <div className="flex-1 min-h-0 flex flex-col min-h-[400px]">
+        <div className="flex-1 min-h-0 flex flex-col min-h-[300px] md:min-h-[400px]">
           {!sourceImage ? (
             <ImageUploadZone 
               label={t('inpaint.sourceLabel', 'Source Image for Inpainting')} 
@@ -127,7 +127,7 @@ export default function InpaintStudio() {
       </div>
 
       {/* Right Panel: Prompt & Output */}
-      <div className="flex flex-col gap-4 w-full md:flex-[2] md:min-w-0 md:overflow-y-auto p-1">
+      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-[2] md:min-w-0 md:overflow-y-auto">
         <PromptEditor
           prompt={prompt}
           setPrompt={setPrompt}
@@ -163,7 +163,7 @@ export default function InpaintStudio() {
           )}
         </button>
 
-        <div className="flex-1 bg-[var(--surface-1)] rounded-2xl border border-[var(--border-subtle)] flex flex-col overflow-hidden relative min-h-[300px]">
+        <div className="flex-1 bg-[var(--surface-1)] rounded-2xl border border-[var(--border-subtle)] flex flex-col overflow-hidden relative min-h-[250px] md:min-h-[300px]">
           {isGenerating ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-1)] z-10">
               <Loader2 className="w-8 h-8 text-[var(--accent)] animate-spin mb-4" />

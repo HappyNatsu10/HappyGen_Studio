@@ -170,7 +170,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
 
   return (
     <div className="flex flex-col w-full h-full min-h-0 pb-4">
-      <div className="flex items-center justify-between mb-3 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 shrink-0">
         <label className="text-[11px] font-medium text-[var(--text-tertiary)]">{t('inpaint.inpaintMask', 'Inpaint Image & Mask')}</label>
         {sourceImage && (
           <div className="flex items-center gap-2">
