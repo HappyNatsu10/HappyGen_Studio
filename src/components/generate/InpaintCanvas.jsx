@@ -8,12 +8,11 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const wrapperRef = useRef(null);
-  const transformRef = useRef(null);
   const isDrawing = useRef(false);
   const [brushSize, setBrushSize] = useState(25);
   const [tool, setTool] = useState('brush'); // 'brush', 'eraser', 'pan'
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [minScale, setMinScale] = useState(0.1);
+  const [fitSize, setFitSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     if (sourceImage) {
@@ -23,25 +22,32 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
         const natHeight = img.height || img.naturalHeight;
         setImageSize({ width: natWidth, height: natHeight });
         initCanvas(natWidth, natHeight);
-        
-        if (wrapperRef.current) {
-          const wrapperRect = wrapperRef.current.getBoundingClientRect();
-          const scaleX = wrapperRect.width / natWidth;
-          const scaleY = wrapperRect.height / natHeight;
-          const fitScale = Math.min(scaleX, scaleY, 1) * 0.95; // 5% padding
-          
-          setMinScale(Math.min(fitScale, 0.1));
-          
-          setTimeout(() => {
-            if (transformRef.current) {
-              transformRef.current.centerView(fitScale, 0);
-            }
-          }, 10);
-        }
       };
       img.src = sourceImage;
     }
   }, [sourceImage]);
+
+  useEffect(() => {
+    if (!wrapperRef.current || !imageSize.width || !imageSize.height) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      
+      const { width: wrapperW, height: wrapperH } = entry.contentRect;
+      const scaleX = wrapperW / imageSize.width;
+      const scaleY = wrapperH / imageSize.height;
+      const scale = Math.min(scaleX, scaleY, 1) * 0.95; // 5% padding
+      
+      setFitSize({
+        width: imageSize.width * scale,
+        height: imageSize.height * scale
+      });
+    });
+
+    observer.observe(wrapperRef.current);
+    return () => observer.disconnect();
+  }, [imageSize]);
 
   const initCanvas = (width, height) => {
     const canvas = canvasRef.current;
@@ -226,27 +232,27 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           {/* Absolute wrapper to provide definite height to image without circular dependency */}
           <div className="flex-1 relative w-full mb-3">
             <div className="absolute inset-0 flex justify-center items-center overflow-hidden" ref={wrapperRef}>
-              <TransformWrapper
-                ref={transformRef}
-                initialScale={1}
-                minScale={minScale}
-                maxScale={8}
-                disabled={tool !== 'pan'}
-                panning={{ disabled: tool !== 'pan' }}
-                pinch={{ disabled: tool !== 'pan', step: 1 }}
-                doubleClick={{ disabled: tool !== 'pan' }}
-                wheel={{ step: 0.01, disabled: tool !== 'pan' }}
-                limitToBounds={false}
-              >
-                <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
-                  <div 
-                    ref={containerRef}
-                    className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
-                    style={{ 
-                       width: imageSize.width || 'auto', 
-                       height: imageSize.height || 'auto' 
-                    }}
-                  >
+              {fitSize.width > 0 && (
+                <TransformWrapper
+                  initialScale={1}
+                  minScale={0.5}
+                  maxScale={8}
+                  disabled={tool !== 'pan'}
+                  panning={{ disabled: tool !== 'pan' }}
+                  pinch={{ disabled: tool !== 'pan', step: 1 }}
+                  doubleClick={{ disabled: tool !== 'pan' }}
+                  wheel={{ step: 0.01, disabled: tool !== 'pan' }}
+                  limitToBounds={false}
+                >
+                  <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
+                    <div 
+                      ref={containerRef}
+                      className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
+                      style={{ 
+                         width: fitSize.width, 
+                         height: fitSize.height 
+                      }}
+                    >
                     {/* The base image */}
                     <img 
                       src={sourceImage} 
@@ -283,6 +289,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                   </div>
                 </TransformComponent>
               </TransformWrapper>
+              )}
             </div>
           </div>
 
