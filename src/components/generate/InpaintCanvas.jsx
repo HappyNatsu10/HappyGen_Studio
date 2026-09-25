@@ -76,7 +76,8 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
 
     return {
       x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY
+      y: (clientY - rect.top) * scaleY,
+      scale: scaleX
     };
   };
 
@@ -95,11 +96,11 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
     if (!isDrawing.current) return;
     if (e.cancelable) e.preventDefault();
     
-    const { x, y } = getCoordinates(e);
+    const { x, y, scale } = getCoordinates(e);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    ctx.lineWidth = brushSize;
+    ctx.lineWidth = brushSize * scale;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
