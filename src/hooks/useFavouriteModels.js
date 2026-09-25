@@ -54,6 +54,13 @@ export function useFavouriteModels() {
         baseModel: safeVersion.baseModel || 'Unknown',
         downloadUrl: safeVersion.downloadUrl || null
       },
+      versions: fullModel.versions ? fullModel.versions.map(v => ({
+        id: v.id,
+        name: v.name,
+        baseModel: v.baseModel,
+        downloadUrl: v.downloadUrl || null,
+        imageUrl: v.images?.[0]?.url || null
+      })) : [],
       addedAt: Date.now(),
       folder: folderName,
     };
@@ -144,7 +151,14 @@ export function useFavouriteModels() {
               name: safeVersion.name || 'Unknown',
               baseModel: safeVersion.baseModel || 'Unknown',
               downloadUrl: safeVersion.downloadUrl || null
-            }
+            },
+            versions: fullModel.versions ? fullModel.versions.map(v => ({
+              id: v.id,
+              name: v.name,
+              baseModel: v.baseModel,
+              downloadUrl: v.downloadUrl || null,
+              imageUrl: v.images?.[0]?.url || null
+            })) : []
           };
           updatedCount++;
         }
