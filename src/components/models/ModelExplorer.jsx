@@ -535,7 +535,8 @@ export default function ModelExplorer(props) {
               isFav={isFavourited(displayModel.id)}
               onToggleFav={(e) => handleFavouriteClick(displayModel, e)}
             />
-          ))}
+            );
+          })}
 
           {loading && activeTab === 'Search' && Array.from({ length: 8 }).map((_, i) => (
             <div key={`skel-${i}`} className="skeleton" style={{ aspectRatio: '3/4' }} />
