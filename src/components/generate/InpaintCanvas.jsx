@@ -311,8 +311,9 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                   panning={{ disabled: tool !== 'pan' }}
                   pinch={{ disabled: tool !== 'pan', step: 1 }}
                   doubleClick={{ disabled: tool !== 'pan' }}
-                  wheel={{ step: 0.01, disabled: tool !== 'pan' }}
+                  wheel={{ step: 0.05, smoothStep: 0.005, disabled: tool !== 'pan' }}
                   limitToBounds={false}
+                  animation={{ disabled: false, animationTime: 200 }}
                 >
                   <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
                     <div 
