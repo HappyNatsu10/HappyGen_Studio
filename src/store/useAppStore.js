@@ -11,6 +11,8 @@ const useAppStore = create(persist((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   
   showThemeModal: false,
+  showFeedbackModal: false,
+  setShowFeedbackModal: (val) => set({ showFeedbackModal: val }),
   setShowThemeModal: (val) => set({ showThemeModal: val }),
   
   // App Settings

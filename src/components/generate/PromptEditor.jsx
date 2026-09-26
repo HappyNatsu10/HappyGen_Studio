@@ -15,6 +15,7 @@ export default function PromptEditor({
   negativePrompt,
   setNegativePrompt,
   onEnhance,
+  hideQuickTags,
 }) {
   const { t } = useTranslation();
   const [isPromptModalOpen, setIsPromptModalOpen] = React.useState(false);
@@ -93,23 +94,25 @@ export default function PromptEditor({
       />
 
       {/* Quick Tags — Both Modes */}
-      <div>
-        <label className="flex items-center gap-1 text-[11px] font-medium mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-          <Lightbulb className="w-3 h-3" />
-          {t('promptEditor.quickTags', 'Quick Tags')}
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {QUICK_TAGS.map(tag => (
-            <button
-              key={tag}
-              onClick={() => handleAppendTag(tag)}
-              className="px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--surface-4)] hover:text-[var(--accent)] border border-[var(--border-subtle)] rounded-full text-[11px] text-[var(--text-secondary)] transition-all duration-300 hover:scale-105 cursor-pointer"
-            >
-              {tag}
-            </button>
-          ))}
+      {!hideQuickTags && (
+        <div>
+          <label className="flex items-center gap-1 text-[11px] font-medium mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+            <Lightbulb className="w-3 h-3" />
+            {t('promptEditor.quickTags', 'Quick Tags')}
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_TAGS.map(tag => (
+              <button
+                key={tag}
+                onClick={() => handleAppendTag(tag)}
+                className="px-3 py-1.5 bg-[var(--surface-3)] hover:bg-[var(--surface-4)] hover:text-[var(--accent)] border border-[var(--border-subtle)] rounded-full text-[11px] text-[var(--text-secondary)] transition-all duration-300 hover:scale-105 cursor-pointer"
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Negative Prompt */}
       <div>

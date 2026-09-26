@@ -5,6 +5,8 @@ import InpaintCanvas from './generate/InpaintCanvas';
 import PromptEditor from './generate/PromptEditor';
 import { inpaintImage } from '../services/aiService';
 import ImageUploadZone from './generate/ImageUploadZone';
+import ImageViewerModal from './common/ImageViewerModal';
+import { Maximize2 } from 'lucide-react';
 
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -22,6 +24,7 @@ export default function InpaintStudio() {
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultImage, setResultImage] = useState(null);
+  const [showViewer, setShowViewer] = useState(false);
   const [error, setError] = useState(null);
 
   const handleGenerate = async () => {
@@ -82,7 +85,7 @@ export default function InpaintStudio() {
   return (
     <div className="flex-1 flex flex-col md:flex-row gap-3 md:gap-5 p-3 md:p-5 overflow-y-auto md:overflow-hidden md:max-h-[calc(100vh-48px)] pb-24 md:pb-5">
       {/* Left Panel: Controls & Canvas */}
-      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-[3] md:min-w-0 md:overflow-y-auto md:pr-2">
+      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-1 md:min-w-0 md:overflow-y-auto md:pr-2">
         
         {/* Header */}
         <div className="card p-4">
@@ -127,8 +130,9 @@ export default function InpaintStudio() {
       </div>
 
       {/* Right Panel: Prompt & Output */}
-      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-[2] md:min-w-0 md:overflow-y-auto">
+      <div className="flex flex-col gap-3 md:gap-4 w-full md:flex-1 md:min-w-0 md:overflow-y-auto">
         <PromptEditor
+          hideQuickTags={true}
           prompt={prompt}
           setPrompt={setPrompt}
           negativePrompt={negativePrompt}
@@ -170,12 +174,17 @@ export default function InpaintStudio() {
               <p className="text-sm text-[var(--text-secondary)] font-medium">{t('inpaint.inpaintingRegion', 'Inpainting Region...')}</p>
             </div>
           ) : resultImage ? (
-            <div className="relative w-full h-full flex items-center justify-center p-4 bg-black/20">
+            <div className="relative w-full h-full flex items-center justify-center p-4 bg-black/20 group">
               <img 
                 src={resultImage.url} 
                 alt="Inpaint Result" 
-                className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-xl cursor-pointer"
+                onClick={() => setShowViewer(true)}
               />
+              <button onClick={() => setShowViewer(true)} className="absolute top-6 right-6 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100 shadow-md backdrop-blur-sm">
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              <ImageViewerModal image={resultImage} isOpen={showViewer} onClose={() => setShowViewer(false)} />
             </div>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">

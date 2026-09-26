@@ -9,6 +9,7 @@ import ModelExplorer from './components/models/ModelExplorer';
 import GalleryProjects from './components/GalleryProjects';
 import VideoStudio from './components/VideoStudio';
 import CanvasEditor from './components/CanvasEditor';
+import FeedbackModal from './components/common/FeedbackModal';
 import BackendConfigModal from './components/BackendConfigModal';
 import AuthModal from './components/AuthModal';
 import UserProfileModal from './components/UserProfileModal';
@@ -42,6 +43,8 @@ function MainApp() {
     setShowBackendModal,
     setShowProfileModal,
     setShowThemeModal,
+    showFeedbackModal,
+    setShowFeedbackModal,
   } = useAppStore();
 
   const { syncModelProfiles } = useModelStore();
@@ -138,6 +141,7 @@ function MainApp() {
       <AuthModal />
       <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
       <ThemeSelectorModal isOpen={showThemeModal} onClose={() => setShowThemeModal(false)} />
+      <FeedbackModal isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
       <BackendConfigModal isOpen={showBackendModal} onClose={() => setShowBackendModal(false)} />
       
       {!hasSelectedLanguage && <LanguageSelectorModal />}
@@ -150,7 +154,7 @@ function MainApp() {
 // Simple settings page connected to Zustand
 function SettingsPage() {
   const { t } = useTranslation();
-  const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour, setShowThemeModal } = useAppStore();
+  const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour, setShowThemeModal, setShowFeedbackModal } = useAppStore();
   const [showDocs, setShowDocs] = useState(false);
 
   return (
@@ -235,13 +239,13 @@ function SettingsPage() {
       <div className="card p-4">
         <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{t('settings.feedback', 'Feedback')}</div>
         <p className="text-[11px] mb-3" style={{ color: 'var(--text-tertiary)' }}>{t('settings.feedbackDesc', 'Have a suggestion or found a bug? Let us know!')}</p>
-        <a 
-          href="mailto:support@happygen.com?subject=HappyGen Studio Feedback"
-          className="btn btn-secondary w-full text-[12px] py-2 transition-colors flex items-center justify-center gap-2"
+        <button 
+          onClick={() => setShowFeedbackModal(true)}
+          className="btn btn-secondary w-full text-[12px] py-2 transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <MessageSquare className="w-4 h-4" />
-          {t('settings.sendFeedback', 'Send Feedback via Email')}
-        </a>
+          {t('settings.sendFeedback', 'Send Feedback')}
+        </button>
       </div>
 
       {/* About */}

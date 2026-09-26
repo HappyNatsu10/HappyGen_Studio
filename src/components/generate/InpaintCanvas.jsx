@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Upload, X, Eraser, Brush, RotateCcw, Hand } from 'lucide-react';
+import { Upload, X, Eraser, Brush, RotateCcw, Hand, Focus } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +15,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const [fitSize, setFitSize] = useState({ width: 0, height: 0 });
   const cursorCanvasRef = useRef(null);
   const lastPos = useRef(null);
+  const transformRef = useRef(null);
 
   useEffect(() => {
     if (sourceImage) {
@@ -39,7 +40,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
       const { width: wrapperW, height: wrapperH } = entry.contentRect;
       const scaleX = wrapperW / imageSize.width;
       const scaleY = wrapperH / imageSize.height;
-      const scale = Math.min(scaleX, scaleY, 1) * 0.95; // 5% padding
+      const scale = Math.min(scaleX, scaleY) * 0.95; // 5% padding
       
       setFitSize({
         width: imageSize.width * scale,
@@ -257,6 +258,13 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
             >
               <Hand className="w-3.5 h-3.5" />
             </button>
+            <button
+              onClick={() => transformRef.current?.resetTransform()}
+              className="p-1.5 rounded bg-[var(--surface-2)] text-[var(--text-secondary)] hover:text-white transition-colors"
+              title={t('inpaint.resetZoom', 'Reset View')}
+            >
+              <Focus className="w-3.5 h-3.5" />
+            </button>
             <div className="w-[1px] h-4 bg-[var(--border-subtle)] mx-0.5"></div>
             <button
               onClick={() => setTool('brush')}
@@ -301,21 +309,35 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
           
           {/* Absolute wrapper to provide definite height to image without circular dependency */}
           <div className="flex-1 relative w-full mb-3">
-            <div className="absolute inset-0 flex justify-center items-center overflow-hidden" ref={wrapperRef}>
-              {fitSize.width > 0 && (
-                <TransformWrapper
-                  initialScale={1}
-                  minScale={0.5}
-                  maxScale={8}
-                  disabled={tool !== 'pan'}
-                  panning={{ disabled: tool !== 'pan' }}
-                  pinch={{ disabled: tool !== 'pan', step: 1 }}
-                  doubleClick={{ disabled: tool !== 'pan' }}
-                  wheel={{ step: 0.05, smoothStep: 0.005, disabled: tool !== 'pan' }}
-                  limitToBounds={false}
-                  animation={{ disabled: false, animationTime: 200 }}
-                >
-                  <TransformComponent wrapperClass="w-full h-full flex justify-center items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onChangeSource(null);
+                onMaskChange(null);
+              }}
+              className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-20"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="absolute inset-0 overflow-hidden" ref={wrapperRef}>
+                {fitSize.width > 0 && (
+                  <TransformWrapper
+                    ref={transformRef}
+                    style={{ width: '100%', height: '100%' }}
+                    initialScale={1}
+                    minScale={0.2}
+                    maxScale={8}
+                    disabled={tool !== 'pan'}
+                    panning={{ disabled: tool !== 'pan' }}
+                    pinch={{ disabled: tool !== 'pan', step: 1 }}
+                    doubleClick={{ disabled: tool !== 'pan' }}
+                    wheel={{ step: 0.015, disabled: tool !== 'pan' }}
+                    limitToBounds={false}
+                    centerOnInit={true}
+                    centerZoomedOut={true}
+                    animation={{ disabled: false, animationTime: 200 }}
+                  >
+                    <TransformComponent wrapperClass="!w-full !h-full" wrapperStyle={{ width: "100%", height: "100%" }}>
                     <div 
                       ref={containerRef}
                       className="relative inline-flex rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] shadow-lg"
@@ -359,17 +381,6 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                       }}
                     />
 
-                    {/* Remove Image Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onChangeSource(null);
-                        onMaskChange(null);
-                      }}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors backdrop-blur-sm z-10"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
                   </div>
                 </TransformComponent>
               </TransformWrapper>

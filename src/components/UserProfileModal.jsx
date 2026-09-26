@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import useAppStore from '../store/useAppStore';
 import { X, LogOut, PlusCircle, Check, Edit3, User, Shield, AlertTriangle, Upload, MessageSquare } from 'lucide-react';
 import { resizeAndConvertToBase64 } from '../utils/imageUtils';
 
 export default function UserProfileModal({ isOpen, onClose }) {
   const { t } = useTranslation();
   const { currentUser, logout, updateProfile, changePassword, deleteAccount, DEFAULT_AVATARS } = useAuth();
+  const setShowFeedbackModal = useAppStore(state => state.setShowFeedbackModal);
   
   const [activeTab, setActiveTab] = useState('profile'); // profile, security, danger
 
@@ -293,13 +295,13 @@ export default function UserProfileModal({ isOpen, onClose }) {
                     {t('profile.feedbackText', 'Your feedback helps us improve HappyGen Studio. Click the button below to send us an email directly.')}
                   </p>
                   
-                  <a 
-                    href="mailto:support@happygen.com?subject=HappyGen Studio Feedback"
+                  <button 
+                    onClick={() => { onClose(); setShowFeedbackModal(true); }}
                     className="btn btn-primary w-full flex items-center justify-center gap-2 text-[13px]"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    {t('profile.sendFeedback', 'Send Feedback via Email')}
-                  </a>
+                    {t('profile.sendFeedback', 'Send Feedback')}
+                  </button>
                 </div>
               </div>
             )}

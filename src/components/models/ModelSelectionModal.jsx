@@ -135,17 +135,17 @@ export default function ModelSelectionModal() {
         {validationError && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl p-4">
             <div className="bg-[var(--surface-1)] border border-red-500/30 rounded-xl max-w-sm w-full p-5 shadow-2xl">
-              <div className="flex items-center gap-3 text-red-400 mb-3">
+              <div className="flex items-center gap-3 text-red-500 mb-3">
                 <AlertTriangle className="w-6 h-6" />
-                <h3 className="font-semibold text-white">{validationError.title}</h3>
+                <h3 className="font-semibold text-[var(--text-primary)]">{validationError.title}</h3>
               </div>
-              <p className="text-sm text-slate-300 leading-relaxed mb-5">
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
                 {validationError.message}
               </p>
               <div className="flex justify-end">
                 <button 
                   onClick={() => setValidationError(null)}
-                  className="btn btn-primary bg-red-500 hover:bg-red-600 border-none"
+                  className="btn btn-primary"
                 >
                   Got it
                 </button>
