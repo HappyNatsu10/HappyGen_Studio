@@ -71,7 +71,7 @@ export default function PromptEditor({
             onBlur={e => setPrompt(e.target.value)}
             placeholder={t('promptEditor.placeholder', "Describe what you want to create...")}
             rows={4}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all resize-none shadow-inner"
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500/50 focus:border-purple-500/50 transition-all resize-none shadow-inner"
             style={{ paddingRight: '44px' }}
           />
           <button
@@ -122,7 +122,7 @@ export default function PromptEditor({
             onChange={e => setNegativePrompt(e.target.value)}
             placeholder={t('promptEditor.negativePlaceholder', "Things to avoid in the generation...")}
             rows={2}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/30 transition-all resize-none shadow-inner"
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500/30 focus:border-red-500/50 transition-all resize-none shadow-inner"
           />
         </div>
     </div>
