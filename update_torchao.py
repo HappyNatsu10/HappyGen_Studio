@@ -14,6 +14,9 @@ def patch_notebook(file):
                         if 'torchao>=0.16.0' not in line:
                             line = line.replace('peft', 'peft torchao>=0.16.0')
                             changed = True
+                        if '-U' not in line and '--upgrade' not in line:
+                            line = line.replace('!pip install', '!pip install -U')
+                            changed = True
                     new_source.append(line)
                 cell['source'] = new_source
                 
