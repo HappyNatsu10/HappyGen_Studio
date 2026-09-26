@@ -13,7 +13,8 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   const [tool, setTool] = useState('brush'); // 'brush', 'eraser', 'pan'
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [fitSize, setFitSize] = useState({ width: 0, height: 0 });
-  const cursorRef = useRef(null);
+  const cursorCanvasRef = useRef(null);
+  const lastPos = useRef(null);
 
   useEffect(() => {
     if (sourceImage) {
@@ -52,9 +53,14 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
 
   const initCanvas = (width, height) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const cursorCanvas = cursorCanvasRef.current;
+    if (!canvas || !cursorCanvas) return;
+    
     canvas.width = width;
     canvas.height = height;
+    cursorCanvas.width = width;
+    cursorCanvas.height = height;
+    
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, width, height);
     updateMaskData();
@@ -120,39 +126,61 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
     ctx.stroke();
   };
 
+  const drawCursor = (x, y, scale) => {
+    const cursorCanvas = cursorCanvasRef.current;
+    if (!cursorCanvas) return;
+    const ctx = cursorCanvas.getContext('2d');
+    
+    ctx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+    
+    if (tool === 'pan') return;
+
+    ctx.beginPath();
+    ctx.arc(x, y, (brushSize * scale) / 2, 0, Math.PI * 2);
+    ctx.lineWidth = 1.5 * scale; // Keep border thin visually
+    ctx.strokeStyle = 'white';
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(x, y, ((brushSize * scale) / 2) - (1 * scale), 0, Math.PI * 2);
+    ctx.lineWidth = 1.5 * scale;
+    ctx.strokeStyle = 'black';
+    ctx.setLineDash([4 * scale, 4 * scale]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
   const handlePointerMove = (e) => {
     if (tool === 'pan') return;
+    
+    const { x, y, scale } = getCoordinates(e);
+    lastPos.current = { x, y, scale };
     
     // Handle drawing
     if (isDrawing.current) {
       draw(e);
     }
     
-    // Handle custom cursor update
-    if (cursorRef.current) {
-      let clientX = e.clientX;
-      let clientY = e.clientY;
-      if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      }
-      
-      const visualSize = Math.max(1, parseInt(brushSize));
-      cursorRef.current.style.width = `${visualSize}px`;
-      cursorRef.current.style.height = `${visualSize}px`;
-      cursorRef.current.style.transform = `translate(${clientX - visualSize/2}px, ${clientY - visualSize/2}px)`;
-      cursorRef.current.style.display = 'block';
-    }
+    // Handle cursor
+    drawCursor(x, y, scale);
   };
 
   const handlePointerLeave = () => {
     if (tool !== 'pan') {
       stopDrawing();
-      if (cursorRef.current) {
-        cursorRef.current.style.display = 'none';
+      const cursorCanvas = cursorCanvasRef.current;
+      if (cursorCanvas) {
+        cursorCanvas.getContext('2d').clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
       }
     }
   };
+
+  // Re-draw cursor if brush size changes
+  useEffect(() => {
+    if (lastPos.current) {
+      drawCursor(lastPos.current.x, lastPos.current.y, lastPos.current.scale);
+    }
+  }, [brushSize]);
 
   const stopDrawing = () => {
     if (isDrawing.current) {
@@ -300,6 +328,12 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                     {/* The drawing canvas overlay */}
                     <canvas
                       ref={canvasRef}
+                      className={`absolute top-0 left-0 w-full h-full pointer-events-none`}
+                      style={{ opacity: 0.8 }}
+                    />
+                    
+                    <canvas
+                      ref={cursorCanvasRef}
                       onMouseDown={(e) => tool !== 'pan' && startDrawing(e)}
                       onMouseMove={handlePointerMove}
                       onMouseUp={(e) => tool !== 'pan' && stopDrawing()}
@@ -310,7 +344,7 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                       onTouchCancel={handlePointerLeave}
                       className={`absolute top-0 left-0 w-full h-full touch-none ${tool === 'pan' ? 'cursor-grab active:cursor-grabbing' : ''}`}
                       style={{ 
-                        opacity: 0.8,
+                        opacity: 1,
                         cursor: tool !== 'pan' ? 'none' : undefined
                       }}
                     />
@@ -331,16 +365,6 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
               </TransformWrapper>
               )}
             </div>
-            
-            {/* Custom hardware-accelerated floating cursor */}
-            <div 
-              ref={cursorRef}
-              className="fixed top-0 left-0 pointer-events-none z-[100] hidden rounded-full border border-black"
-              style={{
-                boxShadow: '0 0 0 1px white inset, 0 0 0 1.5px black',
-                willChange: 'transform'
-              }}
-            />
           </div>
 
           {/* Brush Slider */}
