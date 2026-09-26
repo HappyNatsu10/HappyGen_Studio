@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     const payload = {
       contents: [{
         parts: [
-          { text: "Analyze this image and write a concise, high-quality text-to-image prompt. Focus on the main subject, character identity, art style, clothing, and lighting. Keep it concise using comma-separated tags or short phrases optimized for Stable Diffusion. Do not write a long paragraph." },
+          { text: "Analyze this image and write a concise, high-quality text-to-image prompt. If the image contains a known character (e.g., from anime, games, movies, pop culture) or a real person/celebrity, explicitly identify them by their specific name and origin franchise (e.g., '1girl, Hatsune Miku, Vocaloid'). Focus on the main subject, character identity, art style, clothing, and lighting. Keep it concise using comma-separated tags or short phrases optimized for Stable Diffusion. Do not write a long paragraph." },
           { inlineData: { mimeType, data: base64Image } }
         ]
       }]
