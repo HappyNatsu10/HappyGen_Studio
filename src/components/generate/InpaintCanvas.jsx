@@ -52,19 +52,24 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
   }, [imageSize]);
 
   const initCanvas = (width, height) => {
+    // Width and height are now handled by React props directly.
+    // We just need to trigger the initial mask update if canvases exist
     const canvas = canvasRef.current;
     const cursorCanvas = cursorCanvasRef.current;
     if (!canvas || !cursorCanvas) return;
     
-    canvas.width = width;
-    canvas.height = height;
-    cursorCanvas.width = width;
-    cursorCanvas.height = height;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, width, height);
     updateMaskData();
   };
+
+  // When canvases finally mount (after fitSize is set), initialize the mask
+  useEffect(() => {
+    if (fitSize.width > 0 && canvasRef.current && imageSize.width > 0) {
+      // Clear the main canvas and init mask
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, imageSize.width, imageSize.height);
+      updateMaskData();
+    }
+  }, [fitSize.width]);
 
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
@@ -328,12 +333,16 @@ export default function InpaintCanvas({ sourceImage, onChangeSource, onMaskChang
                     {/* The drawing canvas overlay */}
                     <canvas
                       ref={canvasRef}
+                      width={imageSize.width}
+                      height={imageSize.height}
                       className={`absolute top-0 left-0 w-full h-full pointer-events-none`}
                       style={{ opacity: 0.8 }}
                     />
                     
                     <canvas
                       ref={cursorCanvasRef}
+                      width={imageSize.width}
+                      height={imageSize.height}
                       onMouseDown={(e) => tool !== 'pan' && startDrawing(e)}
                       onMouseMove={handlePointerMove}
                       onMouseUp={(e) => tool !== 'pan' && stopDrawing()}
