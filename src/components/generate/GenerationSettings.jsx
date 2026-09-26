@@ -3,16 +3,46 @@ import { useTranslation } from 'react-i18next';
 import { Zap, Sparkles, Crown, HelpCircle, Save, CheckCircle2 } from 'lucide-react';
 import Tooltip from '../common/Tooltip';
 
-const ASPECT_RATIOS = [
-  { label: 'Square (1024 x 1024)', value: '1:1', w: 1024, h: 1024 },
-  { label: 'Portrait (896 x 1152)', value: '7:9', w: 896, h: 1152 },
-  { label: 'Landscape (1152 x 896)', value: '9:7', w: 1152, h: 896 },
-  { label: 'Panorama (1216 x 832)', value: '19:13', w: 1216, h: 832 },
-  { label: 'Vertical Panorama (832 x 1216)', value: '13:19', w: 832, h: 1216 },
-  { label: 'Cinematic Wide (1536 x 640)', value: '12:5', w: 1536, h: 640 },
-  { label: 'Cinematic Portrait (768 x 1344)', value: '4:7', w: 768, h: 1344 },
-  { label: 'Extended Portrait (640 x 1536)', value: '5:12', w: 640, h: 1536 },
+const ASPECT_RATIO_GROUPS = [
+  {
+    group: 'Normal',
+    ratios: [
+      { label: 'Normal Square (1024 x 1024)', value: '1:1', w: 1024, h: 1024 },
+      { label: 'Normal Portrait (832 x 1216)', value: '13:19', w: 832, h: 1216 },
+      { label: 'Normal Landscape (1216 x 832)', value: '19:13', w: 1216, h: 832 },
+    ]
+  },
+  {
+    group: 'Large',
+    ratios: [
+      { label: 'Large Square (1472 x 1472)', value: '1:1 Large', w: 1472, h: 1472 },
+      { label: 'Large Portrait (1024 x 1536)', value: '2:3 Large', w: 1024, h: 1536 },
+      { label: 'Large Landscape (1536 x 1024)', value: '3:2 Large', w: 1536, h: 1024 },
+    ]
+  },
+  {
+    group: 'Wallpaper',
+    ratios: [
+      { label: 'Wallpaper Portrait (1088 x 1920)', value: '9:16 Wall', w: 1088, h: 1920 },
+      { label: 'Wallpaper Landscape (1920 x 1088)', value: '16:9 Wall', w: 1920, h: 1088 },
+    ]
+  },
+  {
+    group: 'Cinematic',
+    ratios: [
+      { label: 'Cinematic Wide (1536 x 640)', value: '12:5', w: 1536, h: 640 },
+      { label: 'Cinematic Portrait (768 x 1344)', value: '4:7', w: 768, h: 1344 },
+    ]
+  },
+  {
+    group: 'Custom',
+    ratios: [
+      { label: 'Custom...', value: 'custom', w: 1024, h: 1024 }
+    ]
+  }
 ];
+
+const ASPECT_RATIOS = ASPECT_RATIO_GROUPS.flatMap(g => g.ratios);
 
 const SAMPLERS = [
   { id: 'Euler a', label: 'Euler Ancestral (Euler a)' },
@@ -92,22 +122,71 @@ export default function GenerationSettings({
           className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
         >
-          {ASPECT_RATIOS.map(ar => {
-            const translatedLabel = ar.label.replace('Square', t('generate.square', 'Square'))
-                                           .replace('Portrait', t('generate.portrait', 'Portrait'))
-                                           .replace('Landscape', t('generate.landscape', 'Landscape'))
-                                           .replace('Panorama', t('generate.panorama', 'Panorama'))
-                                           .replace('Vertical', t('generate.vertical', 'Vertical'))
-                                           .replace('Cinematic', t('generate.cinematic', 'Cinematic'))
-                                           .replace('Extended', t('generate.extended', 'Extended'))
-                                           .replace('Wide', t('generate.wide', 'Wide'));
-            return (
-              <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
-                {translatedLabel}
-              </option>
-            );
-          })}
+          {ASPECT_RATIO_GROUPS.map(group => (
+            <optgroup key={group.group} label={t(`generate.group_${group.group.toLowerCase()}`, group.group)}>
+              {group.ratios.map(ar => {
+                const translatedLabel = ar.label.replace('Normal', t('generate.normal', 'Normal'))
+                                               .replace('Large', t('generate.large', 'Large'))
+                                               .replace('Wallpaper', t('generate.wallpaper', 'Wallpaper'))
+                                               .replace('Cinematic', t('generate.cinematic', 'Cinematic'))
+                                               .replace('Square', t('generate.square', 'Square'))
+                                               .replace('Portrait', t('generate.portrait', 'Portrait'))
+                                               .replace('Landscape', t('generate.landscape', 'Landscape'))
+                                               .replace('Wide', t('generate.wide', 'Wide'))
+                                               .replace('Custom...', t('generate.customAspect', 'Custom...'));
+                return (
+                  <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
+                    {translatedLabel}
+                  </option>
+                );
+              })}
+            </optgroup>
+          ))}
         </select>
+        
+        {aspectRatio.value === 'custom' && (
+          <div className="mt-3 animate-fade-in-up">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">{t('generate.width', 'Width')}</label>
+                <input 
+                  type="number" 
+                  value={aspectRatio.w}
+                  min={256}
+                  max={2048}
+                  step={64}
+                  onChange={e => setAspectRatio({ ...aspectRatio, w: parseInt(e.target.value) || 0 })}
+                  onBlur={e => {
+                    const val = parseInt(e.target.value) || 0;
+                    const snapped = Math.max(256, Math.min(2048, Math.round(val / 64) * 64));
+                    setAspectRatio({ ...aspectRatio, w: snapped });
+                  }}
+                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-1 block">{t('generate.height', 'Height')}</label>
+                <input 
+                  type="number" 
+                  value={aspectRatio.h}
+                  min={256}
+                  max={2048}
+                  step={64}
+                  onChange={e => setAspectRatio({ ...aspectRatio, h: parseInt(e.target.value) || 0 })}
+                  onBlur={e => {
+                    const val = parseInt(e.target.value) || 0;
+                    const snapped = Math.max(256, Math.min(2048, Math.round(val / 64) * 64));
+                    setAspectRatio({ ...aspectRatio, h: snapped });
+                  }}
+                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-[var(--text-tertiary)] mt-2">
+              {t('generate.aspectRatioNote', 'Note: Canvas size must be a multiple of 64px. Values will automatically snap.')}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Sampling Method */}

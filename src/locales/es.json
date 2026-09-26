@@ -27,7 +27,8 @@
     "library": "LIBRARY",
     "system": "SYSTEM",
     "freeUser": "Usuario Gratuito",
-    "proUser": "Creador Pro Studio"
+    "proUser": "Creador Pro Studio",
+    "community": "COMUNIDAD"
   },
   "generate": {
     "promptPlaceholder": "Describe lo que quieres crear...",
@@ -42,9 +43,9 @@
     "batchSize": "Tamaño del Lote",
     "seed": "Semilla",
     "randomSeed": "Aleatorio",
-    "engineTooltip": "The backend provider or hardware powering the generation.",
-    "selectEngine": "Select Engine",
-    "baseEngine": "Base Inference Engine",
+    "engineTooltip": "El proveedor o hardware de backend que potencia la generación.",
+    "selectEngine": "Seleccionar Motor",
+    "baseEngine": "Motor de Inferencia Base",
     "customSettings": "Using Custom Settings",
     "standardSettings": "Using Standard Settings",
     "saved": "Saved!",
@@ -64,7 +65,24 @@
     "cfgTooltip": "How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.",
     "seedTooltip": "A random number that generates the initial noise. Use the same seed to reproduce the exact same image.",
     "seedPlaceholder": "-1 for random",
-    "waiting": "Esperando generación..."
+    "waiting": "Esperando generación...",
+    "normal": "Normal",
+    "large": "Grande",
+    "wallpaper": "Fondo de pantalla",
+    "customAspect": "Personalizado...",
+    "group_normal": "Normal",
+    "group_large": "Grande",
+    "group_wallpaper": "Fondo de pantalla",
+    "group_cinematic": "Cinemático",
+    "group_custom": "Personalizado",
+    "width": "Ancho",
+    "height": "Alto",
+    "aspectRatioNote": "Nota: El tamaño del lienzo debe ser un múltiplo de 64px. Los valores se ajustarán automáticamente.",
+    "denoisingStrength": "Fuerza de eliminación de ruido",
+    "denoisingTooltip": "Controla cuánto se altera la imagen de referencia. Valores más bajos conservan el original, valores más altos permiten cambios más creativos.",
+    "faceFixEngine": "Motor de corrección facial",
+    "faceFixTooltip": "El modelo de IA utilizado para detectar y restaurar rostros. GFPGAN es mejor para fotos realistas; ADetailer es mejor para Anime y otros estilos.",
+    "comingSoon": "Próximamente"
   },
   "settings": {
     "title": "Ajustes",
@@ -79,12 +97,19 @@
     "showGuide": "Mostrar Guía de Bienvenida",
     "startTour": "Iniciar Tour Interactivo",
     "about": "Acerca de",
-    "systemDocs": "System Documentation",
+    "systemDocs": "Documentación del Sistema",
     "theme": "Tema y Apariencia",
     "themeDesc": "Personaliza el estilo visual",
     "changeTheme": "Cambiar Tema",
     "language": "Idioma",
-    "languageDesc": "Cambiar el idioma de visualización"
+    "languageDesc": "Cambiar el idioma de visualización",
+    "feedback": "Comentarios",
+    "feedbackDesc": "¿Tienes una sugerencia o encontraste un error? ¡Háznoslo saber!",
+    "sendFeedback": "Enviar comentarios",
+    "vaultSecurity": "Seguridad de la Bóveda",
+    "vaultSecurityDesc": "Administrar protección por PIN para modo 18+ y Bóveda",
+    "removePin": "Eliminar PIN",
+    "setupPin": "Configurar PIN"
   },
   "modes": {
     "create": "Crear Imagen",
@@ -280,7 +305,12 @@
     "enterPasswordConfirm": "Ingrese la contraseña para confirmar",
     "permanentlyDelete": "Eliminar cuenta permanentemente",
     "uploadError": "Failed to process image. Please try another one.",
-    "uploadCustom": "Upload Custom Picture"
+    "uploadCustom": "Upload Custom Picture",
+    "feedbackText": "Tus comentarios nos ayudan a mejorar HappyGen Studio. Haz clic en el botón de abajo para enviarnos un correo electrónico directamente.",
+    "feedback": "Comentarios",
+    "feedbackTitle": "Enviar comentarios",
+    "feedbackDesc": "¿Tienes una sugerencia o encontraste un error? ¡Háznoslo saber!",
+    "sendFeedback": "Enviar comentarios"
   },
   "nav": {
     "create": "Crear",
@@ -293,7 +323,10 @@
   },
   "gallery": {
     "canvasAwaits": "Tu lienzo te espera",
-    "canvasDesc": "Describe tu visión, ajusta tus opciones y deja que HappyGen Studio le dé vida."
+    "canvasDesc": "Describe tu visión, ajusta tus opciones y deja que HappyGen Studio le dé vida.",
+    "deleteImage": "Eliminar imagen",
+    "deleteImageTitle": "Eliminar imagen",
+    "deleteImageDesc": "¿Estás seguro de que quieres eliminar esta imagen generada? Esta acción no se puede deshacer."
   },
   "model": {
     "baseModel": "Modelo base",
@@ -350,7 +383,12 @@
     "lockedDesc": "Según las reglas de seguridad de la Sección 4.5 de PRD, los activos de contenido para adultos se almacenan en una partición aislada y cifrada. Complete la verificación de identidad para desbloquear.",
     "emptyGallery": "No hay activos almacenados en esta partición de la galería.",
     "viewFullscreen": "Ver en pantalla completa",
-    "sendToInpaint": "Enviar al estudio de inpaint"
+    "sendToInpaint": "Enviar al estudio de inpaint",
+    "deleteAssetTitle": "Eliminar recurso",
+    "deleteAssetDesc": "¿Estás seguro de que quieres eliminar este recurso de tu bóveda? Esta acción no se puede deshacer.",
+    "setupPinDesc": "Configura un PIN de 4 dígitos para asegurar tu bóveda.",
+    "setPinBtn": "Establecer PIN",
+    "unlockPinDesc": "Ingresa tu PIN de 4 dígitos para desbloquear."
   },
   "viewer": {
     "imageDetails": "Image Details",
@@ -374,25 +412,26 @@
     "generatedTags": "Generated tags will appear here..."
   },
   "theme": {
-    "appearanceThemes": "Appearance Themes",
-    "editTheme": "Edit Theme",
-    "createCustomTheme": "Create Custom Theme",
-    "presetThemes": "Preset Themes",
-    "yourThemes": "Your Themes",
-    "newTheme": "New Theme",
-    "noCustomThemes": "You haven't created any custom themes yet.",
-    "themeName": "Theme Name",
-    "namePlaceholder": "E.g. Neon Nights",
-    "colorPalette": "Color Palette",
-    "saveChanges": "Save Changes",
-    "createTheme": "Create Theme"
+    "appearanceThemes": "Temas de Apariencia",
+    "editTheme": "Editar Tema",
+    "createCustomTheme": "Crear Tema Personalizado",
+    "presetThemes": "TEMAS PREESTABLECIDOS",
+    "yourThemes": "TUS TEMAS",
+    "newTheme": "Nuevo Tema",
+    "noCustomThemes": "Aún no has creado ningún tema personalizado.",
+    "themeName": "Nombre del Tema",
+    "namePlaceholder": "Ej. Neon Nights",
+    "colorPalette": "Paleta de Colores",
+    "saveChanges": "Guardar Cambios",
+    "createTheme": "Crear Tema"
   },
   "common": {
     "applyAndClose": "Apply & Close",
     "usePrompt": "Use Prompt",
     "download": "Download",
     "clearImage": "Limpiar Imagen",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "delete": "Eliminar"
   },
   "safety": {
     "consoleTitle": "Trust & Safety Audit Console",
@@ -494,5 +533,27 @@
   },
   "app": {
     "bannerText": "¡Pronto habrá más modelos base y la avanzada Video Suite! Mantente al tanto."
+  },
+  "feedback": {
+    "imageLabel": "Adjuntar imagen (Opcional)",
+    "uploadImage": "Haz clic para subir imagen",
+    "title": "Enviar comentarios",
+    "successTitle": "¡Gracias!",
+    "successDesc": "Tus comentarios han sido enviados directamente al desarrollador.",
+    "desc": "¿Encontraste un error? ¿Tienes una solicitud de función? ¿O solo quieres saludar? ¡Háznoslo saber a continuación!",
+    "messageLabel": "Tu Mensaje",
+    "messagePlaceholder": "Cuéntanos qué piensas...",
+    "emailLabel": "Correo electrónico (Opcional)",
+    "emailPlaceholder": "Si deseas que te respondamos",
+    "submit": "Enviar comentarios"
+  },
+  "security": {
+    "title": "Seguridad",
+    "setupTitle": "Configurar PIN de Bóveda",
+    "setupDesc": "Crea un PIN de 4 dígitos para asegurar tu modo 18+ y Bóveda para Adultos.",
+    "removeTitle": "Eliminar PIN de Bóveda",
+    "removeDesc": "Ingresa tu PIN actual de 4 dígitos para deshabilitar la seguridad de la bóveda.",
+    "verifyTitle": "Ingresar PIN",
+    "verifyDesc": "Por favor ingresa tu PIN de 4 dígitos para continuar."
   }
 }

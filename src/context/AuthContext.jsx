@@ -440,9 +440,9 @@ export function AuthProvider({ children }) {
   };
 
   // Increment Generation Counter
-  const incrementGeneratedCount = async () => {
+  const incrementGeneratedCount = async (amount = 1) => {
     if (currentUser?.isGuest) {
-      const newCount = (currentUser.generatedCount || 0) + 1;
+      const newCount = (currentUser.generatedCount || 0) + amount;
       const updatedGuest = { ...currentUser, generatedCount: newCount };
       setCurrentUser(updatedGuest);
       localStorage.setItem('happygen_guest_user', JSON.stringify(updatedGuest));
@@ -450,7 +450,7 @@ export function AuthProvider({ children }) {
     }
     
     try {
-       const newCount = (currentUser.generatedCount || 0) + 1;
+       const newCount = (currentUser.generatedCount || 0) + amount;
        setCurrentUser(prev => prev ? { ...prev, generatedCount: newCount } : null);
        const docRef = doc(db, 'users', currentUser.id);
        await setDoc(docRef, { generatedCount: newCount }, { merge: true });

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { MessageSquare, X, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { MessageSquare, X, Send, CheckCircle2, AlertCircle, ImagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function FeedbackModal({ isOpen, onClose }) {
   const { t } = useTranslation();
   const [feedback, setFeedback] = useState('');
   const [email, setEmail] = useState('');
+  const [imageFile, setImageFile] = useState(null);
   const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
   const [errorMessage, setErrorMessage] = useState('');
+  const fileInputRef = useRef(null);
 
   if (!isOpen) return null;
 
@@ -44,13 +46,16 @@ export default function FeedbackModal({ isOpen, onClose }) {
       }]
     };
 
+    const formData = new FormData();
+    formData.append('payload_json', JSON.stringify(payload));
+    if (imageFile) {
+      formData.append('file', imageFile);
+    }
+
     try {
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -64,6 +69,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
           setStatus('idle');
           setFeedback('');
           setEmail('');
+          setImageFile(null);
         }, 300);
       }, 2000);
     } catch (error) {
@@ -80,10 +86,10 @@ export default function FeedbackModal({ isOpen, onClose }) {
       >
         <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--surface-2)]">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-blue-400" />
-            <h3 className="font-bold text-white">{t('feedback.title', 'Send Feedback')}</h3>
+            <MessageSquare className="w-5 h-5 text-blue-500" />
+            <h3 className="font-bold text-[var(--text-primary)]">{t('feedback.title', 'Send Feedback')}</h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors cursor-pointer">
+          <button onClick={onClose} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -91,42 +97,42 @@ export default function FeedbackModal({ isOpen, onClose }) {
         <div className="p-5">
           {status === 'success' ? (
             <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-              <div className="w-12 h-12 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="text-white font-medium text-lg">{t('feedback.successTitle', 'Thank You!')}</h4>
-                <p className="text-[13px] text-slate-400 mt-1">{t('feedback.successDesc', 'Your feedback has been sent directly to the developer.')}</p>
+                <h4 className="text-[var(--text-primary)] font-medium text-lg">{t('feedback.successTitle', 'Thank You!')}</h4>
+                <p className="text-[13px] text-[var(--text-secondary)] mt-1">{t('feedback.successDesc', 'Your feedback has been sent directly to the developer.')}</p>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <p className="text-[13px] text-slate-400">
+              <p className="text-[13px] text-[var(--text-secondary)]">
                 {t('feedback.desc', 'Found a bug? Have a feature request? Or just want to say hi? Let us know below!')}
               </p>
 
               {status === 'error' && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-                  <p className="text-[12px] text-red-400">{errorMessage}</p>
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <p className="text-[12px] text-red-500">{errorMessage}</p>
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-slate-300">
-                  {t('feedback.messageLabel', 'Your Message')} <span className="text-red-400">*</span>
+                <label className="text-[12px] font-medium text-[var(--text-primary)]">
+                  {t('feedback.messageLabel', 'Your Message')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder={t('feedback.messagePlaceholder', 'Tell us what you think...')}
-                  className="w-full h-32 px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition-all"
+                  className="w-full h-32 px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl text-[13px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[12px] font-medium text-slate-300">
+                <label className="text-[12px] font-medium text-[var(--text-primary)]">
                   {t('feedback.emailLabel', 'Email (Optional)')}
                 </label>
                 <input
@@ -134,15 +140,48 @@ export default function FeedbackModal({ isOpen, onClose }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('feedback.emailPlaceholder', 'If you want us to reply')}
-                  className="w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  className="w-full px-3 py-2 bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl text-[13px] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[12px] font-medium text-[var(--text-primary)]">
+                  {t('feedback.imageLabel', 'Attach Image (Optional)')}
+                </label>
+                <div 
+                  className={`border-2 border-dashed border-[var(--border-subtle)] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--surface-3)] transition-colors ${imageFile ? 'bg-[var(--surface-3)]' : 'bg-[var(--surface-2)]'}`}
+                  onClick={() => !imageFile && fileInputRef.current?.click()}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) setImageFile(e.target.files[0]);
+                    }}
+                  />
+                  {imageFile ? (
+                    <div className="flex items-center gap-2 text-[var(--text-primary)] text-[13px]">
+                      <span className="truncate max-w-[200px] font-medium">{imageFile.name}</span>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); fileInputRef.current.value = ''; }} className="text-[var(--text-tertiary)] hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-500/10">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-[var(--text-tertiary)]">
+                      <ImagePlus className="w-5 h-5" />
+                      <span className="text-[12px]">{t('feedback.uploadImage', 'Click to upload image')}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-[13px] font-medium text-slate-300 hover:text-white hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors cursor-pointer"
                   disabled={status === 'loading'}
                 >
                   {t('common.cancel', 'Cancel')}

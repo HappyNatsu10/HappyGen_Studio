@@ -27,7 +27,8 @@
     "library": "LIBRARY",
     "system": "SYSTEM",
     "freeUser": "무료 사용자",
-    "proUser": "프로 스튜디오 크리에이터"
+    "proUser": "프로 스튜디오 크리에이터",
+    "community": "커뮤니티"
   },
   "generate": {
     "promptPlaceholder": "무엇을 만들고 싶은지 설명해주세요...",
@@ -42,9 +43,9 @@
     "batchSize": "배치 크기",
     "seed": "시드 (Seed)",
     "randomSeed": "무작위",
-    "engineTooltip": "The backend provider or hardware powering the generation.",
-    "selectEngine": "Select Engine",
-    "baseEngine": "Base Inference Engine",
+    "engineTooltip": "생성을 구동하는 백엔드 공급자 또는 하드웨어입니다.",
+    "selectEngine": "엔진 선택",
+    "baseEngine": "기본 추론 엔진",
     "customSettings": "Using Custom Settings",
     "standardSettings": "Using Standard Settings",
     "saved": "Saved!",
@@ -64,7 +65,24 @@
     "cfgTooltip": "How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.",
     "seedTooltip": "A random number that generates the initial noise. Use the same seed to reproduce the exact same image.",
     "seedPlaceholder": "-1 for random",
-    "waiting": "생성 대기 중..."
+    "waiting": "생성 대기 중...",
+    "normal": "일반",
+    "large": "크게",
+    "wallpaper": "배경화면",
+    "customAspect": "사용자 지정...",
+    "group_normal": "일반",
+    "group_large": "크게",
+    "group_wallpaper": "배경화면",
+    "group_cinematic": "시네마틱",
+    "group_custom": "사용자 지정",
+    "width": "너비",
+    "height": "높이",
+    "aspectRatioNote": "참고: 캔버스 크기는 64px의 배수여야 합니다. 값이 자동으로 조정됩니다.",
+    "denoisingStrength": "노이즈 제거 강도",
+    "denoisingTooltip": "참조 이미지가 변경되는 정도를 제어합니다. 값이 낮으면 원본이 유지되고 높으면 더 창의적인 변경이 허용됩니다.",
+    "faceFixEngine": "얼굴 수정 엔진",
+    "faceFixTooltip": "얼굴을 감지하고 복원하는 데 사용되는 AI 모델. GFPGAN은 사실적인 사진에 가장 적합하고 ADetailer는 애니메이션 및 기타 스타일에 더 적합합니다.",
+    "comingSoon": "곧 출시됨"
   },
   "settings": {
     "title": "설정",
@@ -79,12 +97,19 @@
     "showGuide": "환영 가이드 보기",
     "startTour": "대화형 투어 시작",
     "about": "정보",
-    "systemDocs": "System Documentation",
+    "systemDocs": "시스템 문서",
     "theme": "테마 및 모양",
     "themeDesc": "시각적 스타일 사용자 지정",
     "changeTheme": "테마 변경",
     "language": "언어",
-    "languageDesc": "표시 언어 변경"
+    "languageDesc": "표시 언어 변경",
+    "feedback": "피드백",
+    "feedbackDesc": "제안 사항이 있거나 버그를 발견하셨나요? 저희에게 알려주세요!",
+    "sendFeedback": "피드백 보내기",
+    "vaultSecurity": "보관함 보안",
+    "vaultSecurityDesc": "18+ 모드와 보관함의 PIN 보호 관리",
+    "removePin": "PIN 삭제",
+    "setupPin": "PIN 설정"
   },
   "modes": {
     "create": "이미지 생성",
@@ -280,7 +305,12 @@
     "enterPasswordConfirm": "확인을 위해 비밀번호 입력",
     "permanentlyDelete": "계정 영구 삭제",
     "uploadError": "Failed to process image. Please try another one.",
-    "uploadCustom": "Upload Custom Picture"
+    "uploadCustom": "Upload Custom Picture",
+    "feedbackText": "귀하의 피드백은 HappyGen Studio를 개선하는 데 도움이 됩니다. 아래 버튼을 클릭하여 직접 이메일을 보내주세요.",
+    "feedback": "피드백",
+    "feedbackTitle": "피드백 보내기",
+    "feedbackDesc": "제안 사항이 있거나 버그를 발견하셨나요? 저희에게 알려주세요!",
+    "sendFeedback": "피드백 보내기"
   },
   "nav": {
     "create": "생성",
@@ -293,7 +323,10 @@
   },
   "gallery": {
     "canvasAwaits": "캔버스가 기다립니다",
-    "canvasDesc": "비전을 설명하고 설정을 조정하여 HappyGen Studio가 이를 실현하도록 하세요."
+    "canvasDesc": "비전을 설명하고 설정을 조정하여 HappyGen Studio가 이를 실현하도록 하세요.",
+    "deleteImage": "이미지 삭제",
+    "deleteImageTitle": "이미지 삭제",
+    "deleteImageDesc": "생성된 이 이미지를 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
   },
   "model": {
     "baseModel": "기본 모델",
@@ -350,7 +383,12 @@
     "lockedDesc": "PRD 섹션 4.5 안전 규칙에 따라 성인용 콘텐츠 에셋은 격리되고 암호화된 파티션에 저장됩니다. 잠금을 해제하려면 신원 확인을 완료하세요.",
     "emptyGallery": "이 갤러리 파티션에 저장된 에셋이 없습니다.",
     "viewFullscreen": "전체 화면으로 보기",
-    "sendToInpaint": "인페인트 스튜디오로 보내기"
+    "sendToInpaint": "인페인트 스튜디오로 보내기",
+    "deleteAssetTitle": "에셋 삭제",
+    "deleteAssetDesc": "보관함에서 이 에셋을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다.",
+    "setupPinDesc": "보관함을 보호하기 위해 4자리 PIN을 설정하세요.",
+    "setPinBtn": "PIN 설정",
+    "unlockPinDesc": "잠금을 해제하려면 4자리 PIN을 입력하세요."
   },
   "viewer": {
     "imageDetails": "Image Details",
@@ -374,25 +412,26 @@
     "generatedTags": "Generated tags will appear here..."
   },
   "theme": {
-    "appearanceThemes": "Appearance Themes",
-    "editTheme": "Edit Theme",
-    "createCustomTheme": "Create Custom Theme",
-    "presetThemes": "Preset Themes",
-    "yourThemes": "Your Themes",
-    "newTheme": "New Theme",
-    "noCustomThemes": "You haven't created any custom themes yet.",
-    "themeName": "Theme Name",
-    "namePlaceholder": "E.g. Neon Nights",
-    "colorPalette": "Color Palette",
-    "saveChanges": "Save Changes",
-    "createTheme": "Create Theme"
+    "appearanceThemes": "모양 테마",
+    "editTheme": "테마 편집",
+    "createCustomTheme": "사용자 지정 테마 만들기",
+    "presetThemes": "사전 설정 테마",
+    "yourThemes": "내 테마",
+    "newTheme": "새 테마",
+    "noCustomThemes": "아직 사용자 지정 테마를 만들지 않았습니다.",
+    "themeName": "테마 이름",
+    "namePlaceholder": "예: 네온 나이츠",
+    "colorPalette": "색상 팔레트",
+    "saveChanges": "변경 사항 저장",
+    "createTheme": "테마 만들기"
   },
   "common": {
     "applyAndClose": "Apply & Close",
     "usePrompt": "Use Prompt",
     "download": "Download",
     "clearImage": "이미지 지우기",
-    "cancel": "취소"
+    "cancel": "취소",
+    "delete": "삭제"
   },
   "safety": {
     "consoleTitle": "Trust & Safety Audit Console",
@@ -494,5 +533,27 @@
   },
   "app": {
     "bannerText": "더 많은 기본 모델과 고급 비디오 제품군이 곧 출시됩니다! 기대해 주세요."
+  },
+  "feedback": {
+    "imageLabel": "이미지 첨부 (선택)",
+    "uploadImage": "클릭하여 이미지 업로드",
+    "title": "피드백 보내기",
+    "successTitle": "감사합니다!",
+    "successDesc": "피드백이 개발자에게 직접 전송되었습니다.",
+    "desc": "버그를 발견하셨나요? 기능 요청이 있으신가요? 아니면 그냥 인사하고 싶으신가요? 아래에 알려주세요!",
+    "messageLabel": "귀하의 메시지",
+    "messagePlaceholder": "어떻게 생각하시는지 알려주세요...",
+    "emailLabel": "이메일 (선택)",
+    "emailPlaceholder": "답변을 원하시면",
+    "submit": "피드백 보내기"
+  },
+  "security": {
+    "title": "보안",
+    "setupTitle": "보관함 PIN 설정",
+    "setupDesc": "18+ 모드와 성인 보관함을 보호하기 위해 4자리 PIN을 생성하세요.",
+    "removeTitle": "보관함 PIN 삭제",
+    "removeDesc": "보관함 보안을 비활성화하려면 현재 4자리 PIN을 입력하세요.",
+    "verifyTitle": "PIN 입력",
+    "verifyDesc": "계속하려면 4자리 PIN을 입력하세요."
   }
 }

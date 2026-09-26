@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@capacitor-community/media": "^8.0.1",
+    "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.0.1",
     "@capacitor/filesystem": "^7.1.8",
     "@capacitor/share": "^7.0.4",

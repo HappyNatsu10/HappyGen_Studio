@@ -101,86 +101,86 @@ export const IMAGE_ENGINES = [
   {
     provider: 'ALIBABA',
     models: [
-      { id: 'wan_image', name: 'Wan Image' },
-      { id: 'qwen', name: 'Qwen', badge: '🧪' },
-      { id: 'qwen_2', name: 'Qwen 2' },
-      { id: 'qwen_3', name: 'Qwen 3' }
+      { id: 'wan_image', name: 'Wan Image', disabled: true },
+      { id: 'qwen', name: 'Qwen', badge: 'ðŸ§ª', disabled: true },
+      { id: 'qwen_2', name: 'Qwen 2', disabled: true },
+      { id: 'qwen_3', name: 'Qwen 3', disabled: true }
     ]
   },
   {
     provider: 'ALIBABA - TONGYI LAB',
     models: [
-      { id: 'zimage', name: 'ZImage' }
+      { id: 'zimage', name: 'ZImage', disabled: true }
     ]
   },
   {
     provider: 'BAIDU',
     isClosed: true,
     models: [
-      { id: 'ernie', name: 'Ernie' }
+      { id: 'ernie', name: 'Ernie', disabled: true }
     ]
   },
   {
     provider: 'BOOGU',
     models: [
-      { id: 'boogu', name: 'Boogu' }
+      { id: 'boogu', name: 'Boogu', disabled: true }
     ]
   },
   {
     provider: 'BYTEDANCE',
     isClosed: true,
     models: [
-      { id: 'seedream', name: 'Seedream' }
+      { id: 'seedream', name: 'Seedream', disabled: true }
     ]
   },
   {
     provider: 'GOOGLE',
     isClosed: true,
     models: [
-      { id: 'imagen_4', name: 'Imagen 4' },
-      { id: 'nano_banana', name: 'Nano Banana' }
+      { id: 'imagen_4', name: 'Imagen 4', disabled: true },
+      { id: 'nano_banana', name: 'Nano Banana', disabled: true }
     ]
   },
   {
     provider: 'HIDREAM',
     models: [
-      { id: 'hidream', name: 'HiDream' },
-      { id: 'hidream_o1', name: 'HiDream-O1' }
+      { id: 'hidream', name: 'HiDream', disabled: true },
+      { id: 'hidream_o1', name: 'HiDream-O1', disabled: true }
     ]
   },
   {
     provider: 'KREA AI',
     models: [
-      { id: 'krea_2', name: 'Krea 2' }
+      { id: 'krea_2', name: 'Krea 2', disabled: true }
     ]
   },
   {
     provider: 'MICROSOFT',
     isClosed: true,
     models: [
-      { id: 'mai', name: 'MAI' },
-      { id: 'mage_flow', name: 'Mage Flow' }
+      { id: 'mai', name: 'MAI', disabled: true },
+      { id: 'mage_flow', name: 'Mage Flow', disabled: true }
     ]
   },
   {
     provider: 'OPENAI',
     isClosed: true,
     models: [
-      { id: 'openai', name: 'OpenAI' },
-      { id: 'dall_e_3', name: 'DALL-E 3' }
+      { id: 'openai', name: 'OpenAI', disabled: true },
+      { id: 'dall_e_3', name: 'DALL-E 3', disabled: true }
     ]
   },
   {
     provider: 'REVE AI',
     models: [
-      { id: 'reve', name: 'Reve' }
+      { id: 'reve', name: 'Reve', disabled: true }
     ]
   },
   {
     provider: 'XAI',
     isClosed: true,
     models: [
-      { id: 'grok', name: 'Grok' }
+      { id: 'grok', name: 'Grok', disabled: true }
     ]
   }
 ];

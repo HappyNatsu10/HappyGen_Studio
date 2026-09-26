@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Palette, Globe, MessageSquare } from 'lucide-react';
@@ -23,6 +24,7 @@ import LanguageSelectorModal from './components/common/LanguageSelectorModal';
 import LanguageSwitcher from './components/common/LanguageSwitcher';
 import ThemeManager from './components/common/ThemeManager';
 import ThemeSelectorModal from './components/common/ThemeSelectorModal';
+import VaultSecurityModal from './components/common/VaultSecurityModal';
 import useAppStore from './store/useAppStore';
 import useModelStore from './store/useModelStore';
 
@@ -54,6 +56,32 @@ function MainApp() {
       syncModelProfiles(currentUser.modelProfiles);
     }
   }, [currentUser?.modelProfiles, syncModelProfiles]);
+
+  // Lock adult vault when app goes to background
+  useEffect(() => {
+    const lockVault = () => useAppStore.getState().setAdultVaultUnlocked(false);
+
+    // Web visibility change (switching tabs/minimizing browser)
+    const handleVisibilityChange = () => {
+      if (document.hidden) lockVault();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Native app background state (Capacitor)
+    let appStateListener;
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      appStateListener = CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+        if (!isActive) lockVault();
+      });
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (appStateListener) {
+        appStateListener.then(listener => listener.remove()).catch(() => {});
+      }
+    };
+  }, []);
 
   const sidebarWidth = sidebarCollapsed ? 60 : 220;
 
@@ -154,8 +182,33 @@ function MainApp() {
 // Simple settings page connected to Zustand
 function SettingsPage() {
   const { t } = useTranslation();
-  const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour, setShowThemeModal, setShowFeedbackModal } = useAppStore();
+  const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour, setShowThemeModal, setShowFeedbackModal, adultVaultPin } = useAppStore();
   const [showDocs, setShowDocs] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinMode, setPinMode] = useState('verify'); // verify | setup | remove
+  const [pendingAction, setPendingAction] = useState(null);
+
+  const handleToggleAdultMode = () => {
+    if (adultVaultPin) {
+      setPinMode('verify');
+      setPendingAction(() => () => setIsAdultMode(!isAdultMode));
+      setShowPinModal(true);
+    } else {
+      setIsAdultMode(!isAdultMode);
+    }
+  };
+
+  const handleSetupPin = () => {
+    setPinMode('setup');
+    setPendingAction(() => () => {});
+    setShowPinModal(true);
+  };
+
+  const handleRemovePin = () => {
+    setPinMode('remove');
+    setPendingAction(() => () => {});
+    setShowPinModal(true);
+  };
 
   return (
     <div className="max-w-lg space-y-6">
@@ -204,7 +257,7 @@ function SettingsPage() {
             <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{t('settings.adultDesc', 'Show NSFW models & disable content filter')}</div>
           </div>
           <button
-            onClick={() => setIsAdultMode(!isAdultMode)}
+            onClick={handleToggleAdultMode}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
               isAdultMode ? 'bg-red-500' : ''
             }`}
@@ -214,6 +267,23 @@ function SettingsPage() {
               isAdultMode ? 'translate-x-6' : 'translate-x-1'
             }`} />
           </button>
+        </div>
+
+        {/* Vault Security */}
+        <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div>
+            <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>{t('settings.vaultSecurity', 'Vault Security')}</div>
+            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>{t('settings.vaultSecurityDesc', 'Manage PIN protection for 18+ mode and Vault')}</div>
+          </div>
+          {adultVaultPin ? (
+            <button onClick={handleRemovePin} className="btn text-[12px] text-red-500 bg-red-500/10 hover:bg-red-500/20 px-3 py-1.5 rounded-lg">
+              {t('settings.removePin', 'Remove PIN')}
+            </button>
+          ) : (
+            <button onClick={handleSetupPin} className="btn btn-secondary text-[12px]">
+              {t('settings.setupPin', 'Setup PIN')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -248,6 +318,21 @@ function SettingsPage() {
         </button>
       </div>
 
+      {/* Community */}
+      <div className="card p-4">
+        <div className="text-[13px] font-medium mb-2" style={{ color: 'var(--text-primary)' }}>{t('sidebar.community', 'COMMUNITY')}</div>
+        <div className="flex gap-3">
+          <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="flex-1 btn btn-secondary text-[12px] py-2 transition-colors flex items-center justify-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+            Discord
+          </a>
+          <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="flex-1 btn btn-secondary text-[12px] py-2 transition-colors flex items-center justify-center gap-2 cursor-pointer text-slate-300 hover:text-white">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            X (Twitter)
+          </a>
+        </div>
+      </div>
+
       {/* About */}
       <div className="card p-4">
         <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{t('settings.about', 'About')}</div>
@@ -273,6 +358,13 @@ function SettingsPage() {
           </div>
         </div>
       )}
+
+      <VaultSecurityModal 
+        isOpen={showPinModal} 
+        onClose={() => setShowPinModal(false)} 
+        mode={pinMode}
+        onSuccess={() => { if(pendingAction) pendingAction(); }}
+      />
     </div>
   );
 }

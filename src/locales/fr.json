@@ -27,7 +27,8 @@
     "library": "LIBRARY",
     "system": "SYSTEM",
     "freeUser": "Utilisateur Gratuit",
-    "proUser": "Créateur Pro Studio"
+    "proUser": "Créateur Pro Studio",
+    "community": "COMMUNAUTÉ"
   },
   "generate": {
     "promptPlaceholder": "Décrivez ce que vous voulez créer...",
@@ -42,9 +43,9 @@
     "batchSize": "Taille du Lot",
     "seed": "Graine",
     "randomSeed": "Aléatoire",
-    "engineTooltip": "The backend provider or hardware powering the generation.",
-    "selectEngine": "Select Engine",
-    "baseEngine": "Base Inference Engine",
+    "engineTooltip": "Le fournisseur ou matériel backend qui alimente la génération.",
+    "selectEngine": "Sélectionner le moteur",
+    "baseEngine": "Moteur d'inférence de base",
     "customSettings": "Using Custom Settings",
     "standardSettings": "Using Standard Settings",
     "saved": "Saved!",
@@ -64,7 +65,24 @@
     "cfgTooltip": "How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.",
     "seedTooltip": "A random number that generates the initial noise. Use the same seed to reproduce the exact same image.",
     "seedPlaceholder": "-1 for random",
-    "waiting": "En attente de génération..."
+    "waiting": "En attente de génération...",
+    "normal": "Normal",
+    "large": "Grand",
+    "wallpaper": "Fond d'écran",
+    "customAspect": "Personnalisé...",
+    "group_normal": "Normal",
+    "group_large": "Grand",
+    "group_wallpaper": "Fond d'écran",
+    "group_cinematic": "Cinématique",
+    "group_custom": "Personnalisé",
+    "width": "Largeur",
+    "height": "Hauteur",
+    "aspectRatioNote": "Remarque : La taille de la toile doit être un multiple de 64px. Les valeurs s'ajusteront automatiquement.",
+    "denoisingStrength": "Force de débruitage",
+    "denoisingTooltip": "Contrôle la modification de l'image de référence. Des valeurs plus faibles conservent l'original, des valeurs plus élevées permettent plus de créativité.",
+    "faceFixEngine": "Moteur de correction de visage",
+    "faceFixTooltip": "Le modèle d'IA utilisé pour détecter et restaurer les visages. GFPGAN est idéal pour les photos réalistes ; ADetailer est meilleur pour les animes et autres styles.",
+    "comingSoon": "Bientôt disponible"
   },
   "settings": {
     "title": "Paramètres",
@@ -79,12 +97,19 @@
     "showGuide": "Afficher le Guide de Bienvenue",
     "startTour": "Démarrer la Visite Interactive",
     "about": "À propos",
-    "systemDocs": "System Documentation",
+    "systemDocs": "Documentation du Système",
     "theme": "Thème et Apparence",
     "themeDesc": "Personnalisez le style visuel",
     "changeTheme": "Changer de Thème",
     "language": "Langue",
-    "languageDesc": "Changer la langue d'affichage"
+    "languageDesc": "Changer la langue d'affichage",
+    "feedback": "Commentaires",
+    "feedbackDesc": "Vous avez une suggestion ou avez trouvé un bug ? Faites-le nous savoir !",
+    "sendFeedback": "Envoyer des commentaires",
+    "vaultSecurity": "Sécurité du coffre-fort",
+    "vaultSecurityDesc": "Gérer la protection par code PIN pour le mode 18+ et le coffre",
+    "removePin": "Supprimer le PIN",
+    "setupPin": "Configurer le PIN"
   },
   "modes": {
     "create": "Créer une Image",
@@ -280,7 +305,12 @@
     "enterPasswordConfirm": "Entrez le mot de passe pour confirmer",
     "permanentlyDelete": "Supprimer définitivement le compte",
     "uploadError": "Failed to process image. Please try another one.",
-    "uploadCustom": "Upload Custom Picture"
+    "uploadCustom": "Upload Custom Picture",
+    "feedbackText": "Vos commentaires nous aident à améliorer HappyGen Studio. Cliquez sur le bouton ci-dessous pour nous envoyer un e-mail directement.",
+    "feedback": "Commentaires",
+    "feedbackTitle": "Envoyer des commentaires",
+    "feedbackDesc": "Vous avez une suggestion ou avez trouvé un bug ? Faites-le nous savoir !",
+    "sendFeedback": "Envoyer des commentaires"
   },
   "nav": {
     "create": "Créer",
@@ -293,7 +323,10 @@
   },
   "gallery": {
     "canvasAwaits": "Votre toile vous attend",
-    "canvasDesc": "Décrivez votre vision, ajustez vos paramètres et laissez HappyGen Studio lui donner vie."
+    "canvasDesc": "Décrivez votre vision, ajustez vos paramètres et laissez HappyGen Studio lui donner vie.",
+    "deleteImage": "Supprimer l'image",
+    "deleteImageTitle": "Supprimer l'image",
+    "deleteImageDesc": "Êtes-vous sûr de vouloir supprimer cette image générée ? Cette action est irréversible."
   },
   "model": {
     "baseModel": "Modèle de base",
@@ -350,7 +383,12 @@
     "lockedDesc": "Conformément aux règles de sécurité de la section 4.5 du PRD, les actifs de contenu pour adultes sont stockés dans une partition isolée et cryptée. Complétez la vérification d'identité pour déverrouiller.",
     "emptyGallery": "Aucun actif stocké dans cette partition de galerie.",
     "viewFullscreen": "Voir en plein écran",
-    "sendToInpaint": "Envoyer à Inpaint Studio"
+    "sendToInpaint": "Envoyer à Inpaint Studio",
+    "deleteAssetTitle": "Supprimer la ressource",
+    "deleteAssetDesc": "Êtes-vous sûr de vouloir supprimer cette ressource de votre coffre-fort ? Cette action est irréversible.",
+    "setupPinDesc": "Définissez un code PIN à 4 chiffres pour sécuriser votre coffre.",
+    "setPinBtn": "Définir le PIN",
+    "unlockPinDesc": "Entrez votre code PIN à 4 chiffres pour déverrouiller."
   },
   "viewer": {
     "imageDetails": "Image Details",
@@ -374,25 +412,26 @@
     "generatedTags": "Generated tags will appear here..."
   },
   "theme": {
-    "appearanceThemes": "Appearance Themes",
-    "editTheme": "Edit Theme",
-    "createCustomTheme": "Create Custom Theme",
-    "presetThemes": "Preset Themes",
-    "yourThemes": "Your Themes",
-    "newTheme": "New Theme",
-    "noCustomThemes": "You haven't created any custom themes yet.",
-    "themeName": "Theme Name",
-    "namePlaceholder": "E.g. Neon Nights",
-    "colorPalette": "Color Palette",
-    "saveChanges": "Save Changes",
-    "createTheme": "Create Theme"
+    "appearanceThemes": "Thèmes d'Apparence",
+    "editTheme": "Modifier le Thème",
+    "createCustomTheme": "Créer un Thème Personnalisé",
+    "presetThemes": "THÈMES PRÉDÉFINIS",
+    "yourThemes": "VOS THÈMES",
+    "newTheme": "Nouveau Thème",
+    "noCustomThemes": "Vous n'avez pas encore créé de thème personnalisé.",
+    "themeName": "Nom du Thème",
+    "namePlaceholder": "Ex. Neon Nights",
+    "colorPalette": "Palette de Couleurs",
+    "saveChanges": "Enregistrer les modifications",
+    "createTheme": "Créer le Thème"
   },
   "common": {
     "applyAndClose": "Apply & Close",
     "usePrompt": "Use Prompt",
     "download": "Download",
     "clearImage": "Effacer l'Image",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "delete": "Supprimer"
   },
   "safety": {
     "consoleTitle": "Trust & Safety Audit Console",
@@ -494,5 +533,27 @@
   },
   "app": {
     "bannerText": "Plus de modèles de base et la suite vidéo avancée arrivent bientôt ! Restez à l'écoute."
+  },
+  "feedback": {
+    "imageLabel": "Joindre une image (Optionnel)",
+    "uploadImage": "Cliquez pour uploader une image",
+    "title": "Envoyer des commentaires",
+    "successTitle": "Merci !",
+    "successDesc": "Vos commentaires ont été envoyés directement au développeur.",
+    "desc": "Vous avez trouvé un bug ? Vous avez une demande de fonctionnalité ? Ou vous voulez juste dire bonjour ? Faites-le nous savoir ci-dessous !",
+    "messageLabel": "Votre Message",
+    "messagePlaceholder": "Dites-nous ce que vous en pensez...",
+    "emailLabel": "E-mail (Optionnel)",
+    "emailPlaceholder": "Si vous souhaitez que nous vous répondions",
+    "submit": "Envoyer des commentaires"
+  },
+  "security": {
+    "title": "Sécurité",
+    "setupTitle": "Configurer le code PIN du coffre-fort",
+    "setupDesc": "Créez un code PIN à 4 chiffres pour sécuriser votre mode 18+ et le coffre-fort pour adultes.",
+    "removeTitle": "Supprimer le code PIN",
+    "removeDesc": "Entrez votre code PIN actuel à 4 chiffres pour désactiver la sécurité.",
+    "verifyTitle": "Entrer le code PIN",
+    "verifyDesc": "Veuillez entrer votre code PIN à 4 chiffres pour continuer."
   }
 }

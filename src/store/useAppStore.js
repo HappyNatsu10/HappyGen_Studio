@@ -28,6 +28,11 @@ const useAppStore = create(persist((set) => ({
   isAdultMode: false,
   setIsAdultMode: (isAdult) => set({ isAdultMode: isAdult }),
 
+  adultVaultPin: null,
+  setAdultVaultPin: (pin) => set({ adultVaultPin: pin }),
+  adultVaultUnlocked: false,
+  setAdultVaultUnlocked: (val) => set({ adultVaultUnlocked: val }),
+
   // Modals
   showBackendModal: false,
   setShowBackendModal: (show) => set({ showBackendModal: show }),

@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush } from 'lucide-react';
+import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush, Trash2, AlertTriangle } from 'lucide-react';
 import ImageViewerModal from '../common/ImageViewerModal';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
 
-export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale }) {
+export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale, onDelete }) {
   const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [copiedSeed, setCopiedSeed] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState(null);
+
+  useEffect(() => {
+    if (results.length > 0 && activeIdx >= results.length) {
+      setActiveIdx(results.length - 1);
+    }
+  }, [results.length, activeIdx]);
 
   useEffect(() => {
     if (!isGenerating && results.length > 0) {
@@ -54,15 +61,20 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               await Media.requestPermissions().catch(e => console.log(e));
             }
 
-            // Write directly to Documents directory
-            const savedFile = await Filesystem.writeFile({
-              path: `HappyGen Studio/${fileName}`,
+            // 1. Write to cache directory first
+            const cacheFile = await Filesystem.writeFile({
+              path: fileName,
               data: pureBase64,
-              directory: Directory.Documents,
-              recursive: true
+              directory: Directory.Cache
             });
             
-            alert('Image successfully saved to Documents/HappyGen Studio!');
+            // 2. Save to gallery (Pictures) using Media plugin
+            await Media.savePhoto({
+              path: cacheFile.uri,
+              album: 'HappyGen Studio'
+            });
+            
+            alert('Image successfully saved to your Pictures/Gallery!');
           } catch (err) {
             console.error("Capacitor save/share error:", err);
             // Fallback to share sheet if direct save fails
@@ -227,6 +239,15 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
                   <Send className="w-4 h-4" />
                 </button>
               )}
+              {onDelete && (
+                <button
+                  onClick={() => setImageToDelete(activeImage)}
+                  className="p-2 rounded-full cursor-pointer transition-all hover:bg-red-500/20 hover:text-red-500 text-[var(--text-secondary)]"
+                  title={t('gallery.deleteImage', 'Delete Image')}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -284,7 +305,42 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
         onIndexChange={setActiveIdx}
         isOpen={viewerOpen}
         onClose={() => setViewerOpen(false)}
+        onDelete={onDelete ? (img) => setImageToDelete(img) : undefined}
       />
+
+      {/* Delete Confirmation Modal */}
+      {imageToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setImageToDelete(null)}>
+          <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-6 max-w-sm w-full animate-scale-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-500/10 text-red-500 rounded-full">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">{t('gallery.deleteImageTitle', 'Delete Image')}</h3>
+            </div>
+            <p className="text-[var(--text-secondary)] mb-6 text-sm">
+              {t('gallery.deleteImageDesc', 'Are you sure you want to delete this generated image? This action cannot be undone.')}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setImageToDelete(null)}
+                className="px-4 py-2 rounded-lg font-medium bg-[var(--surface-2)] text-[var(--text-primary)] hover:bg-[var(--surface-3)] transition-colors"
+              >
+                {t('common.cancel', 'Cancel')}
+              </button>
+              <button 
+                onClick={() => {
+                  if (onDelete) onDelete(imageToDelete);
+                  setImageToDelete(null);
+                }}
+                className="px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+              >
+                {t('common.delete', 'Delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,19 +1,41 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown, Info } from 'lucide-react';
+import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown, Info, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { upscaleImage } from '../../services/aiService';
+import { upscaleImage, faceFixImage } from '../../services/aiService';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
+import useModelStore from '../../store/useModelStore';
 import useAppStore from '../../store/useAppStore';
 
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
 
-export default function ImageViewerModal({ image, images = [], currentIndex = 0, onIndexChange, isOpen, onClose }) {
+export default function ImageViewerModal({ image, images = [], currentIndex = 0, onIndexChange, isOpen, onClose, onDelete }) {
   const { t } = useTranslation();
   const [isUpscaling, setIsUpscaling] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [copiedDetails, setCopiedDetails] = useState(false);
+  
+  const handleCopyDetails = () => {
+    if (!currentImage) return;
+    const loraText = currentImage.lora ? `\nLoRA: ${currentImage.lora}` : currentImage.loras ? `\nLoRAs: ${currentImage.loras.join(', ')}` : '';
+    const negPromptText = currentImage.negativePrompt ? `\nNegative Prompt: ${currentImage.negativePrompt}` : '';
+    const dateText = currentImage.timestamp ? new Date(currentImage.timestamp).toLocaleString() : 'Unknown';
+    
+    const details = `Base Model: ${currentImage.model || currentImage.modelUsed || 'Unknown'}${loraText}
+Prompt: ${currentImage.prompt || 'None'}${negPromptText}
+Steps: ${currentImage.steps || 20}
+CFG Scale: ${currentImage.cfg || 7.0}
+Sampler: ${currentImage.sampler || 'DPM++ 2M Karras'}
+Dimensions: ${currentImage.width && currentImage.height ? `${currentImage.width}x${currentImage.height}` : '512x768'}
+Seed: ${currentImage.seed || 'Unknown'}
+Date: ${dateText}`.trim();
+
+    navigator.clipboard.writeText(details);
+    setCopiedDetails(true);
+    setTimeout(() => setCopiedDetails(false), 2000);
+  };
   
   // If `images` is passed, we use `images[currentIndex]`. Otherwise fallback to `image`.
   const activeImage = (images && images.length > 0) ? images[currentIndex] : image;
@@ -64,8 +86,6 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
     setIsFaceFixing(true);
     setShowFaceFixOptions(false);
     try {
-      const { faceFixImage } = require('../../services/aiService');
-      const useModelStore = require('../../store/useModelStore').default;
       const fixedImages = await faceFixImage({ 
         sourceImage: currentImage.url, 
         prompt: currentImage.prompt, 
@@ -303,9 +323,19 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
         {/* Generation Details Panel */}
         {showDetails && (
           <div className="absolute right-4 top-4 bottom-4 w-72 bg-[var(--surface-1)]/90 backdrop-blur-xl border border-[var(--border-subtle)] rounded-2xl p-5 overflow-y-auto z-40 text-left shadow-2xl animate-fade-in custom-scrollbar">
-            <h3 className="text-[var(--text-primary)] font-semibold mb-4 flex items-center gap-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[var(--text-primary)] font-semibold flex items-center gap-2">
               <Info className="w-4 h-4 text-[#a855f7]" /> {t('viewer.generationDetails', 'Generation Details')}
             </h3>
+              <button 
+                onClick={handleCopyDetails}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[var(--surface-3)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-4)] transition-all border border-[var(--border-subtle)]"
+                title={t('viewer.copyDetails', 'Copy Details')}
+              >
+                {copiedDetails ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedDetails ? t('viewer.copied', 'Copied!') : t('viewer.copy', 'Copy')}
+              </button>
+            </div>
             
             <div className="space-y-4">
               <div>
@@ -360,6 +390,12 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
                     {currentImage.width && currentImage.height ? `${currentImage.width}x${currentImage.height}` : '512x768'}
                   </div>
                 </div>
+                <div className="bg-[var(--surface-3)] p-2 rounded-lg border border-[var(--border-subtle)] col-span-2">
+                  <div className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider mb-0.5">{t('viewer.date', 'Date')}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">
+                    {currentImage.timestamp ? new Date(currentImage.timestamp).toLocaleString() : t('viewer.unknown', 'Unknown')}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -386,8 +422,11 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
             </p>
             <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap">
               {currentImage.width && currentImage.height && (
-                <span className="text-xs text-[var(--text-tertiary)] font-mono">
+                <span className="text-xs text-[var(--text-tertiary)] font-mono flex items-center gap-2">
                   {currentImage.width}x{currentImage.height}
+                  {currentImage.timestamp && (
+                    <span>• {new Date(currentImage.timestamp).toLocaleString()}</span>
+                  )}
                 </span>
               )}
               {currentImage.seed && (
@@ -492,6 +531,15 @@ export default function ImageViewerModal({ image, images = [], currentIndex = 0,
               {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               {isDownloading ? 'Downloading...' : 'Download'}
             </button>
+            {onDelete && (
+              <button
+                onClick={() => onDelete(currentImage)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all text-sm font-medium shrink-0 ml-auto md:ml-0"
+              >
+                <Trash2 className="w-4 h-4" />
+                {t('common.delete', 'Delete')}
+              </button>
+            )}
           </div>
 
         </div>

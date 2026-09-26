@@ -27,7 +27,8 @@
     "library": "LIBRARY",
     "system": "SYSTEM",
     "freeUser": "免费用户",
-    "proUser": "专业创作者"
+    "proUser": "专业创作者",
+    "community": "社区"
   },
   "generate": {
     "promptPlaceholder": "描述你想创建什么...",
@@ -42,9 +43,9 @@
     "batchSize": "批次大小",
     "seed": "种子",
     "randomSeed": "随机",
-    "engineTooltip": "The backend provider or hardware powering the generation.",
-    "selectEngine": "Select Engine",
-    "baseEngine": "Base Inference Engine",
+    "engineTooltip": "支持生成的后端提供商或硬件。",
+    "selectEngine": "选择引擎",
+    "baseEngine": "基础推理引擎",
     "customSettings": "Using Custom Settings",
     "standardSettings": "Using Standard Settings",
     "saved": "Saved!",
@@ -64,7 +65,24 @@
     "cfgTooltip": "How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.",
     "seedTooltip": "A random number that generates the initial noise. Use the same seed to reproduce the exact same image.",
     "seedPlaceholder": "-1 for random",
-    "waiting": "等待生成..."
+    "waiting": "等待生成...",
+    "normal": "普通",
+    "large": "大",
+    "wallpaper": "壁纸",
+    "customAspect": "自定义...",
+    "group_normal": "普通",
+    "group_large": "大",
+    "group_wallpaper": "壁纸",
+    "group_cinematic": "电影",
+    "group_custom": "自定义",
+    "width": "宽度",
+    "height": "高度",
+    "aspectRatioNote": "注意：画布尺寸必须是 64px 的倍数。值将自动对齐。",
+    "denoisingStrength": "降噪强度",
+    "denoisingTooltip": "控制参考图像被更改的程度。较低的值保留原始图像，较高的值允许更多创造性的更改。",
+    "faceFixEngine": "面部修复引擎",
+    "faceFixTooltip": "用于检测和恢复面部的 AI 模型。GFPGAN 最适合逼真的照片；ADetailer 更适合动漫和其他风格。",
+    "comingSoon": "敬请期待"
   },
   "settings": {
     "title": "设置",
@@ -79,12 +97,19 @@
     "showGuide": "显示欢迎指南",
     "startTour": "开始交互式游览",
     "about": "关于",
-    "systemDocs": "System Documentation",
+    "systemDocs": "系统文档",
     "theme": "主题和外观",
     "themeDesc": "自定义视觉风格",
     "changeTheme": "更改主题",
     "language": "语言",
-    "languageDesc": "更改显示语言"
+    "languageDesc": "更改显示语言",
+    "feedback": "反馈",
+    "feedbackDesc": "有建议或发现错误？请告诉我们！",
+    "sendFeedback": "发送反馈",
+    "vaultSecurity": "保险库安全",
+    "vaultSecurityDesc": "管理 18+ 模式和保险库的 PIN 码保护",
+    "removePin": "删除 PIN 码",
+    "setupPin": "设置 PIN 码"
   },
   "modes": {
     "create": "创建图像",
@@ -280,7 +305,12 @@
     "enterPasswordConfirm": "输入密码以确认",
     "permanentlyDelete": "永久删除账号",
     "uploadError": "Failed to process image. Please try another one.",
-    "uploadCustom": "Upload Custom Picture"
+    "uploadCustom": "Upload Custom Picture",
+    "feedbackText": "您的反馈有助于我们改进 HappyGen Studio。单击下面的按钮直接向我们发送电子邮件。",
+    "feedback": "反馈",
+    "feedbackTitle": "发送反馈",
+    "feedbackDesc": "有建议或发现错误？请告诉我们！",
+    "sendFeedback": "发送反馈"
   },
   "nav": {
     "create": "创作",
@@ -293,7 +323,10 @@
   },
   "gallery": {
     "canvasAwaits": "您的画布已准备就绪",
-    "canvasDesc": "描述您的愿景，调整设置，让 HappyGen Studio 为您呈现。"
+    "canvasDesc": "描述您的愿景，调整设置，让 HappyGen Studio 为您呈现。",
+    "deleteImage": "删除图像",
+    "deleteImageTitle": "删除图像",
+    "deleteImageDesc": "您确定要删除这张生成的图像吗？此操作无法撤销。"
   },
   "model": {
     "baseModel": "基础模型",
@@ -350,7 +383,12 @@
     "lockedDesc": "根据PRD第4.5节安全规则，成人内容资产存储在隔离的加密分区中。完成身份验证以解锁。",
     "emptyGallery": "此图库分区中未存储任何资产。",
     "viewFullscreen": "全屏查看",
-    "sendToInpaint": "发送到局部重绘工作室"
+    "sendToInpaint": "发送到局部重绘工作室",
+    "deleteAssetTitle": "删除资产",
+    "deleteAssetDesc": "您确定要从库中删除此资产吗？此操作无法撤销。",
+    "setupPinDesc": "设置一个 4 位 PIN 码以保护您的保险库。",
+    "setPinBtn": "设置 PIN 码",
+    "unlockPinDesc": "输入您的 4 位 PIN 码以解锁。"
   },
   "viewer": {
     "imageDetails": "Image Details",
@@ -374,25 +412,26 @@
     "generatedTags": "Generated tags will appear here..."
   },
   "theme": {
-    "appearanceThemes": "Appearance Themes",
-    "editTheme": "Edit Theme",
-    "createCustomTheme": "Create Custom Theme",
-    "presetThemes": "Preset Themes",
-    "yourThemes": "Your Themes",
-    "newTheme": "New Theme",
-    "noCustomThemes": "You haven't created any custom themes yet.",
-    "themeName": "Theme Name",
-    "namePlaceholder": "E.g. Neon Nights",
-    "colorPalette": "Color Palette",
-    "saveChanges": "Save Changes",
-    "createTheme": "Create Theme"
+    "appearanceThemes": "外观主题",
+    "editTheme": "编辑主题",
+    "createCustomTheme": "创建自定义主题",
+    "presetThemes": "预设主题",
+    "yourThemes": "您的主题",
+    "newTheme": "新主题",
+    "noCustomThemes": "您尚未创建任何自定义主题。",
+    "themeName": "主题名称",
+    "namePlaceholder": "例如：霓虹之夜",
+    "colorPalette": "调色板",
+    "saveChanges": "保存更改",
+    "createTheme": "创建主题"
   },
   "common": {
     "applyAndClose": "Apply & Close",
     "usePrompt": "Use Prompt",
     "download": "Download",
     "clearImage": "清除图像",
-    "cancel": "取消"
+    "cancel": "取消",
+    "delete": "删除"
   },
   "safety": {
     "consoleTitle": "Trust & Safety Audit Console",
@@ -494,5 +533,27 @@
   },
   "app": {
     "bannerText": "更多基础模型和高级视频套件即将推出！敬请期待。"
+  },
+  "feedback": {
+    "imageLabel": "附加图像（可选）",
+    "uploadImage": "点击上传图像",
+    "title": "发送反馈",
+    "successTitle": "谢谢！",
+    "successDesc": "您的反馈已直接发送给开发者。",
+    "desc": "发现了一个错误？有一个功能请求？或者只是想打个招呼？请在下面告诉我们！",
+    "messageLabel": "您的留言",
+    "messagePlaceholder": "告诉我们您的想法...",
+    "emailLabel": "电子邮件 (可选)",
+    "emailPlaceholder": "如果您希望我们回复",
+    "submit": "发送反馈"
+  },
+  "security": {
+    "title": "安全",
+    "setupTitle": "设置保险库 PIN 码",
+    "setupDesc": "创建一个 4 位 PIN 码以保护您的 18+ 模式和成人保险库。",
+    "removeTitle": "删除保险库 PIN 码",
+    "removeDesc": "输入您当前的 4 位 PIN 码以禁用保险库安全。",
+    "verifyTitle": "输入 PIN 码",
+    "verifyDesc": "请输入您的 4 位 PIN 码以继续。"
   }
 }

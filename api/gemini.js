@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     const payload = {
       contents: [{
         parts: [
-          { text: "Describe this image in extreme detail, focusing on the character's identity, physical appearance, clothing, the background environment, lighting, and the art style. Write it as a single cohesive paragraph." },
+          { text: "Analyze this image and write a concise, high-quality text-to-image prompt. Focus on the main subject, character identity, art style, clothing, and lighting. Keep it concise using comma-separated tags or short phrases optimized for Stable Diffusion. Do not write a long paragraph." },
           { inlineData: { mimeType, data: base64Image } }
         ]
       }]

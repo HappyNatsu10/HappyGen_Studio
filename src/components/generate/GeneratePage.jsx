@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Settings, Loader2, Sparkles, AlertCircle, StopCircle, RefreshCw, 
-  Image as ImageIcon, Upload, X 
+  Image as ImageIcon, Upload, X, HelpCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PromptEditor from './PromptEditor';
@@ -12,6 +12,7 @@ import OutputGallery from './OutputGallery';
 import GenerationModeSelector from './GenerationModeSelector';
 import ImageUploadZone from './ImageUploadZone';
 import InpaintCanvas from './InpaintCanvas';
+import Tooltip from '../common/Tooltip';
 import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage } from '../../services/aiService';
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
@@ -295,8 +296,11 @@ export default function GeneratePage() {
         {generationMode === 'img2img' && (
           <motion.div variants={itemVariants}>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
-                Denoising Strength
+              <label className="text-[11px] font-medium flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                {t('generate.denoisingStrength', 'Denoising Strength')}
+                <Tooltip text={t('generate.denoisingTooltip', 'Controls how much the reference image is altered. Lower values keep the original, higher values allow more creative changes.')}>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+                </Tooltip>
               </label>
               <span className="text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>{denoisingStrength}</span>
             </div>
@@ -315,8 +319,11 @@ export default function GeneratePage() {
         {generationMode === 'facefix' && (
           <motion.div variants={itemVariants}>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
-                Face Fix Engine
+              <label className="text-[11px] font-medium flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                {t('generate.faceFixEngine', 'Face Fix Engine')}
+                <Tooltip text={t('generate.faceFixTooltip', 'The AI model used to detect and restore faces. GFPGAN is fast and versatile; ADetailer provides fine-grained control.')}>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+                </Tooltip>
               </label>
             </div>
             <select
@@ -451,6 +458,7 @@ export default function GeneratePage() {
           onCreateVariant={handleCreateVariant}
           onSendToCanvas={onSendToCanvas}
           onUpscale={handleDirectUpscale}
+          onDelete={(img) => setResults(prev => prev.filter(r => r.url !== img.url))}
         />
       </div>
 

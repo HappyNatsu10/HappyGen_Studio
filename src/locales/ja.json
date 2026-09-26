@@ -22,12 +22,13 @@
     "settings": "設定",
     "collapse": "折りたたむ",
     "expand": "展開する",
-    "create": "CREATE",
-    "discover": "DISCOVER",
-    "library": "LIBRARY",
-    "system": "SYSTEM",
+    "create": "作成",
+    "discover": "発見",
+    "library": "ライブラリ",
+    "system": "システム",
     "freeUser": "無料ユーザー",
-    "proUser": "プロスタジオクリエイター"
+    "proUser": "プロスタジオクリエイター",
+    "community": "コミュニティ"
   },
   "generate": {
     "promptPlaceholder": "作成したいものを説明してください...",
@@ -42,9 +43,9 @@
     "batchSize": "バッチサイズ",
     "seed": "シード値",
     "randomSeed": "ランダム",
-    "engineTooltip": "The backend provider or hardware powering the generation.",
-    "selectEngine": "Select Engine",
-    "baseEngine": "Base Inference Engine",
+    "engineTooltip": "生成を強化するバックエンドプロバイダーまたはハードウェア。",
+    "selectEngine": "エンジンを選択",
+    "baseEngine": "ベース推論エンジン",
     "customSettings": "Using Custom Settings",
     "standardSettings": "Using Standard Settings",
     "saved": "Saved!",
@@ -64,7 +65,24 @@
     "cfgTooltip": "How strictly the AI follows your prompt. Higher = stricter, Lower = more creative freedom.",
     "seedTooltip": "A random number that generates the initial noise. Use the same seed to reproduce the exact same image.",
     "seedPlaceholder": "-1 for random",
-    "waiting": "生成を待機中..."
+    "waiting": "生成を待機中...",
+    "normal": "ノーマル",
+    "large": "ラージ",
+    "wallpaper": "壁紙",
+    "customAspect": "カスタム...",
+    "group_normal": "ノーマル",
+    "group_large": "ラージ",
+    "group_wallpaper": "壁紙",
+    "group_cinematic": "シネマティック",
+    "group_custom": "カスタム",
+    "width": "幅",
+    "height": "高さ",
+    "aspectRatioNote": "注意：キャンバスサイズは64pxの倍数である必要があります。値は自動的にスナップされます。",
+    "denoisingStrength": "ノイズ除去強度",
+    "denoisingTooltip": "参照画像がどの程度変更されるかを制御します。低い値は元の画像を保持し、高い値はより創造的な変更を可能にします。",
+    "faceFixEngine": "顔修正エンジン",
+    "faceFixTooltip": "顔を検出して復元するためのAIモデル。GFPGANはリアルな写真に最適で、ADetailerはアニメやその他のスタイルに適しています。",
+    "comingSoon": "近日公開"
   },
   "settings": {
     "title": "設定",
@@ -79,12 +97,19 @@
     "showGuide": "ウェルカムガイドを表示",
     "startTour": "インタラクティブツアーを開始",
     "about": "概要",
-    "systemDocs": "System Documentation",
+    "systemDocs": "システムドキュメント",
     "theme": "テーマと外観",
     "themeDesc": "視覚スタイルをカスタマイズ",
     "changeTheme": "テーマを変更",
     "language": "言語",
-    "languageDesc": "表示言語を変更"
+    "languageDesc": "表示言語を変更",
+    "feedback": "フィードバック",
+    "feedbackDesc": "提案があるか、バグを見つけましたか？お知らせください！",
+    "sendFeedback": "フィードバックを送信",
+    "vaultSecurity": "保管庫のセキュリティ",
+    "vaultSecurityDesc": "18+モードと保管庫の暗証番号保護を管理する",
+    "removePin": "暗証番号を削除",
+    "setupPin": "暗証番号を設定"
   },
   "modes": {
     "create": "画像を作成",
@@ -280,7 +305,12 @@
     "enterPasswordConfirm": "確認のためパスワードを入力",
     "permanentlyDelete": "アカウントを永久に削除",
     "uploadError": "Failed to process image. Please try another one.",
-    "uploadCustom": "Upload Custom Picture"
+    "uploadCustom": "Upload Custom Picture",
+    "feedbackText": "お客様のフィードバックはHappyGen Studioの改善に役立ちます。以下のボタンをクリックして直接メールをお送りください。",
+    "feedback": "フィードバック",
+    "feedbackTitle": "フィードバックを送信",
+    "feedbackDesc": "提案があるか、バグを見つけましたか？お知らせください！",
+    "sendFeedback": "フィードバックを送信"
   },
   "nav": {
     "create": "作成",
@@ -350,7 +380,10 @@
     "lockedDesc": "PRDセクション4.5の安全規則に従い、大人向けコンテンツアセットは分離され暗号化されたパーティションに保存されます。ロックを解除するには身元確認を完了してください。",
     "emptyGallery": "このギャラリーパーティションにはアセットが保存されていません。",
     "viewFullscreen": "フルスクリーンで表示",
-    "sendToInpaint": "インペイントスタジオに送信"
+    "sendToInpaint": "インペイントスタジオに送信",
+    "setupPinDesc": "保管庫を保護するための4桁の暗証番号を設定します。",
+    "setPinBtn": "暗証番号を設定",
+    "unlockPinDesc": "ロックを解除するには4桁の暗証番号を入力してください。"
   },
   "viewer": {
     "imageDetails": "Image Details",
@@ -374,18 +407,18 @@
     "generatedTags": "Generated tags will appear here..."
   },
   "theme": {
-    "appearanceThemes": "Appearance Themes",
-    "editTheme": "Edit Theme",
-    "createCustomTheme": "Create Custom Theme",
-    "presetThemes": "Preset Themes",
-    "yourThemes": "Your Themes",
-    "newTheme": "New Theme",
-    "noCustomThemes": "You haven't created any custom themes yet.",
-    "themeName": "Theme Name",
-    "namePlaceholder": "E.g. Neon Nights",
-    "colorPalette": "Color Palette",
-    "saveChanges": "Save Changes",
-    "createTheme": "Create Theme"
+    "appearanceThemes": "外観テーマ",
+    "editTheme": "テーマを編集",
+    "createCustomTheme": "カスタムテーマを作成",
+    "presetThemes": "プリセットテーマ",
+    "yourThemes": "あなたのテーマ",
+    "newTheme": "新しいテーマ",
+    "noCustomThemes": "まだカスタムテーマを作成していません。",
+    "themeName": "テーマ名",
+    "namePlaceholder": "例：ネオンナイト",
+    "colorPalette": "カラーパレット",
+    "saveChanges": "変更を保存",
+    "createTheme": "テーマを作成"
   },
   "common": {
     "applyAndClose": "Apply & Close",
@@ -494,5 +527,27 @@
   },
   "app": {
     "bannerText": "より多くのベースモデルと高度なビデオスイートがまもなく登場します！ご期待ください。"
+  },
+  "feedback": {
+    "imageLabel": "画像を添付 (任意)",
+    "uploadImage": "クリックして画像をアップロード",
+    "title": "フィードバックを送信",
+    "successTitle": "ありがとうございます！",
+    "successDesc": "フィードバックは開発者に直接送信されました。",
+    "desc": "バグを見つけましたか？機能のリクエストがありますか？それとも単に挨拶したいですか？以下でお知らせください！",
+    "messageLabel": "メッセージ",
+    "messagePlaceholder": "あなたの考えを聞かせてください...",
+    "emailLabel": "メールアドレス (任意)",
+    "emailPlaceholder": "返信をご希望の場合",
+    "submit": "フィードバックを送信"
+  },
+  "security": {
+    "title": "セキュリティ",
+    "setupTitle": "保管庫の暗証番号を設定",
+    "setupDesc": "18+モードと大人向け保管庫を保護するための4桁の暗証番号を作成します。",
+    "removeTitle": "保管庫の暗証番号を削除",
+    "removeDesc": "保管庫のセキュリティを無効にするには、現在の4桁の暗証番号を入力してください。",
+    "verifyTitle": "暗証番号を入力",
+    "verifyDesc": "続行するには4桁の暗証番号を入力してください。"
   }
 }

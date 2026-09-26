@@ -74,14 +74,19 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
                 <div className="flex flex-col">
                   {group.models.map(model => {
                     const isSelected = selectedEngineId === model.id;
+                    const isDisabled = model.disabled;
                     return (
                       <button
                         key={model.id}
+                        disabled={isDisabled}
                         onClick={() => {
-                          onSelectEngine(model.id);
-                          setIsOpen(false);
+                          if (!isDisabled) {
+                            onSelectEngine(model.id);
+                            setIsOpen(false);
+                          }
                         }}
                         className={`text-left px-4 py-2 text-[13px] transition-colors flex items-center gap-2 ${
+                          isDisabled ? 'opacity-50 cursor-not-allowed text-[var(--text-tertiary)]' : 
                           isSelected ? 'bg-[var(--surface-3)] text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]'
                         }`}
                       >
@@ -90,6 +95,9 @@ export default function EngineSelector({ engines, selectedEngineId, onSelectEngi
                           <span className="px-1.5 rounded-sm bg-[var(--accent-subtle)] text-[var(--text-accent)] text-[10px]">
                             {model.badge}
                           </span>
+                        )}
+                        {isDisabled && (
+                          <span className="ml-auto text-[10px] text-[var(--text-tertiary)] italic">{t('generate.comingSoon', 'Coming Soon')}</span>
                         )}
                       </button>
                     );
