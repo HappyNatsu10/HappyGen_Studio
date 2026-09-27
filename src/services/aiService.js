@@ -166,13 +166,18 @@ export const generateImageAI = async ({
 
       if (data.error) throw new Error(data.error);
 
+      if (data.warnings && data.warnings.length > 0) {
+        hasWarning = true;
+        warningReason = data.warnings.join(' | ');
+      }
+
       if (data.images?.length > 0) {
         const rawB64 = data.images[0];
         
         // Quality heuristic: If base64 is suspiciously small (< 130KB), it's likely a corrupted flat image
         if (rawB64.length < 130000) {
           hasWarning = true;
-          warningReason = "Image size is suspiciously small. If using SDXL Lightning, ensure Steps=4 and CFG=1.5. If not, check for incompatible SD 1.5 LoRAs.";
+          warningReason = (warningReason ? warningReason + ' | ' : '') + "Image size is suspiciously small. If using SDXL Lightning, ensure Steps=4 and CFG=1.5. If not, check for incompatible SD 1.5 LoRAs.";
         }
         
         imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
@@ -371,8 +376,22 @@ export const generateImg2Img = async ({
       });
 
       if (data.error) throw new Error(data.error);
+
+      let hasWarning = false;
+      let warningReason = '';
+      if (data.warnings && data.warnings.length > 0) {
+        hasWarning = true;
+        warningReason = data.warnings.join(' | ');
+      }
+
       if (data.images?.length > 0) {
         const rawB64 = data.images[0];
+        
+        if (rawB64.length < 130000) {
+          hasWarning = true;
+          warningReason = (warningReason ? warningReason + ' | ' : '') + "Image size is suspiciously small. Check for incompatible LoRAs or settings.";
+        }
+
         const imageUrl = rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`;
         images.push({
           id: `img2img-${Date.now()}-${i}`,
@@ -389,7 +408,9 @@ export const generateImg2Img = async ({
           height,
           seed: currentSeed,
           createdAt: new Date().toISOString(),
-          isAdult: isAdultMode
+          isAdult: isAdultMode,
+          hasWarning,
+          warningReason
         });
       }
     } catch (err) {

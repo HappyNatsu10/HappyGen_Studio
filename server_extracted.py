@@ -413,7 +413,8 @@ def _load_embeddings(target_pipe, embeddings, api_key):
 
 _lora_counter = 0
 
-def _apply_loras(target_pipe, loras, api_key):
+def _apply_loras(target_pipe, loras, api_key, warnings_list=None):
+    if warnings_list is None: warnings_list = []
     global _lora_counter
     loaded_adapters = []
     loaded_weights = []
@@ -460,7 +461,8 @@ def _do_txt2img(req: Txt2ImgRequest):
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
     _load_embeddings(pipe, req.embeddings, req.civitai_api_key)
-    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
+    warnings = []
+    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key, warnings)
     is_pony = "pony" in str(req.base_model).lower() or "pony" in str(globals().get("CURRENT_BASE_MODEL_FILE", "")).lower()
     if is_pony:
         prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"

@@ -321,7 +321,8 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
 
 _lora_counter = 0
 
-def _apply_loras(target_pipe, loras, api_key):
+def _apply_loras(target_pipe, loras, api_key, warnings_list=None):
+    if warnings_list is None: warnings_list = []
     global _lora_counter
     loaded_adapters = []
     loaded_weights = []
@@ -357,7 +358,7 @@ def _apply_loras(target_pipe, loras, api_key):
                 loaded_weights.append(weight)
                 loaded_adapters.append(adapter_id)
             except Exception as e:
-                raise ValueError(f"Failed to load LoRA '{lora_file}'. This usually happens if the LoRA is for a different model architecture (e.g. SDXL vs SD1.5) or is an unsupported format like LyCORIS. Please check compatibility! (Error: {e})")
+                warnings_list.append(f"Failed to load LoRA '{lora_file}'. Unsupported format (e.g. LyCORIS) or architecture mismatch. Error: {e}")
     if loaded_adapters:
         target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
     return loaded_adapters
@@ -366,7 +367,8 @@ def _do_txt2img(req: Txt2ImgRequest):
     _switch_model_if_needed(req.base_model, req.civitai_api_key)
     seed = req.seed if (req.seed is not None and req.seed >= 0) else int(torch.randint(0, 2**32, (1,)).item())
     generator = torch.Generator("cuda").manual_seed(seed)
-    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key)
+    warnings = []
+    loaded_adapters = _apply_loras(pipe, req.loras, req.civitai_api_key, warnings)
     is_pony = "pony" in str(req.base_model).lower() or "pony" in str(globals().get("CURRENT_BASE_MODEL_FILE", "")).lower()
     if is_pony:
         prompt_str = req.prompt if "score_" in req.prompt else f"score_9, score_8_up, score_7_up, source_anime, {req.prompt}"
@@ -384,7 +386,7 @@ def _do_txt2img(req: Txt2ImgRequest):
     if loaded_adapters:
         try: pipe.delete_adapters(loaded_adapters)
         except: pass
-    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
+    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})", "warnings": warnings}
 
 @app.post("/sdapi/v1/txt2img")
 def txt2img(req: Txt2ImgRequest):
@@ -413,7 +415,7 @@ def _do_img2img(req: Img2ImgRequest):
     if loaded_adapters:
         try: pipe_img2img.delete_adapters(loaded_adapters)
         except: pass
-    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})"}
+    return {"images": [_encode_image_to_base64(image)], "source": f"Google Colab Cloud GPU ({torch.cuda.get_device_name(0)})", "warnings": warnings}
 
 @app.post("/sdapi/v1/img2img")
 def img2img(req: Img2ImgRequest):
