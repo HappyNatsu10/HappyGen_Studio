@@ -61,6 +61,7 @@
     "@capacitor/core": "^7.0.1",
     "@capacitor/filesystem": "^7.1.8",
     "@capacitor/share": "^7.0.4",
+    "@capgo/capacitor-native-biometric": "^7.6.0",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "driver.js": "^1.8.0",
@@ -89,6 +90,7 @@
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",
     "postcss": "^8.5.2",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.0.5",
     "vite": "^6.1.0"
   }

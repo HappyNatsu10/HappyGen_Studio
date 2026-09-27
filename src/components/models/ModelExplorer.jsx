@@ -59,6 +59,19 @@ export default function ModelExplorer(props) {
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolder, setEditingFolder] = useState(null);
   const [editFolderName, setEditFolderName] = useState('');
+
+  // Scroll visibility
+  const [showFilters, setShowFilters] = useState(true);
+  const lastScrollY = useRef(0);
+  const handleScroll = useCallback((e) => {
+    const currentScrollY = e.target.scrollTop;
+    if (currentScrollY > lastScrollY.current + 15 && currentScrollY > 100) {
+      setShowFilters(false);
+    } else if (currentScrollY < lastScrollY.current - 15 || currentScrollY <= 10) {
+      setShowFilters(true);
+    }
+    lastScrollY.current = currentScrollY;
+  }, []);
   const [favModalModel, setFavModalModel] = useState(null);
   const [isSyncingFavs, setIsSyncingFavs] = useState(false);
 
@@ -203,9 +216,13 @@ export default function ModelExplorer(props) {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden relative">
       {/* Search & Tabs */}
-      <div className="px-5 pt-4 pb-3 space-y-3">
+      <div 
+        className={`px-5 pt-4 pb-3 space-y-3 transition-all duration-300 ease-in-out shrink-0 overflow-hidden ${
+          showFilters ? 'max-h-[500px] opacity-100' : 'max-h-0 py-0 pb-0 opacity-0'
+        }`}
+      >
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
@@ -236,7 +253,7 @@ export default function ModelExplorer(props) {
             </button>
             <button
               onClick={() => setActiveTab('Favourites')}
-              className={`mode-toggle-option flex items-center ${activeTab === 'Favourites' ? 'active' : ''}`}
+              className={`mode-toggle-option flex items-center justify-center ${activeTab === 'Favourites' ? 'active' : ''}`}
             >
               <Heart className="inline w-3 h-3 mr-1" /> {t('explorer.favourites', 'Favourites')}
             </button>
@@ -492,7 +509,10 @@ export default function ModelExplorer(props) {
       </div>
 
       {/* Results Grid */}
-      <div className="flex-1 overflow-y-auto px-5 pb-5">
+      <div 
+        className="flex-1 overflow-y-auto px-5 pb-5 pt-2"
+        onScroll={handleScroll}
+      >
         {error && (
           <div className="rounded-lg p-4 text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: 'var(--error)' }}>
             {error}

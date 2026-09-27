@@ -4,13 +4,16 @@ import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, M
 import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import { useAuth } from '../context/AuthContext';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Media } from '@capacitor-community/media';
+import { saveImageToGallery } from '../utils/mediaUtils';
 
 export default function GalleryProjects() {
   const { t } = useTranslation();
   const { isAdultMode, adultVaultPin, setAdultVaultPin, adultVaultUnlocked, setAdultVaultUnlocked } = useAppStore();
   const { generatedAssets, removeGeneratedAsset } = useWorkspaceStore();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'adult_vault'
   const [pinInput, setPinInput] = useState('');
   const [activeViewerImage, setActiveViewerImage] = useState(null);
@@ -21,6 +24,13 @@ export default function GalleryProjects() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
+
   const [showMultiDeleteModal, setShowMultiDeleteModal] = useState(false);
 
   const filteredAssets = generatedAssets.filter(asset => 
@@ -101,7 +111,7 @@ export default function GalleryProjects() {
               directory: Directory.Cache
             });
             
-            await Media.savePhoto({ path: cacheFile.uri });
+            await saveImageToGallery(cacheFile.uri);
             resolve();
           } catch (err) {
             console.error("Download failed:", err);
@@ -136,6 +146,7 @@ export default function GalleryProjects() {
     setIsDownloading(false);
     setIsSelectionMode(false);
     setSelectedIds(new Set());
+    showToast(`Successfully saved ${assetsToDownload.length} image(s) to gallery!`);
   };
 
   const handleDeleteSelected = () => {
@@ -274,6 +285,19 @@ export default function GalleryProjects() {
                     }
                   }} 
                 />
+                
+                <button
+                  onClick={async () => {
+                    if(confirm("To reset your PIN and protect your privacy, you must sign out and sign back in. Continue?")) {
+                      setAdultVaultPin(null);
+                      setAdultVaultUnlocked(false);
+                      await logout();
+                    }
+                  }}
+                  className="w-full mt-4 text-sm text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                >
+                  Forgot PIN?
+                </button>
              </div>
           )}
         </div>
@@ -457,6 +481,14 @@ export default function GalleryProjects() {
         </div>
       )}
 
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[var(--surface-3)] text-white px-4 py-2 rounded-full shadow-lg text-sm z-50 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-green-400" />
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
+

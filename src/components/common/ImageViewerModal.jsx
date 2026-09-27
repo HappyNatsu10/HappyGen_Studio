@@ -10,6 +10,7 @@ import useAppStore from '../../store/useAppStore';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
+import { saveImageToGallery } from '../../utils/mediaUtils';
 
 export default function ImageViewerModal({ image, images = [], currentIndex = 0, onIndexChange, isOpen, onClose, onDelete }) {
   const { t } = useTranslation();
@@ -153,10 +154,7 @@ Date: ${dateText}`.trim();
             });
             
             // 2. Save to gallery using Media plugin
-            await Media.savePhoto({
-              path: cacheFile.uri,
-              album: 'HappyGen Studio'
-            });
+            await saveImageToGallery(cacheFile.uri);
             
             showToast('Image successfully saved to your gallery!');
           } catch (err) {
@@ -548,3 +546,5 @@ Date: ${dateText}`.trim();
     document.body
   );
 }
+
+

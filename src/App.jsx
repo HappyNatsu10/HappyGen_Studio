@@ -189,12 +189,15 @@ function SettingsPage() {
   const [pendingAction, setPendingAction] = useState(null);
 
   const handleToggleAdultMode = () => {
-    if (adultVaultPin) {
-      setPinMode('verify');
+    if (!adultVaultPin) {
+      // Require PIN setup before toggling
+      setPinMode('setup');
       setPendingAction(() => () => setIsAdultMode(!isAdultMode));
       setShowPinModal(true);
     } else {
-      setIsAdultMode(!isAdultMode);
+      setPinMode('verify');
+      setPendingAction(() => () => setIsAdultMode(!isAdultMode));
+      setShowPinModal(true);
     }
   };
 

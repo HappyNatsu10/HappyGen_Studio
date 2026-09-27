@@ -1,19 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Lock, ShieldAlert } from 'lucide-react';
+import { X, Lock, ShieldAlert, LogOut, Fingerprint } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useAppStore from '../../store/useAppStore';
+import { useAuth } from '../../context/AuthContext';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
 export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess }) {
   const { t } = useTranslation();
   const { adultVaultPin, setAdultVaultPin, setAdultVaultUnlocked } = useAppStore();
+  const { logout } = useAuth();
   
   const [pinInput, setPinInput] = useState('');
   const [error, setError] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && mode === 'verify') {
+      const checkBiometric = async () => {
+        try {
+          const result = await NativeBiometric.isAvailable();
+          setIsBiometricAvailable(result.isAvailable);
+        } catch (e) {
+          console.log("Biometric not available", e);
+        }
+      };
+      checkBiometric();
+    }
+  }, [isOpen, mode]);
+
+  const handleBiometricAuth = async () => {
+    try {
+      await NativeBiometric.verifyIdentity({
+        reason: "Unlock 18+ Vault",
+        title: "Vault Verification",
+        subtitle: "Use biometrics to unlock"
+      });
+      setAdultVaultUnlocked(true);
+      if(onSuccess) onSuccess();
+      handleClose();
+    } catch (e) {
+      console.log("Biometric auth failed", e);
+      setError(true);
+      setTimeout(() => setError(false), 500);
+    }
+  };
 
   if (!isOpen) return null;
-
-  // mode can be: 'verify', 'setup', 'remove'
   
   const handleVerify = (val) => {
     if (val === adultVaultPin) {
@@ -51,6 +85,13 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
     }
   };
 
+  const handleForgotReset = async () => {
+    setAdultVaultPin(null);
+    setAdultVaultUnlocked(false);
+    await logout();
+    handleClose();
+  };
+
   const handleChange = (e) => {
     const val = e.target.value.replace(/\D/g, '');
     setPinInput(val);
@@ -65,10 +106,38 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
   const handleClose = () => {
     setPinInput('');
     setError(false);
-    onClose();
+    setIsForgotMode(false);
+    if(onClose) onClose();
   };
 
   const renderContent = () => {
+    if (isForgotMode) {
+      return (
+        <div className="text-center animate-in fade-in slide-in-from-right-4 duration-300">
+          <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Reset Vault PIN</h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-6">
+            To reset your PIN and protect your privacy, you must sign out and sign back in to verify your identity.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleForgotReset}
+              className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 py-3 rounded-xl font-medium transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out & Reset PIN
+            </button>
+            <button
+              onClick={() => setIsForgotMode(false)}
+              className="w-full py-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     if (mode === 'setup') {
       return (
         <>
@@ -125,17 +194,40 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
         <div className="p-8">
           {renderContent()}
 
-          <input 
-            type="password" 
-            maxLength={4} 
-            autoFocus
-            placeholder="••••"
-            className={`w-32 text-center text-3xl tracking-[0.5em] pl-[0.5em] p-3 bg-[var(--surface-2)] border rounded-xl text-[var(--text-primary)] mx-auto block outline-none transition-all ${
-              error ? 'border-red-500 animate-shake' : 'border-[var(--border-subtle)] focus:border-[#a855f7]'
-            }`}
-            value={pinInput} 
-            onChange={handleChange} 
-          />
+          {!isForgotMode && (
+            <div className="animate-in fade-in duration-300">
+              <input 
+                type="password" 
+                maxLength={4} 
+                autoFocus
+                placeholder="••••"
+                className={`w-32 text-center text-3xl tracking-[0.5em] pl-[0.5em] p-3 bg-[var(--surface-2)] border rounded-xl text-[var(--text-primary)] mx-auto block outline-none transition-all ${
+                  error ? 'border-red-500 animate-shake' : 'border-[var(--border-subtle)] focus:border-[#a855f7]'
+                }`}
+                value={pinInput} 
+                onChange={handleChange} 
+              />
+              
+              {(mode === 'verify' || mode === 'remove') && (
+                <button
+                  onClick={() => setIsForgotMode(true)}
+                  className="w-full mt-6 text-sm text-[var(--text-secondary)] hover:text-[#a855f7] transition-colors"
+                >
+                  Forgot PIN?
+                </button>
+              )}
+
+              {mode === 'verify' && isBiometricAvailable && (
+                <button
+                  onClick={handleBiometricAuth}
+                  className="w-full mt-4 flex items-center justify-center gap-2 text-sm text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 py-3 rounded-xl font-medium transition-colors"
+                >
+                  <Fingerprint className="w-5 h-5" />
+                  Use Biometrics
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>,
