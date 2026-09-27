@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import useAppStore from '../store/useAppStore';
+import { auth } from '../config/firebase';
 import { X, LogOut, PlusCircle, Check, Edit3, User, Shield, AlertTriangle, Upload, MessageSquare } from 'lucide-react';
 import { resizeAndConvertToBase64 } from '../utils/imageUtils';
 
@@ -9,6 +10,8 @@ export default function UserProfileModal({ isOpen, onClose }) {
   const { t } = useTranslation();
   const { currentUser, logout, updateProfile, changePassword, deleteAccount, DEFAULT_AVATARS } = useAuth();
   const setShowFeedbackModal = useAppStore(state => state.setShowFeedbackModal);
+  
+  const isPasswordUser = auth.currentUser?.providerData.some(p => p.providerId === 'password');
   
   const [activeTab, setActiveTab] = useState('profile'); // profile, security, danger
 
@@ -78,8 +81,14 @@ export default function UserProfileModal({ isOpen, onClose }) {
   const handleDeleteAccount = (e) => {
     e.preventDefault();
     setDeleteError('');
+    
+    if (!isPasswordUser && deleteConfirmPassword !== 'DELETE') {
+      setDeleteError(t('profile.typeDeleteError', 'Please type DELETE to confirm.'));
+      return;
+    }
+    
     try {
-      deleteAccount(deleteConfirmPassword);
+      deleteAccount(isPasswordUser ? deleteConfirmPassword : null);
       onClose();
     } catch (err) {
       setDeleteError(err.message);
@@ -326,22 +335,38 @@ export default function UserProfileModal({ isOpen, onClose }) {
                     
                     <form onSubmit={handleDeleteAccount} className="space-y-3">
                       <div>
-                        <label className="text-[12px] font-medium block mb-1.5 text-red-400/90">{t('profile.confirmPassword', 'Confirm Password')}</label>
-                        <input 
-                          type="password" 
-                          value={deleteConfirmPassword} 
-                          onChange={e => setDeleteConfirmPassword(e.target.value)}
-                          className="input w-full text-[13px] bg-red-500/10 border-red-500/30 focus:border-red-500/60" 
-                          required
-                          placeholder={t('profile.enterPasswordConfirm', 'Enter password to confirm')}
-                        />
+                        {isPasswordUser ? (
+                          <>
+                            <label className="text-[12px] font-medium block mb-1.5 text-red-400/90">{t('profile.confirmPassword', 'Confirm Password')}</label>
+                            <input 
+                              type="password" 
+                              value={deleteConfirmPassword} 
+                              onChange={e => setDeleteConfirmPassword(e.target.value)}
+                              className="input w-full text-[13px] bg-red-500/10 border-red-500/30 focus:border-red-500/60" 
+                              required
+                              placeholder={t('profile.enterPasswordConfirm', 'Enter password to confirm')}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <label className="text-[12px] font-medium block mb-1.5 text-red-400/90">{t('profile.typeDelete', "Type 'DELETE' to confirm")}</label>
+                            <input 
+                              type="text" 
+                              value={deleteConfirmPassword} 
+                              onChange={e => setDeleteConfirmPassword(e.target.value)}
+                              className="input w-full text-[13px] bg-red-500/10 border-red-500/30 focus:border-red-500/60" 
+                              required
+                              placeholder="DELETE"
+                            />
+                          </>
+                        )}
                       </div>
                       
                       {deleteError && <p className="text-[12px] text-red-400 font-medium">{deleteError}</p>}
                       
                       <button 
                         type="submit" 
-                        disabled={!deleteConfirmPassword}
+                        disabled={!deleteConfirmPassword || (!isPasswordUser && deleteConfirmPassword !== 'DELETE')}
                         className="btn w-full bg-red-500 hover:bg-red-600 text-white font-semibold disabled:opacity-50 text-[13px] border-none"
                       >
                         {t('profile.permanentlyDelete', 'Permanently Delete Account')}

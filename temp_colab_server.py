@@ -414,11 +414,27 @@ def _switch_model_if_needed(req_base_model, civitai_api_key):
 
         CURRENT_BASE_MODEL_FILE = req_base_model_file
 
+_lora_counter = 0
 
 def _apply_loras(target_pipe, loras, api_key):
+    global _lora_counter
     loaded_adapters = []
     loaded_weights = []
     if not loras or not target_pipe: return loaded_adapters
+
+    # Clean up any stale adapters from previous generations
+    try:
+        existing = getattr(target_pipe, 'get_list_adapters', lambda: {})()
+        if existing:
+            existing_names = list(set(n for names in existing.values() for n in names)) if isinstance(existing, dict) else list(existing)
+            if existing_names:
+                try: target_pipe.delete_adapters(existing_names)
+                except: pass
+        try: target_pipe.unload_lora_weights()
+        except: pass
+    except:
+        pass
+
     for item in loras:
         name = item if isinstance(item, str) else item.get("fileName") or item.get("name")
         weight = 0.85 if isinstance(item, str) else float(item.get("weight", 0.85))
@@ -430,12 +446,13 @@ def _apply_loras(target_pipe, loras, api_key):
             download_civitai_model(lora_url, lora_path, api_key)
         if os.path.exists(lora_path) and lora_file != CURRENT_BASE_MODEL_FILE and lora_file != os.path.basename(LIGHTNING_PATH):
             try:
-                adapter_id = f"lora_{len(loaded_adapters)}"
+                _lora_counter += 1
+                adapter_id = f"lora_{_lora_counter}"
                 target_pipe.load_lora_weights("/content/LoRAs", weight_name=lora_file, adapter_name=adapter_id)
                 loaded_weights.append(weight)
                 loaded_adapters.append(adapter_id)
-            except:
-                pass
+            except Exception as e:
+                raise ValueError(f"Failed to load LoRA '{lora_file}'. This usually happens if the LoRA is for a different model architecture (e.g. SDXL vs SD1.5) or is an unsupported format like LyCORIS. Please check compatibility! (Error: {e})")
     if loaded_adapters:
         target_pipe.set_adapters(loaded_adapters, adapter_weights=loaded_weights)
     return loaded_adapters

@@ -13,6 +13,7 @@ import GenerationModeSelector from './GenerationModeSelector';
 import ImageUploadZone from './ImageUploadZone';
 import InpaintCanvas from './InpaintCanvas';
 import Tooltip from '../common/Tooltip';
+import CustomSelect from '../common/CustomSelect';
 import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage } from '../../services/aiService';
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
@@ -326,14 +327,15 @@ export default function GeneratePage() {
                 </Tooltip>
               </label>
             </div>
-            <select
+            <CustomSelect
               value={faceFixEngine}
-              onChange={(e) => setFaceFixEngine(e.target.value)}
-              className="w-full bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:border-blue-500/50"
-            >
-              <option value="GFPGAN">GFPGAN</option>
-              <option value="ADetailer">ADetailer</option>
-            </select>
+              onChange={(val) => setFaceFixEngine(val)}
+              options={[
+                { label: 'GFPGAN', value: 'GFPGAN' },
+                { label: 'ADetailer', value: 'ADetailer' }
+              ]}
+              className="bg-[var(--surface-2)]"
+            />
           </motion.div>
         )}
 

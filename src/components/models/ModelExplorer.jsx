@@ -8,6 +8,7 @@ import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 import { useAuth } from '../../context/AuthContext';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
+import CustomSelect from '../common/CustomSelect';
 
 const BASE_MODEL_FILTERS = [
   'All', 'SD 1.4', 'SD 1.5', 'SD 1.5 LCM', 'SD 1.5 Hyper', 'SD 2.0', 'SD 2.1', 'SD 2.1 768',
@@ -290,41 +291,40 @@ export default function ModelExplorer(props) {
               {!forcedBaseModel && (
                 <div className="flex items-center gap-2 ml-3">
                   <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.base', 'Base:')}</span>
-                  <select
+                  <CustomSelect
                     value={baseModelFilter}
-                    onChange={e => setBaseModelFilter(e.target.value)}
-                    className="input text-xs py-1.5 px-2"
-                    style={{ minWidth: 120 }}
-                  >
-                    {BASE_MODEL_FILTERS.map(b => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                  </select>
+                    onChange={val => setBaseModelFilter(val)}
+                    size="sm"
+                    className="min-w-[120px]"
+                    options={BASE_MODEL_FILTERS.map(b => ({ label: b, value: b }))}
+                  />
                 </div>
               )}
               {forcedBaseModel && forcedBaseModel !== 'All' && (
                 <div className="flex items-center gap-2 ml-3">
                   <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.base', 'Base:')}</span>
-                  <select className="input text-xs py-1.5 px-2 opacity-80 cursor-not-allowed" disabled style={{ minWidth: 120 }}>
-                    <option>{forcedBaseModel}</option>
-                  </select>
+                  <CustomSelect
+                    value={forcedBaseModel}
+                    onChange={() => {}}
+                    size="sm"
+                    className="min-w-[120px] opacity-80 pointer-events-none"
+                    options={[{ label: forcedBaseModel, value: forcedBaseModel }]}
+                  />
                 </div>
               )}
 
               <div className="ml-auto flex items-center gap-2">
                 <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.sort', 'Sort:')}</span>
-                <select
+                <CustomSelect
                   value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                  className="input text-xs py-1.5 px-2"
-                  style={{ minWidth: 140 }}
-                >
-                  {SORT_OPTIONS.map(s => (
-                    <option key={s} value={s}>
-                      {s === 'Most Downloaded' ? t('explorer.sortMostDownloaded', 'Most Downloaded') : s === 'Highest Rated' ? t('explorer.sortHighestRated', 'Highest Rated') : t('explorer.sortNewest', 'Newest')}
-                    </option>
-                  ))}
-                </select>
+                  onChange={val => setSortBy(val)}
+                  size="sm"
+                  className="min-w-[140px]"
+                  options={SORT_OPTIONS.map(s => ({
+                    label: s === 'Most Downloaded' ? t('explorer.sortMostDownloaded', 'Most Downloaded') : s === 'Highest Rated' ? t('explorer.sortHighestRated', 'Highest Rated') : t('explorer.sortNewest', 'Newest'),
+                    value: s
+                  }))}
+                />
               </div>
             </div>
 
@@ -332,24 +332,24 @@ export default function ModelExplorer(props) {
               <span className="text-[11px] font-medium mr-1" style={{ color: 'var(--text-tertiary)' }}>
                 {t('explorer.category', 'Category:')}
               </span>
-              <select
+              <CustomSelect
                 value={categoryFilter}
-                onChange={e => {
-                  setCategoryFilter(e.target.value);
-                  if (e.target.value !== 'All') {
+                onChange={val => {
+                  setCategoryFilter(val);
+                  if (val !== 'All') {
                     setActiveTagFilter('category');
                     setStyleFilter('All');
                   } else {
                     setActiveTagFilter('none');
                   }
                 }}
-                className="input text-xs py-1.5 px-2"
-                style={{ minWidth: 140 }}
-              >
-                {CATEGORY_FILTERS.map(c => (
-                  <option key={c} value={c}>{c === 'All' ? t('explorer.all', 'All') : c}</option>
-                ))}
-              </select>
+                size="sm"
+                className="min-w-[140px]"
+                options={CATEGORY_FILTERS.map(c => ({
+                  label: c === 'All' ? t('explorer.all', 'All') : c,
+                  value: c
+                }))}
+              />
 
               <span className="text-[11px] font-medium ml-4 mr-1" style={{ color: 'var(--text-tertiary)' }}>
                 {t('explorer.style', 'Style:')}
@@ -492,16 +492,17 @@ export default function ModelExplorer(props) {
               {/* Sort */}
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-medium" style={{ color: 'var(--text-tertiary)' }}>{t('explorer.sort', 'Sort:')}</span>
-                <select
+                <CustomSelect
                   value={favSortBy}
-                  onChange={e => setFavSortBy(e.target.value)}
-                  className="input text-xs py-1.5 px-2"
-                  style={{ minWidth: 140 }}
-                >
-                  <option value="Date Added">{t('explorer.dateAdded', 'Date Added')}</option>
-                  <option value="Name (A-Z)">{t('explorer.nameAZ', 'Name (A-Z)')}</option>
-                  <option value="Most Downloaded">{t('explorer.mostDownloaded', 'Most Downloaded')}</option>
-                </select>
+                  onChange={val => setFavSortBy(val)}
+                  size="sm"
+                  className="min-w-[140px]"
+                  options={[
+                    { label: t('explorer.dateAdded', 'Date Added'), value: 'Date Added' },
+                    { label: t('explorer.nameAZ', 'Name (A-Z)'), value: 'Name (A-Z)' },
+                    { label: t('explorer.mostDownloaded', 'Most Downloaded'), value: 'Most Downloaded' }
+                  ]}
+                />
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush, AlertTriangle, CheckSquare, Square, CheckCircle2, Layers } from 'lucide-react';
+import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush, AlertTriangle, CheckSquare, Square, CheckCircle2, Layers, Fingerprint } from 'lucide-react';
 import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Media } from '@capacitor-community/media';
 import { saveImageToGallery } from '../utils/mediaUtils';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 
 export default function GalleryProjects() {
   const { t } = useTranslation();
@@ -25,6 +26,46 @@ export default function GalleryProjects() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'adult_vault' && !adultVaultUnlocked && adultVaultPin) {
+      const checkBiometric = async () => {
+        try {
+          const result = await NativeBiometric.isAvailable();
+          if (result.isAvailable) {
+            setIsBiometricAvailable(true);
+            try {
+              await NativeBiometric.verifyIdentity({
+                reason: "Unlock 18+ Vault",
+                title: "Vault Verification",
+                subtitle: "Use biometrics to unlock"
+              });
+              setAdultVaultUnlocked(true);
+            } catch (authErr) {
+              console.log("Biometric auth cancelled or failed", authErr);
+            }
+          }
+        } catch (e) {
+          console.log("Biometric not available", e);
+        }
+      };
+      checkBiometric();
+    }
+  }, [activeTab, adultVaultUnlocked, adultVaultPin, setAdultVaultUnlocked]);
+
+  const handleManualBiometric = async () => {
+    try {
+      await NativeBiometric.verifyIdentity({
+        reason: "Unlock 18+ Vault",
+        title: "Vault Verification",
+        subtitle: "Use biometrics to unlock"
+      });
+      setAdultVaultUnlocked(true);
+    } catch (e) {
+      console.log("Biometric auth failed", e);
+    }
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -105,13 +146,7 @@ export default function GalleryProjects() {
               await Media.requestPermissions().catch(e => console.log(e));
             }
 
-            const cacheFile = await Filesystem.writeFile({
-              path: fileName,
-              data: pureBase64,
-              directory: Directory.Cache
-            });
-            
-            await saveImageToGallery(cacheFile.uri);
+            await saveImageToGallery(pureBase64, fileName);
             resolve();
           } catch (err) {
             console.error("Download failed:", err);
@@ -265,7 +300,18 @@ export default function GalleryProjects() {
              </div>
           ) : (
              <div className="space-y-4 max-w-xs mx-auto animate-fade-in">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('projects.unlockPinDesc', 'Enter your 4-digit PIN to unlock.')}</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('projects.unlockPinDesc', 'Enter your 4-digit PIN or use biometrics to unlock.')}</p>
+                
+                {isBiometricAvailable && (
+                  <button 
+                    onClick={handleManualBiometric}
+                    className="w-full flex items-center justify-center gap-2 text-[15px] text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 py-3.5 rounded-xl font-semibold transition-colors mb-4"
+                  >
+                    <Fingerprint className="w-5 h-5" />
+                    {t('projects.useBiometrics', 'Use Biometrics')}
+                  </button>
+                )}
+                
                 <input 
                   type="password" 
                   maxLength={4} 
@@ -483,7 +529,7 @@ export default function GalleryProjects() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[var(--surface-3)] text-white px-4 py-2 rounded-full shadow-lg text-sm z-50 flex items-center gap-2">
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-[var(--text-primary)] text-[var(--surface-1)] px-5 py-3 rounded-full shadow-2xl font-medium text-sm z-50 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-green-400" />
           {toastMessage}
         </div>

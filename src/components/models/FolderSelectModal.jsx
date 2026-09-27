@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, FolderPlus } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import CustomSelect from '../common/CustomSelect';
 
 export default function FolderSelectModal({ model, folders, onClose, onConfirm, onCreateFolder }) {
   const { t } = useTranslation();
@@ -76,16 +77,16 @@ export default function FolderSelectModal({ model, folders, onClose, onConfirm, 
               </div>
             ) : (
               <div className="flex items-center gap-2 mb-4">
-                <select
+                <CustomSelect
                   value={selectedFolder}
-                  onChange={e => setSelectedFolder(e.target.value)}
-                  className="input flex-1 text-xs py-2 px-3"
-                >
-                  <option value="Uncategorized">{t('explorer.uncategorized', 'Uncategorized')}</option>
-                  {folders.filter(f => f !== 'Uncategorized').map(f => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
+                  onChange={val => setSelectedFolder(val)}
+                  size="sm"
+                  className="flex-1"
+                  options={[
+                    { label: t('explorer.uncategorized', 'Uncategorized'), value: 'Uncategorized' },
+                    ...folders.filter(f => f !== 'Uncategorized').map(f => ({ label: f, value: f }))
+                  ]}
+                />
                 <button
                   type="button"
                   onClick={() => setIsCreating(true)}

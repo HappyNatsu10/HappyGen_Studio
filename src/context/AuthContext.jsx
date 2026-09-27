@@ -9,7 +9,9 @@ import {
   deleteUser,
   GoogleAuthProvider,
   TwitterAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -486,12 +488,26 @@ export function AuthProvider({ children }) {
     try {
       const user = auth.currentUser;
       if (user) {
+        const isPasswordProvider = user.providerData.some(p => p.providerId === 'password');
+        
+        if (isPasswordProvider) {
+          if (!password) {
+            throw new Error("Password is required to confirm account deletion.");
+          }
+          // Re-authenticate to ensure recent login and correct password
+          const credential = EmailAuthProvider.credential(user.email, password);
+          await reauthenticateWithCredential(user, credential);
+        }
+        
         await deleteUser(user);
         setCurrentUser(null);
       }
       return true;
     } catch (error) {
       console.error(error);
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        throw new Error("Incorrect password.");
+      }
       throw new Error(error.message || "Failed to delete account. You may need to sign in again first.");
     }
   };

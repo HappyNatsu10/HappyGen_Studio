@@ -21,7 +21,23 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
       const checkBiometric = async () => {
         try {
           const result = await NativeBiometric.isAvailable();
-          setIsBiometricAvailable(result.isAvailable);
+          if (result.isAvailable) {
+            setIsBiometricAvailable(true);
+            // Auto prompt biometrics on mount
+            try {
+              await NativeBiometric.verifyIdentity({
+                reason: "Unlock 18+ Vault",
+                title: "Vault Verification",
+                subtitle: "Use biometrics to unlock"
+              });
+              setAdultVaultUnlocked(true);
+              if(onSuccess) onSuccess();
+              handleClose();
+            } catch (authErr) {
+              // Biometric failed or cancelled, let them use PIN
+              console.log("Biometric auth cancelled or failed", authErr);
+            }
+          }
         } catch (e) {
           console.log("Biometric not available", e);
         }
@@ -196,6 +212,16 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
 
           {!isForgotMode && (
             <div className="animate-in fade-in duration-300">
+              {mode === 'verify' && isBiometricAvailable && (
+                <button
+                  onClick={handleBiometricAuth}
+                  className="w-full mb-6 flex items-center justify-center gap-2 text-sm text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 py-3 rounded-xl font-medium transition-colors"
+                >
+                  <Fingerprint className="w-5 h-5" />
+                  Use Biometrics
+                </button>
+              )}
+              
               <input 
                 type="password" 
                 maxLength={4} 
@@ -214,16 +240,6 @@ export default function VaultSecurityModal({ isOpen, onClose, mode, onSuccess })
                   className="w-full mt-6 text-sm text-[var(--text-secondary)] hover:text-[#a855f7] transition-colors"
                 >
                   Forgot PIN?
-                </button>
-              )}
-
-              {mode === 'verify' && isBiometricAvailable && (
-                <button
-                  onClick={handleBiometricAuth}
-                  className="w-full mt-4 flex items-center justify-center gap-2 text-sm text-[#a855f7] bg-[#a855f7]/10 hover:bg-[#a855f7]/20 py-3 rounded-xl font-medium transition-colors"
-                >
-                  <Fingerprint className="w-5 h-5" />
-                  Use Biometrics
                 </button>
               )}
             </div>

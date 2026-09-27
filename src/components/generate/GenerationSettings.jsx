@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Zap, Sparkles, Crown, HelpCircle, Save, CheckCircle2 } from 'lucide-react';
 import Tooltip from '../common/Tooltip';
+import CustomSelect from '../common/CustomSelect';
 
 const ASPECT_RATIO_GROUPS = [
   {
@@ -113,36 +114,28 @@ export default function GenerationSettings({
         <label className="text-[11px] font-medium block mb-2" style={{ color: 'var(--text-tertiary)' }}>
           {t('generate.aspectRatio', 'Aspect Ratio / Canvas Size')}
         </label>
-        <select
+        <CustomSelect
           value={aspectRatio.label}
-          onChange={e => {
-            const selected = ASPECT_RATIOS.find(ar => ar.label === e.target.value);
+          onChange={(val) => {
+            const selected = ASPECT_RATIOS.find(ar => ar.label === val);
             if (selected) setAspectRatio(selected);
           }}
-          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
-        >
-          {ASPECT_RATIO_GROUPS.map(group => (
-            <optgroup key={group.group} label={t(`generate.group_${group.group.toLowerCase()}`, group.group)}>
-              {group.ratios.map(ar => {
-                const translatedLabel = ar.label.replace('Normal', t('generate.normal', 'Normal'))
-                                               .replace('Large', t('generate.large', 'Large'))
-                                               .replace('Wallpaper', t('generate.wallpaper', 'Wallpaper'))
-                                               .replace('Cinematic', t('generate.cinematic', 'Cinematic'))
-                                               .replace('Square', t('generate.square', 'Square'))
-                                               .replace('Portrait', t('generate.portrait', 'Portrait'))
-                                               .replace('Landscape', t('generate.landscape', 'Landscape'))
-                                               .replace('Wide', t('generate.wide', 'Wide'))
-                                               .replace('Custom...', t('generate.customAspect', 'Custom...'));
-                return (
-                  <option key={ar.label} value={ar.label} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
-                    {translatedLabel}
-                  </option>
-                );
-              })}
-            </optgroup>
-          ))}
-        </select>
+          groups={ASPECT_RATIO_GROUPS.map(group => ({
+            label: t(`generate.group_${group.group.toLowerCase()}`, group.group),
+            options: group.ratios.map(ar => {
+              const translatedLabel = ar.label.replace('Normal', t('generate.normal', 'Normal'))
+                                             .replace('Large', t('generate.large', 'Large'))
+                                             .replace('Wallpaper', t('generate.wallpaper', 'Wallpaper'))
+                                             .replace('Cinematic', t('generate.cinematic', 'Cinematic'))
+                                             .replace('Square', t('generate.square', 'Square'))
+                                             .replace('Portrait', t('generate.portrait', 'Portrait'))
+                                             .replace('Landscape', t('generate.landscape', 'Landscape'))
+                                             .replace('Wide', t('generate.wide', 'Wide'))
+                                             .replace('Custom...', t('generate.customAspect', 'Custom...'));
+              return { label: translatedLabel, value: ar.label };
+            })
+          }))}
+        />
         
         {aspectRatio.value === 'custom' && (
           <div className="mt-3 animate-fade-in-up">
@@ -197,18 +190,11 @@ export default function GenerationSettings({
             <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
           </Tooltip>
         </label>
-        <select
+        <CustomSelect
           value={sampler}
-          onChange={e => setSampler(e.target.value)}
-          className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2.5 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all appearance-none"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
-        >
-          {SAMPLERS.map(s => (
-            <option key={s.id} value={s.id} className="bg-[var(--surface-1)] text-[var(--text-primary)]">
-              {s.label}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => setSampler(val)}
+          options={SAMPLERS.map(s => ({ label: s.label, value: s.id }))}
+        />
       </div>
 
       <div className="space-y-5 mt-2">

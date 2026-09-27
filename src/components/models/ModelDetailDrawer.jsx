@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Download, ThumbsUp, Copy, Check, ExternalLink, Heart, FolderPlus, Loader2 } from 'lucide-react';
 import { formatCount, getModelById } from '../../services/civitaiService';
 import { useFavouriteModels } from '../../hooks/useFavouriteModels';
+import CustomSelect from '../common/CustomSelect';
 
 export default function ModelDetailDrawer({ model: initialModel, onClose, onSelectAsBase, onAddLora, onAddEmbedding, isFav, onToggleFav }) {
   const [model, setModel] = useState(initialModel);
@@ -78,16 +79,13 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
           </h2>
           <div className="flex items-center gap-1">
             {isFav && (
-              <select
+              <CustomSelect
                 value={currentFav?.folder || 'Uncategorized'}
-                onChange={e => moveModelToFolder(model.id, e.target.value)}
-                className="input text-[10px] py-1 px-1.5 h-7 bg-transparent border-transparent hover:bg-white/5 max-w-[100px]"
-                title="Move to Folder"
-              >
-                {folders.map(f => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </select>
+                onChange={val => moveModelToFolder(model.id, val)}
+                size="sm"
+                className="max-w-[120px]"
+                options={folders.map(f => ({ label: f, value: f }))}
+              />
             )}
 
             <button onClick={onToggleFav} className="btn-ghost p-1.5 rounded-md cursor-pointer" title={isFav ? "Remove from Favourites" : "Save to Favourites"}>
@@ -179,20 +177,19 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
                 <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
                   Version
                 </label>
-                <select
+                <CustomSelect
                   value={selectedVersionIdx}
-                  onChange={e => {
-                    setSelectedVersionIdx(Number(e.target.value));
-                    setSelectedImageIdx(0); // Reset image index when version changes
+                  onChange={val => {
+                    setSelectedVersionIdx(Number(val));
+                    setSelectedImageIdx(0);
                   }}
-                  className="input w-full text-xs"
-                >
-                  {model.versions.map((v, i) => (
-                    <option key={v.id} value={i}>
-                      {v.name} — {v.baseModel} {v.fileSize ? `(${v.fileSize} MB)` : ''}
-                    </option>
-                  ))}
-                </select>
+                  size="sm"
+                  className="w-full"
+                  options={model.versions.map((v, i) => ({
+                    label: `${v.name} — ${v.baseModel} ${v.fileSize ? `(${v.fileSize} MB)` : ''}`,
+                    value: i
+                  }))}
+                />
               </div>
             )}
 
