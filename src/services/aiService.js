@@ -486,6 +486,7 @@ export const inpaintImage = async ({
   guidanceScale = 6.5,
   isAdultMode = false,
   sampler = 'Euler a',
+  denoisingStrength = 0.75
 }) => {
   const NSFW_BLOCKLIST = "nsfw, nude, naked, nipples, pornography, explicit, uncensored, genitalia, penis, vagina, pubic hair, sex";
   let activeNegativePrompt = negativePrompt?.trim() || DEFAULT_NEGATIVE_PROMPT;
@@ -509,7 +510,7 @@ export const inpaintImage = async ({
         negative_prompt: activeNegativePrompt,
         init_images: [sourceImage],
         mask: maskImage,
-        denoising_strength: 0.75, // Standard for inpaint
+        denoising_strength: denoisingStrength,
         steps: steps || 20,
         cfg_scale: guidanceScale || 6.5,
         width,

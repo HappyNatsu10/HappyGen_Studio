@@ -21,6 +21,7 @@ export default function InpaintStudio() {
   const [maskImage, setMaskImage] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('bad quality, worst quality');
+  const { denoisingStrength, setDenoisingStrength } = useGenerateStore();
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultImage, setResultImage] = useState(null);
@@ -55,6 +56,7 @@ export default function InpaintStudio() {
       await new Promise(resolve => { img.onload = resolve; });
       const width = img.naturalWidth || aspectRatio?.w || 1024;
       const height = img.naturalHeight || aspectRatio?.h || 1024;
+      const { denoisingStrength } = useGenerateStore.getState();
       
       const images = await inpaintImage({
         sourceImage,
@@ -68,6 +70,7 @@ export default function InpaintStudio() {
         steps: steps || 20,
         guidanceScale: cfg || 6.5,
         sampler: sampler || 'Euler a',
+        denoisingStrength,
         width,
         height
       });
@@ -139,6 +142,26 @@ export default function InpaintStudio() {
           setNegativePrompt={setNegativePrompt}
           mode={mode}
         />
+
+        <div className="card p-4 flex flex-col gap-2">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[12px] font-medium flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+              {t('generate.denoisingStrength', 'Denoising Strength')}
+            </label>
+            <span className="text-[12px] font-mono" style={{ color: 'var(--text-tertiary)' }}>
+              {denoisingStrength}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="0.1"
+            max="1.0"
+            step="0.05"
+            value={denoisingStrength}
+            onChange={e => setDenoisingStrength(parseFloat(e.target.value))}
+            className="w-full"
+          />
+        </div>
 
         {error && (
           <div className="flex items-start gap-2 rounded-lg p-3 text-[12px]"
