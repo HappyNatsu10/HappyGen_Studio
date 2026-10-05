@@ -65,12 +65,8 @@ export default function ModelExplorer(props) {
   const [showFilters, setShowFilters] = useState(true);
   const lastScrollY = useRef(0);
   const handleScroll = useCallback((e) => {
+    // Disabled auto-hide to prevent layout shifting limbo on short pages
     const currentScrollY = e.target.scrollTop;
-    if (currentScrollY > lastScrollY.current + 15 && currentScrollY > 100) {
-      setShowFilters(false);
-    } else if (currentScrollY < lastScrollY.current - 15 || currentScrollY <= 10) {
-      setShowFilters(true);
-    }
     lastScrollY.current = currentScrollY;
   }, []);
   const [favModalModel, setFavModalModel] = useState(null);

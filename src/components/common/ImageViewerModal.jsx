@@ -61,15 +61,6 @@ Date: ${dateText}`.trim();
   const { addGeneratedAssets, setCanvasTargetImage, setInpaintSourceImage, setVideoSourceImage } = useWorkspaceStore();
   const { setActiveTab } = useAppStore();
 
-  if (!isOpen || !currentImage) return null;
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 4000);
-  };
-
-  const hasMultiple = images && images.length > 1;
-
   const batchInfo = React.useMemo(() => {
     if (!currentImage || !images || images.length === 0) return null;
     if (!currentImage.timestamp) return null;
@@ -79,6 +70,15 @@ Date: ${dateText}`.trim();
     const idx = batch.findIndex(img => img.id === currentImage.id) + 1;
     return { index: idx, total: batch.length };
   }, [currentImage, images]);
+
+  if (!isOpen || !currentImage) return null;
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 4000);
+  };
+
+  const hasMultiple = images && images.length > 1;
 
   const handlePrev = (e) => {
     e.stopPropagation();
