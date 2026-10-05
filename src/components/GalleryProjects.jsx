@@ -20,6 +20,7 @@ export default function GalleryProjects() {
   const [activeViewerImage, setActiveViewerImage] = useState(null);
   const [activeViewerImages, setActiveViewerImages] = useState([]);
   const [imageToDelete, setImageToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Multi-select state
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -184,11 +185,14 @@ export default function GalleryProjects() {
     showToast(`Successfully saved ${assetsToDownload.length} image(s) to gallery!`);
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedIds.size === 0) return;
+    setIsDeleting(true);
+    await new Promise(r => setTimeout(r, 600)); // Simulate loading
     selectedIds.forEach(id => {
       removeGeneratedAsset(id);
     });
+    setIsDeleting(false);
     setShowMultiDeleteModal(false);
     setIsSelectionMode(false);
     setSelectedIds(new Set());
@@ -243,7 +247,7 @@ export default function GalleryProjects() {
 
       {/* Selection Action Bar */}
       {isSelectionMode && selectedIds.size > 0 && (
-        <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-3 flex items-center justify-between sticky top-4 z-10 animate-fade-in shadow-lg backdrop-blur-xl">
+        <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-3 flex items-center justify-between relative mb-4 z-10 animate-fade-in shadow-lg backdrop-blur-xl">
           <span className="text-sm font-medium text-[var(--text-primary)] ml-2">
             {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
           </span>
@@ -367,7 +371,7 @@ export default function GalleryProjects() {
                       if (isSelectionMode) {
                         toggleSelection(e, group);
                       } else {
-                        setActiveViewerImages(group);
+                        setActiveViewerImages(filteredAssets);
                         setActiveViewerImage(representativeAsset);
                       }
                     }}
@@ -398,7 +402,7 @@ export default function GalleryProjects() {
                               title={t('projects.viewFullscreen', 'View Fullscreen')}
                               onClick={(e) => { 
                                 e.stopPropagation(); 
-                                setActiveViewerImages(group);
+                                setActiveViewerImages(filteredAssets);
                                 setActiveViewerImage(representativeAsset); 
                               }}
                             >
@@ -483,8 +487,11 @@ export default function GalleryProjects() {
                 {t('common.cancel', 'Cancel')}
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
+                  setIsDeleting(true);
+                  await new Promise(r => setTimeout(r, 500));
                   removeGeneratedAsset(imageToDelete.id || imageToDelete.url);
+                  setIsDeleting(false);
                   setImageToDelete(null);
                 }}
                 className="px-4 py-2 rounded-lg font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"

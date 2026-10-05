@@ -73,7 +73,7 @@ export default function GeneratePage() {
     upscaleModel, setUpscaleModel
   } = useGenerateStore();
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  const { isGenerating, setIsGenerating } = useGenerateStore();
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -217,7 +217,7 @@ export default function GeneratePage() {
 
       setResults(images);
       addGeneratedAssets(images);
-      incrementGeneratedCount(images.length);
+      if (images && images.length) incrementGeneratedCount(images.length);
       
       const warnedImage = images.find(img => img.hasWarning);
       if (warnedImage) {
@@ -246,7 +246,7 @@ export default function GeneratePage() {
       const images = await upscaleImage({ sourceImage: imageUrl, scale: upscaleScale, upscalerName: upscaleModel });
       setResults(images);
       addGeneratedAssets(images);
-      incrementGeneratedCount(images.length);
+      if (images && images.length) incrementGeneratedCount(images.length);
     } catch (err) {
       setError(err.message);
     } finally {

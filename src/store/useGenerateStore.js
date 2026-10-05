@@ -7,6 +7,12 @@ const useGenerateStore = create(persist((set) => ({
   generationMode: 'create',
   setGenerationMode: (mode) => set({ generationMode: mode }),
 
+  isGenerating: false,
+  setIsGenerating: (isGenerating) => set({ isGenerating }),
+  generationQueue: [],
+  addToQueue: (task) => set((state) => ({ generationQueue: [...state.generationQueue, task] })),
+  shiftQueue: () => set((state) => ({ generationQueue: state.generationQueue.slice(1) })),
+  
   prompt: '',
   setPrompt: (prompt) => set((state) => ({ 
     prompt: typeof prompt === 'function' ? prompt(state.prompt) : prompt 
