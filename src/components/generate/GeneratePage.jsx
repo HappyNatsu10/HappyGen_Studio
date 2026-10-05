@@ -145,6 +145,11 @@ export default function GeneratePage() {
   };
 
   const handleGenerate = async () => {
+    if (isGenerating) {
+      if (!window.confirm("An image is already generating in the background. Would you like to cancel it and start a new one? (Clicking cancel will wait for the current generation)")) {
+        return;
+      }
+    }
     if ((generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate') && !prompt.trim()) return;
     if (['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && !sourceImage) {
       setError('Please upload a source image for this mode.');

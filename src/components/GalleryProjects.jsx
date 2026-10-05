@@ -541,7 +541,24 @@ export default function GalleryProjects() {
           {toastMessage}
         </div>
       )}
-    </div>
+    
+      {/* Floating Select Button */}
+      {!isSelectionMode && groupedAssets.length > 0 && activeTab === 'general' && (
+        <button 
+          onClick={() => setIsSelectionMode(true)}
+          className="fixed bottom-24 right-6 z-40 bg-[#a855f7] text-white px-5 py-3 rounded-full shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-[#9333ea] transition-all transform hover:scale-105 flex items-center justify-center gap-2 font-semibold"
+        >
+          <CheckSquare className="w-5 h-5" /> Select Mode
+        </button>
+      )}
+
+      {isDeleting && (
+        <div className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-12 h-12 border-4 border-[#a855f7] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="text-white font-semibold tracking-widest uppercase text-sm">Deleting...</div>
+        </div>
+      )}
+</div>
   );
 }
 
