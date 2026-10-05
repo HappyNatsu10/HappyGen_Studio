@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown, Info, Trash2 } from 'lucide-react';
+import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown, Info, Trash2, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { upscaleImage, faceFixImage } from '../../services/aiService';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
@@ -69,6 +69,17 @@ Date: ${dateText}`.trim();
   };
 
   const hasMultiple = images && images.length > 1;
+
+  const batchInfo = React.useMemo(() => {
+    if (!currentImage || !images || images.length === 0) return null;
+    if (!currentImage.timestamp) return null;
+    const batch = images.filter(img => Math.abs((img.timestamp || 0) - currentImage.timestamp) < 2000);
+    if (batch.length <= 1) return null;
+    batch.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const idx = batch.findIndex(img => img.id === currentImage.id) + 1;
+    return { index: idx, total: batch.length };
+  }, [currentImage, images]);
+
   const handlePrev = (e) => {
     e.stopPropagation();
     if (onIndexChange) {
@@ -272,7 +283,15 @@ Date: ${dateText}`.trim();
 
       {/* Top Bar */}
       <div className="shrink-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent z-10">
-        <div className="text-white/80 text-sm font-medium">{t('viewer.imageDetails', 'Image Details')}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-white/80 text-sm font-medium">{t('viewer.imageDetails', 'Image Details')}</div>
+          {batchInfo && (
+            <div className="bg-black/50 backdrop-blur-md text-white/90 text-xs px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
+              <Layers className="w-3.5 h-3.5" />
+              Batch {batchInfo.index} of {batchInfo.total}
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setShowDetails(!showDetails)}
