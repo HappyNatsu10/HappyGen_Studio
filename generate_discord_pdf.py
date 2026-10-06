@@ -108,5 +108,22 @@ add_section("4. Developer Zone (Private / Admin Only)",
     "- #admin-chat: A private workspace for you and your moderators."
 )
 
+add_section("5. International Community (Public)", 
+    "These channels provide a dedicated space for non-English speakers to interact and share.\n"
+    "- #international-hub: A forum channel where users can create posts in their native languages.\n"
+    "- #general-es: For casual chat and discussions in Spanish.\n"
+    "- #general-fr: For casual chat and discussions in French.\n"
+    "- #general-jp: For casual chat and discussions in Japanese."
+)
+
+add_code_block("Copy & Paste for #international-hub (Pinned Message):", 
+    "Welcome to the International Hub!\n\n"
+    "Feel free to create a thread or forum post in your native language to connect with others.\n"
+    "If you need official support, please try to use English in the #help-and-support channel so our admins can assist you.\n\n"
+    "--- \n\n"
+    "¡Bienvenidos!\n"
+    "Bienvenue!"
+)
+
 pdf.output("HappyGen_Studio_Discord_Setup.pdf")
 print("PDF generated successfully.")
