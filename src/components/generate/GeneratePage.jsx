@@ -22,6 +22,7 @@ import { useAuth } from '../../context/AuthContext';
 import useModelStore from '../../store/useModelStore';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useGenerateStore from '../../store/useGenerateStore';
+import QueueAlertModal from './QueueAlertModal';
 
 const DEFAULT_NEGATIVE = 'bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality';
 
@@ -78,6 +79,17 @@ export default function GeneratePage() {
   const [error, setError] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [faceFixEngine, setFaceFixEngine] = useState('GFPGAN');
+  const [showQueueAlert, setShowQueueAlert] = useState(false);
+  const [queuedParams, setQueuedParams] = useState(null);
+
+  // Queue runner
+  useEffect(() => {
+    if (!isGenerating && queuedParams) {
+      const params = queuedParams;
+      setQueuedParams(null);
+      executeGeneration(params);
+    }
+  }, [isGenerating, queuedParams]);
 
   const prevLorasRef = useRef(loras);
 
@@ -145,17 +157,21 @@ export default function GeneratePage() {
   };
 
   const handleGenerate = async () => {
-    if (isGenerating) {
-      if (!window.confirm("An image is already generating in the background. Would you like to cancel it and start a new one? (Clicking cancel will wait for the current generation)")) {
-        return;
-      }
-    }
     if ((generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate') && !prompt.trim()) return;
     if (['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && !sourceImage) {
       setError('Please upload a source image for this mode.');
       return;
     }
+
+    if (isGenerating) {
+      setShowQueueAlert(true);
+      return;
+    }
     
+    executeGeneration();
+  };
+
+  const executeGeneration = async (overrideParams = null) => {
     setIsGenerating(true);
     setError(null);
 
@@ -191,7 +207,7 @@ export default function GeneratePage() {
         ? Math.floor(Math.random() * 2147483647)
         : parseInt(seed, 10);
 
-      const params = {
+      const params = overrideParams || {
         prompt: fullPrompt,
         negativePrompt,
         width: aspectRatio.w,
@@ -206,18 +222,25 @@ export default function GeneratePage() {
         loras: loras,
         embeddings: embeddings,
         sampler: sampler,
+        generationMode,
+        sourceImage,
+        denoisingStrength,
+        upscaleScale,
+        upscaleModel,
+        faceFixEngine
       };
 
       let images = [];
+      const mode = params.generationMode || generationMode;
       
-      if (['create', 'draft', 'hires'].includes(generationMode)) {
+      if (['create', 'draft', 'hires'].includes(mode)) {
         images = await generateImageAI(params);
-      } else if (['img2img', 'variations'].includes(generationMode)) {
-        images = await generateImg2Img({ ...params, sourceImage, denoisingStrength: generationMode === 'variations' ? 0.7 : denoisingStrength });
-      } else if (generationMode === 'upscale') {
-        images = await upscaleImage({ sourceImage, scale: 2 });
-      } else if (generationMode === 'facefix') {
-        images = await faceFixImage({ sourceImage, prompt: fullPrompt, engine: faceFixEngine, baseModel, civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || '' });
+      } else if (['img2img', 'variations'].includes(mode)) {
+        images = await generateImg2Img({ ...params, sourceImage: params.sourceImage, denoisingStrength: mode === 'variations' ? 0.7 : params.denoisingStrength });
+      } else if (mode === 'upscale') {
+        images = await upscaleImage({ sourceImage: params.sourceImage, scale: params.upscaleScale || 2 });
+      } else if (mode === 'facefix') {
+        images = await faceFixImage({ sourceImage: params.sourceImage, prompt: params.prompt, engine: params.faceFixEngine, baseModel: params.baseModel, civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || '' });
       }
 
       setResults(images);
@@ -261,6 +284,43 @@ export default function GeneratePage() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-5 p-5 overflow-y-auto md:overflow-hidden pb-24 md:pb-5 bg-[var(--surface-0)] relative">
+      {showQueueAlert && (
+        <QueueAlertModal 
+          onClose={() => setShowQueueAlert(false)}
+          onCancelCurrent={() => {
+            setShowQueueAlert(false);
+            // In a real app we'd abort the fetch, but for now we just reset state and fire new
+            setIsGenerating(false);
+            setTimeout(() => executeGeneration(), 100);
+          }}
+          onQueue={() => {
+            setShowQueueAlert(false);
+            const parsedSeed = seed === '-1' || !seed.trim() ? Math.floor(Math.random() * 2147483647) : parseInt(seed, 10);
+            setQueuedParams({
+              prompt: prompt.trim(),
+              negativePrompt,
+              width: aspectRatio.w,
+              height: aspectRatio.h,
+              seed: parsedSeed,
+              batchCount,
+              steps,
+              guidanceScale: cfg,
+              isAdultMode,
+              engine: imageEngine,
+              baseModel,
+              loras,
+              embeddings,
+              sampler,
+              generationMode,
+              sourceImage,
+              denoisingStrength,
+              upscaleScale,
+              upscaleModel,
+              faceFixEngine
+            });
+          }}
+        />
+      )}
       {/* Background Decorative Blur - Removed to fix GPU freeze on low-end hardware */}
 
       {/* Left Panel: Controls */}

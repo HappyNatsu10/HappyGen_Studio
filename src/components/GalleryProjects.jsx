@@ -267,15 +267,15 @@ export default function GalleryProjects() {
               className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${selectedIds.size === 0 ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-white/10 hover:bg-white/20 text-white'} ${isDownloading ? 'opacity-50' : ''}`}
               title="Download"
             >
-              <Download className="w-4 h-4" />
+              {isDownloading ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Download className="w-4 h-4" />}
             </button>
             <button 
               onClick={() => setShowMultiDeleteModal(true)}
-              disabled={selectedIds.size === 0}
+              disabled={selectedIds.size === 0 || isDeleting}
               className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${selectedIds.size === 0 ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300'}`}
               title="Delete"
             >
-              <Trash2 className="w-4 h-4" />
+              {isDeleting ? <div className="w-4 h-4 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" /> : <Trash2 className="w-4 h-4" />}
             </button>
           </div>
         </div>
