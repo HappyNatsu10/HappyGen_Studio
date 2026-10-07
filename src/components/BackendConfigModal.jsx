@@ -148,31 +148,6 @@ export default function BackendConfigModal({ isOpen, onClose }) {
                     </a>
                   </div>
                 </div>
-
-                <div>
-                  <label className="text-[11px] font-medium block mb-1.5 flex items-center justify-between" style={{ color: 'var(--text-tertiary)' }}>
-                    <span>{t('backendModal.animaColabUrl', 'Anima Colab Tunnel URL')}</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-purple-500/20 text-purple-400">OPTIONAL</span>
-                  </label>
-                  <input
-                    type="url"
-                    value={animaColabUrl}
-                    onChange={e => setAnimaColabUrl(e.target.value)}
-                    placeholder="For Anima/Qwen models only"
-                    className="input w-full text-[13px]"
-                  />
-                  <div className="mt-2">
-                    <a 
-                      href="https://colab.research.google.com/github/HappyNatsu10/HappyGen_Studio/blob/main/colab_anima.ipynb"
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary w-full text-[12px] flex items-center justify-center gap-2 border border-[#a855f7]/50 opacity-80 hover:opacity-100"
-                    >
-                      <Globe className="w-3.5 h-3.5 text-[#a855f7]" /> 
-                      <span className="text-[#a855f7]">Open Anima Notebook</span>
-                    </a>
-                  </div>
-                </div>
               </>
             ) : (
               <div>
