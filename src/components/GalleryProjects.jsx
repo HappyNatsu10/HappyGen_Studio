@@ -543,7 +543,7 @@ export default function GalleryProjects() {
       )}
     
       {/* Floating Select Button */}
-      {!isSelectionMode && groupedAssets.length > 0 && activeTab === 'general' && (
+      {!isSelectionMode && groupedAssets.length > 0 && (
         <button 
           onClick={() => setIsSelectionMode(true)}
           className="fixed bottom-24 right-6 z-40 bg-[#a855f7] text-white px-5 py-3 rounded-full shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:bg-[#9333ea] transition-all transform hover:scale-105 flex items-center justify-center gap-2 font-semibold"
