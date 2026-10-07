@@ -108,7 +108,7 @@ export default function BackendConfigModal({ isOpen, onClose }) {
               className={`mode-toggle-option flex-1 ${backendType === 'colab' ? 'active' : ''}`}
             >
               <Globe className="inline w-3 h-3 mr-1" style={{ verticalAlign: 'middle' }} />
-              {t('backendModal.colab', 'Google Colab')}
+              {t('backendModal.cloud', 'Colab / Kaggle')}
             </button>
           </div>
 
@@ -118,7 +118,7 @@ export default function BackendConfigModal({ isOpen, onClose }) {
               <>
                 <div>
                   <label className="text-[11px] font-medium block mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
-                    {t('backendModal.colabUrl', 'Google Colab Tunnel URL (Standard Models)')}
+                    {t('backendModal.cloudUrl', 'Colab / Kaggle Tunnel URL')}
                   </label>
                   <input
                     type="url"
