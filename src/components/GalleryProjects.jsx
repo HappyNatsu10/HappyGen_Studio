@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush, AlertTriangle, CheckSquare, Square, CheckCircle2, Layers, Fingerprint } from 'lucide-react';
+import { Folder, Image as ImageIcon, Lock, Download, Trash2, Eye, ShieldAlert, Maximize2, Brush, AlertTriangle, CheckSquare, Square, CheckCircle2, Layers, Fingerprint, X } from 'lucide-react';
 import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -246,26 +246,36 @@ export default function GalleryProjects() {
       </div>
 
       {/* Selection Action Bar */}
-      {isSelectionMode && selectedIds.size > 0 && (
-        <div className="bg-[var(--surface-2)] border border-[var(--border-subtle)] rounded-xl p-3 flex items-center justify-between relative mb-4 z-10 animate-fade-in shadow-lg backdrop-blur-xl">
-          <span className="text-sm font-medium text-[var(--text-primary)] ml-2">
-            {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
-          </span>
+      {isSelectionMode && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-[#1a1a1a]/90 border border-white/10 rounded-2xl p-3 flex items-center justify-between z-50 shadow-2xl backdrop-blur-xl animate-fade-in">
+          <div className="flex items-center gap-3 ml-1">
+            <button 
+              onClick={() => { setIsSelectionMode(false); setSelectedIds(new Set()); }}
+              className="p-1.5 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors flex items-center justify-center bg-white/5"
+              title="Cancel Selection"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <span className="text-sm font-semibold text-white">
+              {selectedIds.size > 0 ? `${selectedIds.size} ${selectedIds.size === 1 ? 'item' : 'items'}` : 'Select items...'}
+            </span>
+          </div>
           <div className="flex gap-2">
             <button 
               onClick={handleDownloadSelected}
-              disabled={isDownloading}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-[var(--text-primary)] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={isDownloading || selectedIds.size === 0}
+              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${selectedIds.size === 0 ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-white/10 hover:bg-white/20 text-white'} ${isDownloading ? 'opacity-50' : ''}`}
+              title="Download"
             >
               <Download className="w-4 h-4" />
-              {isDownloading ? 'Downloading...' : 'Download'}
             </button>
             <button 
               onClick={() => setShowMultiDeleteModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-sm font-medium transition-colors"
+              disabled={selectedIds.size === 0}
+              className={`flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${selectedIds.size === 0 ? 'bg-white/5 text-white/30 cursor-not-allowed' : 'bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300'}`}
+              title="Delete"
             >
               <Trash2 className="w-4 h-4" />
-              Delete
             </button>
           </div>
         </div>
