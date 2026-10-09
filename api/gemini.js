@@ -60,13 +60,13 @@ export default async function handler(req, res) {
 
     const availableModels = modelsData.models || [];
     
-    // We want a model that supports generateContent. Preference: 1.5-pro (since you have Pro), then flash versions.
+    // We want a model that supports generateContent. Preference: 3.6-flash (current), then older versions.
     let selectedModel = null;
     const modelPreferences = [
-      'models/gemini-1.5-pro',
-      'models/gemini-1.5-pro-latest',
-      'models/gemini-1.5-flash',
-      'models/gemini-1.0-pro-vision-latest'
+      'models/gemini-3.6-flash', 
+      'models/gemini-3.5-flash',
+      'models/gemini-2.5-flash',
+      'models/gemini-1.5-flash'
     ];
     
     for (const pref of modelPreferences) {
@@ -77,10 +77,10 @@ export default async function handler(req, res) {
       }
     }
     
-    // Fallback: just find the NEWEST model that has "gemini" and "pro", and supports generateContent
+    // Fallback: just find the NEWEST model that has "gemini" and "flash", and supports generateContent
     if (!selectedModel) {
       const fallback = availableModels
-        .filter(m => m.name.includes('gemini') && (m.name.includes('pro') || m.name.includes('flash')) && m.supportedGenerationMethods?.includes('generateContent'))
+        .filter(m => m.name.includes('gemini') && m.name.includes('flash') && m.supportedGenerationMethods?.includes('generateContent'))
         .sort((a, b) => b.name.localeCompare(a.name))[0]; // Try to get the highest version number
         
       if (fallback) {
