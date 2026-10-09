@@ -38,10 +38,16 @@ export default async function handler(req, res) {
     const payload = {
       contents: [{
         parts: [
-          { text: "Analyze this image and write a concise, high-quality text-to-image prompt. If the image contains a known character (e.g., from anime, games, movies, pop culture) or a real person/celebrity, explicitly identify them by their specific name and origin franchise (e.g., '1girl, Hatsune Miku, Vocaloid'). Focus on the main subject, character identity, art style, clothing, and lighting. Keep it concise using comma-separated tags or short phrases optimized for Stable Diffusion. Do not write a long paragraph." },
+          { text: "CRITICAL: If the image contains ANY known character from anime, manga, video games, or pop culture (even if it is AI-generated, fan art, or they are wearing an alternate outfit), you MUST explicitly identify them by their specific name and origin franchise as your very first tags (e.g., '(1girl:1.3), (Kaoruko Waguri:1.5), (The Fragrant Flower Blooms with Dignity:1.2)'). Do not be overly cautious; if you recognize the character, name them. Analyze this image and write a highly detailed text-to-image prompt in a booru-style tag format. Output ONLY a continuous string of comma-separated tags (at least 30-40 tags), with absolutely no conversational text. Use 'priority style' weighting syntax (e.g. (tag:1.2) or (tag:1.5)) to heavily emphasize the main subjects, character names, and core concepts. Exhaustively describe the character's physical features, specific clothing items, accessories, pose, facial expression, background environment, lighting, and art style. Always end the prompt with these exact emphasized quality tags: '(masterpiece:1.2), (best quality:1.2), (highly detailed:1.1), intricate details, sharp focus'." },
           { inlineData: { mimeType, data: base64Image } }
         ]
-      }]
+      }],
+      safetySettings: [
+        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+      ]
     };
 
     // 1. Discover available models dynamically
@@ -54,13 +60,13 @@ export default async function handler(req, res) {
 
     const availableModels = modelsData.models || [];
     
-    // We want a model that supports generateContent. Preference: 3.6-flash (current), then older versions.
+    // We want a model that supports generateContent. Preference: 1.5-pro (since you have Pro), then flash versions.
     let selectedModel = null;
     const modelPreferences = [
-      'models/gemini-3.6-flash', 
-      'models/gemini-3.5-flash',
-      'models/gemini-2.5-flash',
-      'models/gemini-1.5-flash'
+      'models/gemini-1.5-pro',
+      'models/gemini-1.5-pro-latest',
+      'models/gemini-1.5-flash',
+      'models/gemini-1.0-pro-vision-latest'
     ];
     
     for (const pref of modelPreferences) {
@@ -71,10 +77,10 @@ export default async function handler(req, res) {
       }
     }
     
-    // Fallback: just find the NEWEST model that has "gemini" and "flash", and supports generateContent
+    // Fallback: just find the NEWEST model that has "gemini" and "pro", and supports generateContent
     if (!selectedModel) {
       const fallback = availableModels
-        .filter(m => m.name.includes('gemini') && m.name.includes('flash') && m.supportedGenerationMethods?.includes('generateContent'))
+        .filter(m => m.name.includes('gemini') && (m.name.includes('pro') || m.name.includes('flash')) && m.supportedGenerationMethods?.includes('generateContent'))
         .sort((a, b) => b.name.localeCompare(a.name))[0]; // Try to get the highest version number
         
       if (fallback) {
