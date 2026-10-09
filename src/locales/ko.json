@@ -46,10 +46,10 @@
     "engineTooltip": "생성을 구동하는 백엔드 공급자 또는 하드웨어입니다.",
     "selectEngine": "엔진 선택",
     "baseEngine": "기본 추론 엔진",
-    "customSettings": "Using Custom Settings",
-    "standardSettings": "Using Standard Settings",
-    "saved": "Saved!",
-    "saveDefault": "Save as Default",
+    "customSettings": "사용자 지정 설정 사용 중",
+    "standardSettings": "표준 설정 사용 중",
+    "saved": "저장됨!",
+    "saveDefault": "기본값으로 저장",
     "square": "Square",
     "portrait": "Portrait",
     "landscape": "Landscape",
@@ -82,7 +82,11 @@
     "denoisingTooltip": "참조 이미지가 변경되는 정도를 제어합니다. 값이 낮으면 원본이 유지되고 높으면 더 창의적인 변경이 허용됩니다.",
     "faceFixEngine": "얼굴 수정 엔진",
     "faceFixTooltip": "얼굴을 감지하고 복원하는 데 사용되는 AI 모델. GFPGAN은 사실적인 사진에 가장 적합하고 ADetailer는 애니메이션 및 기타 스타일에 더 적합합니다.",
-    "comingSoon": "곧 출시됨"
+    "comingSoon": "곧 출시됨",
+    "schedule": "일정 (Schedule)",
+    "scheduleTooltip": "단계의 수학적 간격. 사실적인 모델에는 Karras를 강력히 권장합니다.",
+    "autoFaceFix": "자동 얼굴 수정",
+    "autoFaceFixDesc": "프롬프트에서 얼굴이 감지되면 자동으로 ADetailer 또는 GFPGAN을 사용합니다."
   },
   "settings": {
     "title": "설정",
@@ -426,9 +430,9 @@
     "createTheme": "테마 만들기"
   },
   "common": {
-    "applyAndClose": "Apply & Close",
-    "usePrompt": "Use Prompt",
-    "download": "Download",
+    "applyAndClose": "적용 및 닫기",
+    "usePrompt": "프롬프트 사용",
+    "download": "다운로드",
     "clearImage": "이미지 지우기",
     "cancel": "취소",
     "delete": "삭제"

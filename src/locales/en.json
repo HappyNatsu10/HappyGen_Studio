@@ -81,7 +81,11 @@
     "denoisingTooltip": "Controls how much the reference image is altered. Lower values keep the original, higher values allow more creative changes.",
     "faceFixEngine": "Face Fix Engine",
     "faceFixTooltip": "The AI model used to detect and restore faces. GFPGAN is best for realistic pictures; ADetailer is better for Anime and other styles.",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "schedule": "Schedule",
+    "scheduleTooltip": "The math spacing for steps (Sigma schedule). Karras is highly recommended for realistic models.",
+    "autoFaceFix": "Auto-Detect Face Fix",
+    "autoFaceFixDesc": "Automatically uses ADetailer (for stylized) or GFPGAN (for realistic) if a face is detected in your prompt. Returns both original and fixed images."
   },
   "settings": {
     "title": "Settings",

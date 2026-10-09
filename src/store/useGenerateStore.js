@@ -42,6 +42,9 @@ const useGenerateStore = create(persist((set) => ({
   sampler: 'Euler a',
   setSampler: (sampler) => set({ sampler }),
 
+  schedule: 'Automatic',
+  setSchedule: (schedule) => set({ schedule }),
+
   denoisingStrength: 0.5,
   setDenoisingStrength: (denoisingStrength) => set({ denoisingStrength }),
 
@@ -50,6 +53,9 @@ const useGenerateStore = create(persist((set) => ({
 
   upscaleModel: 'R-ESRGAN 4x+ Anime6B',
   setUpscaleModel: (upscaleModel) => set({ upscaleModel }),
+
+  autoFaceFix: false,
+  setAutoFaceFix: (autoFaceFix) => set({ autoFaceFix }),
 
 }), { name: 'omnigen-generate-storage' }));
 

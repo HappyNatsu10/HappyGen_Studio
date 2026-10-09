@@ -72,13 +72,13 @@ export default function PromptEditor({
             onBlur={e => setPrompt(e.target.value)}
             placeholder={t('promptEditor.placeholder', "Describe what you want to create...")}
             rows={4}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500/50 focus:border-purple-500/50 transition-all resize-none shadow-inner"
-            style={{ paddingRight: '44px' }}
+            className="w-full bg-[var(--surface-0)] border-2 border-[var(--border-subtle)] rounded-2xl p-4 text-[13px] leading-relaxed text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-3 focus:ring-inset focus:ring-[var(--accent)]/50 focus:ring-offset-2 focus:ring-offset-[var(--surface-0)] focus:border-[var(--accent)] transition-all resize-none shadow-inner"
+            style={{ paddingRight: '44px', outline: 'none' }}
           />
           <button
             onClick={handleEnhance}
             disabled={!prompt.trim()}
-            className="absolute right-3 bottom-3 p-2 rounded-xl cursor-pointer transition-all disabled:opacity-30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 hover:scale-105"
+            className="absolute right-3 bottom-3 p-2 rounded-xl cursor-pointer transition-all disabled:opacity-30 bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 hover:scale-105"
             title={t('promptEditor.enhance', 'Enhance prompt')}
           >
             <Wand2 className="w-4 h-4" />
@@ -125,7 +125,8 @@ export default function PromptEditor({
             onChange={e => setNegativePrompt(e.target.value)}
             placeholder={t('promptEditor.negativePlaceholder', "Things to avoid in the generation...")}
             rows={2}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500/30 focus:border-red-500/50 transition-all resize-none shadow-inner"
+            className="w-full bg-[var(--surface-0)] border-2 border-[var(--border-subtle)] rounded-xl p-3 text-[12px] text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-3 focus:ring-inset focus:ring-red-500/30 focus:ring-offset-2 focus:ring-offset-[var(--surface-0)] focus:border-red-500/50 transition-all resize-none shadow-inner"
+            style={{ outline: 'none' }}
           />
         </div>
     </div>

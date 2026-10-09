@@ -46,14 +46,26 @@ const ASPECT_RATIO_GROUPS = [
 const ASPECT_RATIOS = ASPECT_RATIO_GROUPS.flatMap(g => g.ratios);
 
 const SAMPLERS = [
-  { id: 'Euler a', label: 'Euler Ancestral (Euler a)' },
-  { id: 'DPM++ 2M Karras', label: 'DPM++ 2M Karras' },
-  { id: 'DPM++ SDE Karras', label: 'DPM++ SDE Karras' },
+  { id: 'Euler a', label: 'Euler a' },
   { id: 'Euler', label: 'Euler' },
+  { id: 'Euler (trailing)', label: 'Euler (trailing)' },
+  { id: 'Heun', label: 'Heun (2x)' },
+  { id: 'DPM2', label: 'DPM2 (2x)' },
+  { id: 'DPM2 a', label: 'DPM2 a (2x)' },
+  { id: 'DPM++ 2M', label: 'DPM++ 2M' },
+  { id: 'DPM++ 2M SDE', label: 'DPM++ 2M SDE' },
+  { id: 'DPM++ 3M SDE', label: 'DPM++ 3M SDE' },
+  { id: 'DPM++ SDE', label: 'DPM++ SDE (2x)' },
   { id: 'UniPC', label: 'UniPC' },
+  { id: 'LMS', label: 'LMS' },
   { id: 'DDIM', label: 'DDIM' },
-  { id: 'LMS Karras', label: 'LMS Karras' },
-  { id: 'PNDM', label: 'PNDM' },
+];
+
+const SCHEDULES = [
+  { id: 'Automatic', label: 'Automatic' },
+  { id: 'Karras', label: 'Karras' },
+  { id: 'Exponential', label: 'Exponential' },
+  { id: 'Beta', label: 'Beta' },
 ];
 
 const QUALITY_PRESETS = [
@@ -75,12 +87,22 @@ export default function GenerationSettings({
   setSeed,
   sampler,
   setSampler,
+  schedule,
+  setSchedule,
+  autoFaceFix,
+  setAutoFaceFix,
   baseModel,
   hasCustomProfile,
   onSaveProfile,
 }) {
   const { t } = useTranslation();
   const [justSaved, setJustSaved] = React.useState(false);
+  
+  const isFlowMatching = baseModel && (
+    (baseModel.name || "").toLowerCase().includes('flux') || 
+    (baseModel.name || "").toLowerCase().includes('anima') || 
+    (baseModel.version?.baseModel || "").toLowerCase().includes('flux')
+  );
 
   const handleSave = () => {
     onSaveProfile();
@@ -154,7 +176,7 @@ export default function GenerationSettings({
                     const snapped = Math.max(256, Math.min(2048, Math.round(val / 64) * 64));
                     setAspectRatio({ ...aspectRatio, w: snapped });
                   }}
-                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
               </div>
               <div className="flex-1">
@@ -171,7 +193,7 @@ export default function GenerationSettings({
                     const snapped = Math.max(256, Math.min(2048, Math.round(val / 64) * 64));
                     setAspectRatio({ ...aspectRatio, h: snapped });
                   }}
-                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                  className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
               </div>
             </div>
@@ -182,20 +204,37 @@ export default function GenerationSettings({
         )}
       </div>
 
-      {/* Sampling Method */}
-      <div>
-        <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
-          {t('generate.samplingMethod', 'Sampling Method')}
-          <Tooltip text={t('generate.samplingTooltip', 'The algorithm used to denoise the image. Different samplers yield different artistic styles and details.')}>
-            <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
-          </Tooltip>
-        </label>
-        <CustomSelect
-          value={sampler}
-          onChange={(val) => setSampler(val)}
-          options={SAMPLERS.map(s => ({ label: s.label, value: s.id }))}
-        />
-      </div>
+      {/* Sampling Method & Schedule (Hidden for Flow Matching models) */}
+      {!isFlowMatching && (
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
+              {t('generate.samplingMethod', 'Sampler')}
+              <Tooltip text={t('generate.samplingTooltip', 'The algorithm used to denoise the image. (2x) samplers run twice per step and take twice as long.')}>
+                <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              </Tooltip>
+            </label>
+            <CustomSelect
+              value={sampler}
+              onChange={(val) => setSampler(val)}
+              options={SAMPLERS.map(s => ({ label: s.label, value: s.id }))}
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
+              {t('generate.schedule', 'Schedule')}
+              <Tooltip position="right" text={t('generate.scheduleTooltip', 'The math spacing for steps (Sigma schedule). Karras is highly recommended for realistic models.')}>
+                <HelpCircle className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              </Tooltip>
+            </label>
+            <CustomSelect
+              value={schedule}
+              onChange={(val) => setSchedule(val)}
+              options={SCHEDULES.map(s => ({ label: s.label, value: s.id }))}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-5 mt-2">
         {/* Steps */}
@@ -216,7 +255,7 @@ export default function GenerationSettings({
             step="1"
             value={steps}
             onChange={e => setSteps(Number(e.target.value))}
-            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
+            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--accent)] transition-all"
           />
         </div>
 
@@ -238,7 +277,7 @@ export default function GenerationSettings({
             step="0.5"
             value={cfg}
             onChange={e => setCfg(parseFloat(e.target.value))}
-            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
+            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--accent)] transition-all"
           />
         </div>
 
@@ -255,8 +294,27 @@ export default function GenerationSettings({
             value={seed}
             onChange={e => setSeed(e.target.value)}
             placeholder={t('generate.seedPlaceholder', '-1 for random')}
-            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+            className="w-full bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl px-4 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)] transition-all"
           />
+        </div>
+      </div>
+      {/* Auto Face Fix Toggle */}
+      <div className="bg-[var(--surface-1)] border border-[var(--border-subtle)] rounded-xl p-4 md:p-5 mt-4">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[var(--accent)]" /> {t('generate.autoFaceFix', 'Auto-Detect Face Fix')}
+            </span>
+            <span className="text-[11px] text-[var(--text-tertiary)] mt-1 max-w-[250px]">
+              {t('generate.autoFaceFixDesc', 'Automatically uses ADetailer (for stylized) or GFPGAN (for realistic) if a face is detected in your prompt. Returns both original and fixed images.')}
+            </span>
+          </div>
+          <button
+            onClick={() => setAutoFaceFix(!autoFaceFix)}
+            className={`w-12 h-6 rounded-full p-1 transition-colors ${autoFaceFix ? 'bg-[var(--accent)]' : 'bg-[var(--surface-3)]'}`}
+          >
+            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${autoFaceFix ? 'translate-x-6' : 'translate-x-0'}`} />
+          </button>
         </div>
       </div>
     </div>

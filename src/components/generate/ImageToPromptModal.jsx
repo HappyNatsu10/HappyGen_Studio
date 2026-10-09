@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Copy, Image as ImageIcon, Loader2, RefreshCw } from 'lucide-react';
+import { X, Copy, Image as ImageIcon, Loader2, RefreshCw, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { interrogateImage } from '../../services/aiService';
@@ -59,9 +59,13 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
     setError('');
   };
 
+  const [isCopied, setIsCopied] = useState(false);
+
   const handleCopy = () => {
     if (generatedPrompt) {
       navigator.clipboard.writeText(generatedPrompt);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
     }
   };
 
@@ -92,19 +96,19 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
                 <div className="flex flex-wrap bg-[var(--surface-2)] p-1 rounded-lg gap-1">
                   <button
                     onClick={() => setInterrogator('deepdanbooru')}
-                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'deepdanbooru' ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'deepdanbooru' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
                   >
                     {t('promptEditor.animeTags', 'Anime Tags')}
                   </button>
                   <button
                     onClick={() => setInterrogator('clip')}
-                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'clip' ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'clip' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
                   >
                     {t('promptEditor.realisticText', 'Realistic Text')}
                   </button>
                   <button
                     onClick={() => setInterrogator('vlm')}
-                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'vlm' ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-md transition-colors ${interrogator === 'vlm' ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
                   >
                     {t('promptEditor.detailedVlm', 'Detailed (VLM)')}
                   </button>
@@ -155,10 +159,10 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
                   <button 
                     onClick={handleCopy}
                     disabled={!generatedPrompt}
-                    className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-50 transition-colors"
-                    title="Copy to clipboard"
+                    className={`p-1.5 transition-colors disabled:opacity-50 ${isCopied ? 'text-green-500' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                    title={isCopied ? "Copied!" : "Copy to clipboard"}
                   >
-                    <Copy className="w-4 h-4" />
+                    {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
                 

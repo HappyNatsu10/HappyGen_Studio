@@ -69,9 +69,11 @@ export default function GeneratePage() {
     seed, setSeed,
     batchCount, setBatchCount,
     sampler, setSampler,
+    schedule, setSchedule,
     denoisingStrength, setDenoisingStrength,
     upscaleScale, setUpscaleScale,
-    upscaleModel, setUpscaleModel
+    upscaleModel, setUpscaleModel,
+    autoFaceFix, setAutoFaceFix
   } = useGenerateStore();
 
   const { isGenerating, setIsGenerating } = useGenerateStore();
@@ -222,6 +224,7 @@ export default function GeneratePage() {
         loras: loras,
         embeddings: embeddings,
         sampler: sampler,
+        schedule: schedule,
         generationMode,
         sourceImage,
         denoisingStrength,
@@ -243,11 +246,44 @@ export default function GeneratePage() {
         images = await faceFixImage({ sourceImage: params.sourceImage, prompt: params.prompt, engine: params.faceFixEngine, baseModel: params.baseModel, civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || '' });
       }
 
-      setResults(images);
-      addGeneratedAssets(images);
-      if (images && images.length) incrementGeneratedCount(images.length);
+      // ------------------------------------
+      // Auto Face Fix Logic
+      // ------------------------------------
+      if (autoFaceFix && ['create', 'draft', 'hires', 'img2img', 'variations'].includes(mode)) {
+        const p = (params.prompt || "").toLowerCase();
+        // Skip if landscape/scenery
+        if (!p.includes("landscape") && !p.includes("scenery") && !p.includes("empty room") && !p.includes("city streets")) {
+          // Determine engine
+          let engine = 'ADetailer'; // Default to ADetailer to preserve style
+          if (p.includes('photo') || p.includes('realistic') || p.includes('8k') || p.includes('raw') || (params.baseModel?.tags && params.baseModel.tags.some(t => t.toLowerCase() === 'photorealistic'))) {
+            engine = 'GFPGAN';
+          }
+          
+          let faceFixedImages = [];
+          for (let img of images) {
+            try {
+              const fixed = await faceFixImage({ 
+                sourceImage: img.url, 
+                prompt: params.prompt, 
+                engine: engine, 
+                baseModel: params.baseModel, 
+                civitaiApiKey: localStorage.getItem('omnigen_civitai_key') || '' 
+              });
+              faceFixedImages = [...faceFixedImages, ...fixed];
+            } catch(e) {
+              console.warn("Auto face fix failed on an image", e);
+            }
+          }
+          images = [...images, ...faceFixedImages];
+        }
+      }
       
-      const warnedImage = images.find(img => img.hasWarning);
+      const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));
+      setResults(timestampedImages);
+      addGeneratedAssets(timestampedImages);
+      if (timestampedImages && timestampedImages.length) incrementGeneratedCount(timestampedImages.length);
+      
+      const warnedImage = timestampedImages.find(img => img.hasWarning);
       if (warnedImage) {
         setError("⚠️ Quality Warning: " + warnedImage.warningReason);
       }
@@ -272,9 +308,10 @@ export default function GeneratePage() {
     setError(null);
     try {
       const images = await upscaleImage({ sourceImage: imageUrl, scale: upscaleScale, upscalerName: upscaleModel });
-      setResults(images);
-      addGeneratedAssets(images);
-      if (images && images.length) incrementGeneratedCount(images.length);
+      const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));
+      setResults(timestampedImages);
+      addGeneratedAssets(timestampedImages);
+      if (timestampedImages && timestampedImages.length) incrementGeneratedCount(timestampedImages.length);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -311,6 +348,7 @@ export default function GeneratePage() {
               loras,
               embeddings,
               sampler,
+              schedule,
               generationMode,
               sourceImage,
               denoisingStrength,
@@ -426,8 +464,22 @@ export default function GeneratePage() {
               onOpenExplorerBase={() => openModelModal({ intent: 'base' })}
               onOpenExplorerLora={() => {
                 const name = (baseModel?.name || baseModel?.version?.fileName || '').toLowerCase();
-                const isAnima = name.includes('anima');
-                openModelModal({ intent: 'lora', arch: isAnima ? 'Anima' : baseModel?.version?.baseModel });
+                const isAnima = name.includes('anima') && !name.includes('animagine');
+                const isAnimagine = name.includes('animagine');
+                const isPony = name.includes('pony');
+                const isIllustrious = name.includes('illustrious');
+                const isNoob = name.includes('noob');
+                const isChroma = name.includes('chroma');
+                
+                let arch = baseModel?.version?.baseModel;
+                if (isAnima) arch = 'Anima';
+                if (isAnimagine) arch = 'Animagine';
+                if (isPony) arch = 'Pony';
+                if (isIllustrious) arch = 'Illustrious';
+                if (isNoob) arch = 'NoobAI';
+                if (isChroma) arch = 'Chroma';
+
+                openModelModal({ intent: 'lora', arch });
               }}
               onOpenExplorerEmbedding={() => openModelModal({ intent: 'embedding' })}
               onRemoveLora={removeLora}
@@ -556,6 +608,10 @@ export default function GeneratePage() {
                 setSeed={setSeed}
                 sampler={sampler}
                 setSampler={setSampler}
+                schedule={schedule}
+                setSchedule={setSchedule}
+                autoFaceFix={autoFaceFix}
+                setAutoFaceFix={setAutoFaceFix}
                 baseModel={baseModel}
                 hasCustomProfile={baseModel ? !!modelProfiles[baseModel.id] : false}
                 onSaveProfile={() => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Palette, Globe, MessageSquare } from 'lucide-react';
+import { Palette, Globe, MessageSquare, X } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import GeneratePage from './components/generate/GeneratePage';
@@ -48,6 +48,8 @@ function MainApp() {
     showFeedbackModal,
     setShowFeedbackModal,
   } = useAppStore();
+
+  const [showBanner, setShowBanner] = useState(true);
 
   const { syncModelProfiles } = useModelStore();
 
@@ -116,13 +118,18 @@ function MainApp() {
           onOpenBackendModal={() => setShowBackendModal(true)}
         />
 
-        <div className="border-b px-2 sm:px-4 py-2 flex items-center justify-center text-center relative overflow-hidden shrink-0" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
-          <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 pointer-events-none" />
-          <p className="text-[12px] font-medium relative z-10 text-center leading-relaxed w-full break-words whitespace-normal" style={{ color: 'var(--text-primary)' }}>
-            <span className="text-xl drop-shadow-sm align-middle inline-block mr-1 sm:mr-2">🚀</span>
-            <span className="align-middle inline">{t('app.bannerText', 'More base models and the advanced Video Suite are coming soon! Stay tuned.')}</span>
-          </p>
-        </div>
+        {showBanner && (
+          <div className="border-b px-2 sm:px-4 py-2 flex items-center justify-center text-center relative overflow-hidden shrink-0" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
+            <div className="absolute inset-0 opacity-10 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 pointer-events-none" />
+            <p className="text-[12px] font-medium relative z-10 text-center leading-relaxed w-full break-words whitespace-normal px-6" style={{ color: 'var(--text-primary)' }}>
+              <span className="text-xl drop-shadow-sm align-middle inline-block mr-1 sm:mr-2">🚀</span>
+              <span className="align-middle inline">{t('app.bannerText', 'More base models and the advanced Video Suite are coming soon! Stay tuned.')}</span>
+            </p>
+            <button onClick={() => setShowBanner(false)} className="absolute right-2 z-20 p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-all text-[var(--text-primary)]">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {activeTab === 'inpaint' && (
           <div className="flex-1 flex flex-col h-full">

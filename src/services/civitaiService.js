@@ -56,9 +56,19 @@ export async function searchModels({
   cursor,
 } = {}) {
   const params = new URLSearchParams();
-  if (query) params.set('query', query);
+  
+  let actualQuery = query;
+  let actualBaseModel = baseModel;
+
+  // Civitai doesn't have an "Animagine" base model (it's SDXL 1.0), so we use a keyword search instead
+  if (baseModel === 'Animagine') {
+    actualBaseModel = 'SDXL 1.0';
+    actualQuery = actualQuery ? `${actualQuery} Animagine` : 'Animagine';
+  }
+
+  if (actualQuery) params.set('query', actualQuery);
   if (type) params.set('types', type);
-  if (baseModel) params.set('baseModels', baseModel);
+  if (actualBaseModel && actualBaseModel !== 'All') params.set('baseModels', actualBaseModel);
   if (tag) params.set('tag', tag);
   if (sort) params.set('sort', sort);
   

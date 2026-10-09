@@ -46,10 +46,10 @@
     "engineTooltip": "El proveedor o hardware de backend que potencia la generación.",
     "selectEngine": "Seleccionar Motor",
     "baseEngine": "Motor de Inferencia Base",
-    "customSettings": "Using Custom Settings",
-    "standardSettings": "Using Standard Settings",
-    "saved": "Saved!",
-    "saveDefault": "Save as Default",
+    "customSettings": "Usando ajustes personalizados",
+    "standardSettings": "Usando ajustes estándar",
+    "saved": "¡Guardado!",
+    "saveDefault": "Guardar por defecto",
     "square": "Square",
     "portrait": "Portrait",
     "landscape": "Landscape",
@@ -82,7 +82,11 @@
     "denoisingTooltip": "Controla cuánto se altera la imagen de referencia. Valores más bajos conservan el original, valores más altos permiten cambios más creativos.",
     "faceFixEngine": "Motor de corrección facial",
     "faceFixTooltip": "El modelo de IA utilizado para detectar y restaurar rostros. GFPGAN es mejor para fotos realistas; ADetailer es mejor para Anime y otros estilos.",
-    "comingSoon": "Próximamente"
+    "comingSoon": "Próximamente",
+    "schedule": "Horario (Schedule)",
+    "scheduleTooltip": "El espaciado matemático de los pasos. Se recomienda Karras para modelos realistas.",
+    "autoFaceFix": "Corrección Facial Automática",
+    "autoFaceFixDesc": "Usa ADetailer o GFPGAN si detecta un rostro en el prompt. Devuelve ambas imágenes."
   },
   "settings": {
     "title": "Ajustes",
@@ -426,9 +430,9 @@
     "createTheme": "Crear Tema"
   },
   "common": {
-    "applyAndClose": "Apply & Close",
-    "usePrompt": "Use Prompt",
-    "download": "Download",
+    "applyAndClose": "Aplicar y Cerrar",
+    "usePrompt": "Usar Prompt",
+    "download": "Descargar",
     "clearImage": "Limpiar Imagen",
     "cancel": "Cancelar",
     "delete": "Eliminar"

@@ -46,10 +46,10 @@
     "engineTooltip": "生成を強化するバックエンドプロバイダーまたはハードウェア。",
     "selectEngine": "エンジンを選択",
     "baseEngine": "ベース推論エンジン",
-    "customSettings": "Using Custom Settings",
-    "standardSettings": "Using Standard Settings",
-    "saved": "Saved!",
-    "saveDefault": "Save as Default",
+    "customSettings": "カスタム設定を使用中",
+    "standardSettings": "標準設定を使用中",
+    "saved": "保存しました！",
+    "saveDefault": "デフォルトとして保存",
     "square": "Square",
     "portrait": "Portrait",
     "landscape": "Landscape",
@@ -82,7 +82,11 @@
     "denoisingTooltip": "参照画像がどの程度変更されるかを制御します。低い値は元の画像を保持し、高い値はより創造的な変更を可能にします。",
     "faceFixEngine": "顔修正エンジン",
     "faceFixTooltip": "顔を検出して復元するためのAIモデル。GFPGANはリアルな写真に最適で、ADetailerはアニメやその他のスタイルに適しています。",
-    "comingSoon": "近日公開"
+    "comingSoon": "近日公開",
+    "schedule": "スケジュール (Schedule)",
+    "scheduleTooltip": "ステップの数学的間隔。リアルなモデルにはKarrasを強く推奨します。",
+    "autoFaceFix": "顔の自動修正 (Auto Face Fix)",
+    "autoFaceFixDesc": "プロンプトに顔が検出された場合、ADetailerまたはGFPGANを自動的に適用します。"
   },
   "settings": {
     "title": "設定",
@@ -421,9 +425,9 @@
     "createTheme": "テーマを作成"
   },
   "common": {
-    "applyAndClose": "Apply & Close",
-    "usePrompt": "Use Prompt",
-    "download": "Download",
+    "applyAndClose": "適用して閉じる",
+    "usePrompt": "プロンプトを使用",
+    "download": "ダウンロード",
     "clearImage": "画像をクリア",
     "cancel": "キャンセル"
   },
