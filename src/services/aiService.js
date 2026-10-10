@@ -40,6 +40,16 @@ export const cancelGeneration = () => {
     globalAbortController.abort("User cancelled generation.");
     globalAbortController = null;
   }
+  
+  // Attempt to stop generation gracefully on the backend
+  try {
+    const backendUrl = resolveBackendUrl();
+    if (backendUrl) {
+      fetch(`${backendUrl}/sdapi/v1/interrupt`, { method: 'POST' }).catch(() => {});
+    }
+  } catch (e) {
+    // Ignore error
+  }
 };
 const asyncFetch = async (url, options) => {
   globalAbortController = new AbortController();
