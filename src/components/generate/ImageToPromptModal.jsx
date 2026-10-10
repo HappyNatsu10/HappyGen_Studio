@@ -13,6 +13,8 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
 
+  const [isCopied, setIsCopied] = useState(false);
+
   // Re-run if they toggle the model while an image is loaded
   React.useEffect(() => {
     if (!sourceImage || !isOpen) return;
@@ -59,7 +61,6 @@ export default function ImageToPromptModal({ isOpen, onClose, onUsePrompt }) {
     setError('');
   };
 
-  const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = () => {
     if (generatedPrompt) {

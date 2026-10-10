@@ -14,7 +14,7 @@ import ImageUploadZone from './ImageUploadZone';
 import InpaintCanvas from './InpaintCanvas';
 import Tooltip from '../common/Tooltip';
 import CustomSelect from '../common/CustomSelect';
-import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage } from '../../services/aiService';
+import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage, cancelGeneration } from '../../services/aiService';
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
 import useAppStore from '../../store/useAppStore';
@@ -548,23 +548,24 @@ export default function GeneratePage() {
 
         {/* Generate Button */}
         <motion.div id="tour-generate-button" variants={itemVariants} className="pt-2">
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating || (generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate' && !prompt.trim())}
-            className="btn btn-primary btn-primary-glow w-full py-4 rounded-xl text-[15px] font-bold tracking-wide disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-purple-500/20"
-        >
           {isGenerating ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              {t('generate.generating', 'Generating...')}
-            </>
+            <button
+              onClick={() => { cancelGeneration(); }}
+              className="btn w-full py-4 rounded-xl text-[15px] font-bold tracking-wide shadow-xl shadow-red-500/20 bg-red-500/20 text-red-500 hover:bg-red-500/30 border border-red-500/50 flex items-center justify-center gap-2"
+            >
+              <StopCircle className="w-5 h-5" />
+              Cancel Generation
+            </button>
           ) : (
-            <>
+            <button
+              onClick={handleGenerate}
+              disabled={generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate' && !prompt.trim()}
+              className="btn btn-primary btn-primary-glow w-full py-4 rounded-xl text-[15px] font-bold tracking-wide disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-purple-500/20 flex items-center justify-center gap-2"
+            >
               <ImageIcon className="w-5 h-5" />
               {generationMode === 'upscale' ? 'Upscale Image' : (generationMode === 'facefix' ? 'Fix Faces' : (generationMode === 'interrogate' ? 'Extract Prompt' : t('generate.generateBtn', 'Generate')))}
-            </>
+            </button>
           )}
-          </button>
         </motion.div>
       </motion.div>
 
