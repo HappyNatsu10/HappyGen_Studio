@@ -14,7 +14,7 @@ import ImageUploadZone from './ImageUploadZone';
 import InpaintCanvas from './InpaintCanvas';
 import Tooltip from '../common/Tooltip';
 import CustomSelect from '../common/CustomSelect';
-import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage, cancelGeneration } from '../../services/aiService';
+import { generateImageAI, generateImg2Img, upscaleImage, faceFixImage, inpaintImage, interrogateImage, cancelGeneration, initGeneration } from '../../services/aiService';
 import EngineSelector from '../common/EngineSelector';
 import { IMAGE_ENGINES, isEngineClosed } from '../../config/engines';
 import useAppStore from '../../store/useAppStore';
@@ -174,6 +174,7 @@ export default function GeneratePage() {
   };
 
   const executeGeneration = async (overrideParams = null) => {
+    initGeneration();
     setIsGenerating(true);
     setError(null);
 

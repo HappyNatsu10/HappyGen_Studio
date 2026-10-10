@@ -35,10 +35,17 @@ export const translateToEnglish = async (text) => {
 
 export let globalAbortController = null;
 
+export const initGeneration = () => {
+  globalAbortController = new AbortController();
+};
+
 export const cancelGeneration = () => {
   if (globalAbortController) {
-    globalAbortController.abort("User cancelled generation.");
-    globalAbortController = null;
+    try {
+      globalAbortController.abort();
+    } catch (err) {
+      console.warn("Abort error:", err);
+    }
   }
   
   // Attempt to stop generation gracefully on the backend
@@ -52,7 +59,9 @@ export const cancelGeneration = () => {
   }
 };
 const asyncFetch = async (url, options) => {
-  globalAbortController = new AbortController();
+  if (!globalAbortController) {
+    globalAbortController = new AbortController();
+  }
   if (!options) options = {};
   options.signal = globalAbortController.signal;
 
@@ -65,7 +74,8 @@ const asyncFetch = async (url, options) => {
     const data = await res.json();
     return data;
   } finally {
-    globalAbortController = null;
+    // We don't nullify globalAbortController here anymore, 
+    // so it survives across multiple batch requests.
   }
 };
 
@@ -77,7 +87,8 @@ const flushMemoryIfModelChanged = async (backendUrl, targetModelName) => {
       console.log(`[AI Service] Model changed from ${lastUsedModelName} to ${targetModelName}. Flushing VRAM...`);
       await fetch(`${backendUrl}/sdapi/v1/unload-checkpoint`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        signal: globalAbortController ? globalAbortController.signal : undefined
       });
       // Pause briefly to allow backend garbage collection to run
       await new Promise(r => setTimeout(r, 1500));
@@ -241,7 +252,8 @@ export const interrogateImage = async ({ sourceImage, model = 'clip' }) => {
       const res = await fetch(`${VERCEL_BASE_URL}/api/gemini`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceImage })
+        body: JSON.stringify({ sourceImage }),
+        signal: globalAbortController ? globalAbortController.signal : undefined
       });
       
       const data = await res.json();
