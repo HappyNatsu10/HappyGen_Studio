@@ -53,22 +53,6 @@ const asyncFetch = async (url, options) => {
       throw new Error(errData.error || errData.message || errData.detail || `Server returned HTTP ${res.status}`);
     }
     const data = await res.json();
-    
-    if (data.task_id) {
-      let pollData = data;
-      const backendUrl = url.split('/sdapi')[0].split('/api')[0];
-      while (pollData.status !== 'completed' && pollData.status !== 'failed') {
-        if (globalAbortController.signal.aborted) throw new Error("Generation cancelled by user.");
-        await new Promise(r => setTimeout(r, 3000));
-        const pollRes = await fetch(`${backendUrl}/async/status/${data.task_id}`, { signal: globalAbortController.signal });
-      if (!pollRes.ok) throw new Error(`Polling failed with HTTP ${pollRes.status}`);
-      pollData = await pollRes.json();
-    }
-      if (pollData.status === 'failed') throw new Error(pollData.error || 'Task failed');
-      if (pollData.error) throw new Error(pollData.error);
-      return pollData.result;
-    }
-    
     return data;
   } finally {
     globalAbortController = null;
