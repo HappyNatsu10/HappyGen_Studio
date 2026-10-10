@@ -3,6 +3,8 @@
  * Communicates with configured backend (Local GPU / Google Colab).
  */
 
+import useGenerateStore from '../store/useGenerateStore';
+
 const resolveBackendUrl = (baseModel = null) => {
   if (typeof window === 'undefined') return 'http://localhost:8000';
   
@@ -47,6 +49,12 @@ export const cancelGeneration = () => {
       console.warn("Abort error:", err);
     }
   }
+  
+  // Forcefully reset the UI state instantly
+  try {
+    useGenerateStore.getState().setIsGenerating(false);
+  } catch(e) {}
+
   
   // Attempt to stop generation gracefully on the backend
   try {
