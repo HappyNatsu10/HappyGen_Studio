@@ -4,6 +4,25 @@
  */
 
 import useGenerateStore from '../store/useGenerateStore';
+import { App } from '@capacitor/app';
+import { BackgroundTask } from '@capacitor/background-task';
+
+let activeGenerations = 0;
+
+try {
+  App.addListener('appStateChange', async ({ isActive }) => {
+    if (isActive || activeGenerations === 0) return;
+    
+    const taskId = await BackgroundTask.beforeExit(async () => {
+      while (activeGenerations > 0) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      BackgroundTask.finish({ taskId });
+    });
+  });
+} catch (e) {
+  console.warn("Capacitor background tasks not available:", e);
+}
 
 const resolveBackendUrl = (baseModel = null) => {
   if (typeof window === 'undefined') return 'http://localhost:8000';
@@ -73,6 +92,7 @@ const asyncFetch = async (url, options) => {
   if (!options) options = {};
   options.signal = globalAbortController.signal;
 
+  activeGenerations++;
   try {
     const res = await fetch(url, options);
     if (!res.ok) {
@@ -82,6 +102,7 @@ const asyncFetch = async (url, options) => {
     const data = await res.json();
     return data;
   } finally {
+    activeGenerations--;
     // We don't nullify globalAbortController here anymore, 
     // so it survives across multiple batch requests.
   }
