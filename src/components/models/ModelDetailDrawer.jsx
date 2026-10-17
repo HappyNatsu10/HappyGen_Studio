@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Download, ThumbsUp, Copy, Check, ExternalLink, Heart, FolderPlus, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { formatCount, getModelById } from '../../services/civitaiService';
 import { useFavouriteModels } from '../../hooks/useFavouriteModels';
 import CustomSelect from '../common/CustomSelect';
 
 export default function ModelDetailDrawer({ model: initialModel, onClose, onSelectAsBase, onAddLora, onAddEmbedding, isFav, onToggleFav }) {
+  const { t } = useTranslation();
   const [model, setModel] = useState(initialModel);
   const [loading, setLoading] = useState(!initialModel?.previewUrl && !initialModel?.versions);
   

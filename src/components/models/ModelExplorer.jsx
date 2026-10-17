@@ -623,9 +623,10 @@ export default function ModelExplorer(props) {
 }
 
 function ModelCard({ model, onClick, isFav, onToggleFav }) {
+  const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
-  const categoryTag = model.tags?.find(t => CATEGORY_TAGS.includes(t.toLowerCase()) && !STYLE_TAGS.includes(t.toLowerCase()));
-  const styleTag = model.tags?.find(t => STYLE_TAGS.includes(t.toLowerCase()));
+  const categoryTag = model.tags?.find(tag => CATEGORY_TAGS.includes(tag.toLowerCase()) && !STYLE_TAGS.includes(tag.toLowerCase()));
+  const styleTag = model.tags?.find(tag => STYLE_TAGS.includes(tag.toLowerCase()));
 
   return (
     <div
