@@ -1,0 +1,30 @@
+require_relative '../../node_modules/.pnpm/@capacitor+ios@7.6.9_@capacitor+core@7.6.9/node_modules/@capacitor/ios/scripts/pods_helpers'
+
+platform :ios, '14.0'
+use_frameworks!
+
+# workaround to avoid Xcode caching of Pods that requires
+# Product -> Clean Build Folder after new Cordova plugins installed
+# Requires CocoaPods 1.6 or newer
+install! 'cocoapods', :disable_input_output_paths => true
+
+def capacitor_pods
+  pod 'Capacitor', :path => '../../node_modules/.pnpm/@capacitor+ios@7.6.9_@capacitor+core@7.6.9/node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../node_modules/.pnpm/@capacitor+ios@7.6.9_@capacitor+core@7.6.9/node_modules/@capacitor/ios'
+  pod 'CapacitorCommunityMedia', :path => '../../node_modules/.pnpm/@capacitor-community+media@8.0.1_@capacitor+core@7.6.9/node_modules/@capacitor-community/media'
+  pod 'CapacitorApp', :path => '../../node_modules/.pnpm/@capacitor+app@7.1.2_@capacitor+core@7.6.9/node_modules/@capacitor/app'
+  pod 'CapacitorFilesystem', :path => '../../node_modules/.pnpm/@capacitor+filesystem@7.1.9_@capacitor+core@7.6.9/node_modules/@capacitor/filesystem'
+  pod 'CapacitorLocalNotifications', :path => '../../node_modules/.pnpm/@capacitor+local-notifications@7.0.0_@capacitor+core@7.6.9/node_modules/@capacitor/local-notifications'
+  pod 'CapacitorShare', :path => '../../node_modules/.pnpm/@capacitor+share@7.0.4_@capacitor+core@7.6.9/node_modules/@capacitor/share'
+  pod 'CapawesomeCapacitorBackgroundTask', :path => '../../node_modules/.pnpm/@capawesome+capacitor-backg_febcac9a2a0d14c3e16f275ecba57c2c/node_modules/@capawesome/capacitor-background-task'
+  pod 'CapgoCapacitorNativeBiometric', :path => '../../node_modules/.pnpm/@capgo+capacitor-native-bio_86870b1dfdeaf9341485ee2e9a8b5693/node_modules/@capgo/capacitor-native-biometric'
+end
+
+target 'App' do
+  capacitor_pods
+  # Add your Pods here
+end
+
+post_install do |installer|
+  assertDeploymentTarget(installer)
+end

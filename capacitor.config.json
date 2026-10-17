@@ -7,6 +7,10 @@
     "allowMixedContent": true,
     "captureInput": true
   },
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false
+  },
   "server": {
     "androidScheme": "https"
   }

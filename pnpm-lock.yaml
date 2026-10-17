@@ -90,6 +90,9 @@ importers:
       '@capacitor/cli':
         specifier: ^7.0.1
         version: 7.6.9(supports-color@7.2.0)
+      '@capacitor/ios':
+        specifier: 7.6.9
+        version: 7.6.9(@capacitor/core@7.6.9)
       '@tailwindcss/postcss':
         specifier: ^4.0.5
         version: 4.3.3
@@ -244,6 +247,11 @@ packages:
     resolution: {integrity: sha512-HBr3NwENo/Fm7Cmm6Cvps255OIdgQ2VXtSNZK+2Nkw0Y7EMid9y5AS9XfEzGmsC7MXbC6Hx2yXV/hvnuifsSXA==}
     peerDependencies:
       '@capacitor/core': '>=7.0.0'
+
+  '@capacitor/ios@7.6.9':
+    resolution: {integrity: sha512-LANP81TfwuJk1zq9EuF+J5AJK71rKDgXB5XD+VFJQHC7BxSH4Dsma6DSMyrjFT03jtqc/0JTMEfSMBE7go3ZjA==}
+    peerDependencies:
+      '@capacitor/core': ^7.6.0
 
   '@capacitor/local-notifications@7.0.0':
     resolution: {integrity: sha512-+k93w1W0hZTVxM8rjttEyUKkkHxOW776POFM4snDcwv+sAxWX+YK+oqIwNtln6N5Plp3Z9TkQS0RufwZbl7GUw==}
@@ -3214,6 +3222,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 7.6.9
       '@capacitor/synapse': 1.0.4
+
+  '@capacitor/ios@7.6.9(@capacitor/core@7.6.9)':
+    dependencies:
+      '@capacitor/core': 7.6.9
 
   '@capacitor/local-notifications@7.0.0(@capacitor/core@7.6.9)':
     dependencies:
