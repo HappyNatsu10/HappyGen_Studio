@@ -137,7 +137,7 @@ export default function ModelDetailDrawer({ model: initialModel, onClose, onSele
             {/* Meta */}
             <div className="flex items-center gap-4 flex-wrap">
               <span className={`badge ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`}>
-                {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? 'Embedding' : model.type)}
+                {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? t('explorer.embedding', 'Embedding') : (model.type === 'Checkpoint' ? t('explorer.checkpointBadge', 'Checkpoint') : model.type))}
               </span>
               {version?.baseModel && (
                 <span className="badge badge-neutral">{version.baseModel}</span>

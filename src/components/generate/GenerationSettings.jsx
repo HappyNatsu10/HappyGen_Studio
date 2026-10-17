@@ -230,7 +230,12 @@ export default function GenerationSettings({
             <CustomSelect
               value={schedule}
               onChange={(val) => setSchedule(val)}
-              options={SCHEDULES.map(s => ({ label: s.label, value: s.id }))}
+              options={SCHEDULES.map(s => ({ 
+                label: s.id === 'Automatic' 
+                  ? t('generate.scheduleAutomatic', 'Automatic') 
+                  : (s.id === 'Exponential' ? t('generate.scheduleExponential', 'Exponential') : s.label), 
+                value: s.id 
+              }))}
             />
           </div>
         </div>

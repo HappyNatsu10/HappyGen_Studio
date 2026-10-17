@@ -653,7 +653,7 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
         {/* Badges */}
         <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex flex-col gap-0.5 sm:gap-1 items-start pointer-events-none">
           <span className={`badge shadow-sm text-[8px] sm:text-[10px] px-1 sm:px-2 py-0.2 sm:py-0.5 leading-none ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`} style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
-            {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? 'Embedding' : model.type)}
+            {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? t('explorer.embedding', 'Embedding') : (model.type === 'Checkpoint' ? t('explorer.checkpointBadge', 'Checkpoint') : model.type))}
           </span>
           {categoryTag && (
             <span className="badge shadow-sm capitalize text-[7.5px] sm:text-[9px] px-1 sm:px-1.5 py-0.2 sm:py-0.5 leading-none" style={{ background: 'rgba(168,85,247,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
