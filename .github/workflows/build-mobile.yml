@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -25,6 +25,44 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install
+
+      - name: Ensure Firebase Config Exists for Build
+        run: |
+          mkdir -p src/config
+          if [ -n "${{ secrets.FIREBASE_CONFIG_JS }}" ]; then
+            echo "${{ secrets.FIREBASE_CONFIG_JS }}" > src/config/firebase.js
+          elif [ ! -f src/config/firebase.js ]; then
+            cat << 'EOF' > src/config/firebase.js
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBGzEqu4lGVCqpot47iG5rTRo6eYkVE9dQ",
+  authDomain: "happygen-studio.firebaseapp.com",
+  projectId: "happygen-studio",
+  storageBucket: "happygen-studio.firebasestorage.app",
+  messagingSenderId: "619040765912",
+  appId: "1:619040765912:web:d7d6394096afa09ff9e4ad",
+  measurementId: "G-VCYV2HRFT1"
+};
+
+let app = null;
+let auth = null;
+let db = null;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} catch (e) {
+  console.warn("Firebase initialization notice:", e);
+}
+
+export { auth, db };
+export default app;
+EOF
+          fi
 
       - name: Build Web App
         run: pnpm run build
@@ -63,7 +101,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -72,6 +110,44 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install
+
+      - name: Ensure Firebase Config Exists for Build
+        run: |
+          mkdir -p src/config
+          if [ -n "${{ secrets.FIREBASE_CONFIG_JS }}" ]; then
+            echo "${{ secrets.FIREBASE_CONFIG_JS }}" > src/config/firebase.js
+          elif [ ! -f src/config/firebase.js ]; then
+            cat << 'EOF' > src/config/firebase.js
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBGzEqu4lGVCqpot47iG5rTRo6eYkVE9dQ",
+  authDomain: "happygen-studio.firebaseapp.com",
+  projectId: "happygen-studio",
+  storageBucket: "happygen-studio.firebasestorage.app",
+  messagingSenderId: "619040765912",
+  appId: "1:619040765912:web:d7d6394096afa09ff9e4ad",
+  measurementId: "G-VCYV2HRFT1"
+};
+
+let app = null;
+let auth = null;
+let db = null;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} catch (e) {
+  console.warn("Firebase initialization notice:", e);
+}
+
+export { auth, db };
+export default app;
+EOF
+          fi
 
       - name: Build Web App
         run: pnpm run build
