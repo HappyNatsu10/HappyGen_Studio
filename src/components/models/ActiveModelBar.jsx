@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Layers, X, RefreshCw, Sliders, Sparkles, HelpCircle } from 'lucide-react';
+import { Layers, X, ChevronRight, Sliders, Sparkles, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Tooltip from '../common/Tooltip';
 import useModelStore from '../../store/useModelStore';
@@ -71,17 +71,6 @@ export default function ActiveModelBar({
 
   return (
     <div className="space-y-3">
-      {/* Base Model Header with Tooltip */}
-      <div className="flex items-center justify-between px-1">
-        <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-purple-400" />
-          {t('model.baseModel', 'Base Model')}
-          <Tooltip text={t('model.baseTooltip', 'The core AI brain that determines the overall style and capabilities of the generation.')}>
-            <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-purple-400 cursor-help transition-colors" />
-          </Tooltip>
-        </span>
-      </div>
-
       {/* Active Base Model Card */}
       <div 
         className="card card-interactive p-3 flex items-center justify-between gap-3 group relative"
@@ -92,25 +81,27 @@ export default function ActiveModelBar({
             <img
               src={thumbnail}
               alt={baseModel.name}
-              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md border border-[var(--border-subtle)]"
+              className="w-11 h-11 rounded-xl object-cover flex-shrink-0 shadow-sm border border-[var(--border-subtle)]"
             />
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0 border border-purple-500/20">
-              <Layers className="w-6 h-6 text-purple-400" />
+            <div className="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0 border border-purple-500/20">
+              <Layers className="w-5 h-5 text-purple-400" />
             </div>
           )}
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="badge badge-warning text-[10px] px-1.5 py-0.5 leading-none">
-                {baseArch.replace('SDXL 1.0', 'SDXL').replace('SD 1.5', 'SD1.5')}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-medium text-[var(--text-tertiary)] flex items-center gap-1">
+                {t('model.baseModel', 'Base Model')}
+                <Tooltip text={t('model.baseTooltip', 'The core AI brain that determines the overall style and capabilities of the generation.')}>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-purple-400 cursor-help transition-colors" />
+                </Tooltip>
               </span>
-              <span className="text-[10px] text-[var(--text-tertiary)] truncate">
-                {baseModel.creator ? `by ${baseModel.creator}` : 'Base Model'}
-              </span>
-              <Tooltip text={t('model.baseTooltip', 'The core AI brain that determines the overall style and capabilities of the generation.')}>
-                <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-purple-400 cursor-help transition-colors" />
-              </Tooltip>
+              {baseArch && (
+                <span className="badge badge-warning text-[9px] px-1.5 py-0.5 leading-none">
+                  {baseArch.replace('SDXL 1.0', 'SDXL').replace('SD 1.5', 'SD1.5')}
+                </span>
+              )}
             </div>
             <h4 className="text-[13px] font-semibold text-[var(--text-primary)] truncate mt-0.5" title={baseModel.name}>
               {baseModel.name}
@@ -121,11 +112,11 @@ export default function ActiveModelBar({
         {onChangeModel && (
           <button
             onClick={onChangeModel}
-            className="btn btn-secondary px-2.5 py-1.5 text-xs flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex-shrink-0"
+            className="flex items-center gap-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--surface-2)] flex-shrink-0"
             title={t('model.change', 'Change Model')}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{t('common.change', 'Change')}</span>
+            <span>{t('common.change', 'Change')}</span>
+            <ChevronRight className="w-4 h-4 opacity-70" />
           </button>
         )}
       </div>
@@ -134,21 +125,24 @@ export default function ActiveModelBar({
       {loras && loras.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-purple-400" />
-              {t('model.activeLoras', 'Active LoRAs')} ({loras.length})
+            <span className="text-[11px] font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <span>{t('model.activeLoras', 'Active LoRAs')} ({loras.length})</span>
+              <Tooltip text={t('model.loraTooltip', 'Low-Rank Adaptations. Mini-models that sit on top of the base model to add specific characters, concepts, or styles.')}>
+                <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-purple-400 cursor-help transition-colors" />
+              </Tooltip>
             </span>
             {onClearLoras && (
               <button
                 onClick={onClearLoras}
-                className="text-[10px] text-red-400 hover:text-red-300 transition-colors"
+                className="text-[11px] font-medium text-red-400 hover:text-red-300 transition-colors"
               >
                 {t('common.clearAll', 'Clear All')}
               </button>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {loras.map((lora, idx) => {
               const loraId = lora.id || lora.fileName || lora.name;
               const weight = typeof lora.weight === 'number' ? lora.weight : 0.8;
@@ -157,10 +151,10 @@ export default function ActiveModelBar({
               return (
                 <div
                   key={loraId || idx}
-                  className="card p-2.5 flex items-center gap-3 bg-[var(--surface-0)] border border-[var(--border-subtle)] rounded-xl group relative overflow-hidden"
+                  className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl bg-[var(--surface-1)] hover:bg-[var(--surface-2)]/70 border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all group shadow-xs min-h-[42px]"
                 >
-                  {/* LoRA Image Thumbnail */}
-                  <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] relative shadow-sm">
+                  {/* Compact LoRA Thumbnail */}
+                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--surface-2)] border border-[var(--border-subtle)] relative shadow-xs">
                     {thumb ? (
                       <img
                         src={thumb}
@@ -173,21 +167,20 @@ export default function ActiveModelBar({
                       />
                     ) : null}
                     <div className={`w-full h-full flex items-center justify-center bg-purple-500/10 text-purple-400 ${thumb ? 'hidden' : ''}`}>
-                      <Sliders className="w-5 h-5" />
+                      <Sliders className="w-3.5 h-3.5" />
                     </div>
                   </div>
 
-                  {/* LoRA Info & Weight Slider */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[12px] font-semibold text-[var(--text-primary)] truncate" title={lora.name || lora.fileName}>
-                        {lora.name || lora.fileName}
-                      </span>
-                      <span className="text-[11px] font-mono text-purple-400 font-bold flex-shrink-0">
-                        {weight.toFixed(2)}
-                      </span>
-                    </div>
+                  {/* LoRA Name (readable, truncate with max-w) */}
+                  <span
+                    className="text-xs font-semibold text-[var(--text-primary)] truncate max-w-[90px] sm:max-w-[130px] flex-shrink-0 cursor-default"
+                    title={lora.name || lora.fileName}
+                  >
+                    {lora.name || lora.fileName}
+                  </span>
 
+                  {/* Weight Slider */}
+                  <div className="flex-1 min-w-[60px] flex items-center px-1">
                     <input
                       type="range"
                       min="-1"
@@ -195,18 +188,24 @@ export default function ActiveModelBar({
                       step="0.05"
                       value={weight}
                       onChange={(e) => onUpdateWeight?.(loraId, parseFloat(e.target.value))}
-                      className="w-full accent-purple-500 h-1.5 bg-[var(--surface-2)] rounded-lg cursor-pointer"
+                      className="w-full accent-purple-500 h-1.5 bg-[var(--surface-3)] rounded-full cursor-pointer transition-colors"
+                      title={`Weight: ${weight.toFixed(2)}`}
                     />
                   </div>
+
+                  {/* Weight Value */}
+                  <span className="text-[11px] font-mono font-bold text-purple-400 min-w-[32px] text-right flex-shrink-0 tabular-nums">
+                    {weight.toFixed(2)}
+                  </span>
 
                   {/* Remove Button */}
                   {onRemoveLora && (
                     <button
                       onClick={() => onRemoveLora(loraId)}
-                      className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0 self-center"
+                      className="p-1 rounded-md text-[var(--text-tertiary)] hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
                       title={t('common.remove', 'Remove')}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -220,14 +219,17 @@ export default function ActiveModelBar({
       {embeddings && embeddings.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[11px] font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              {t('model.activeEmbeddings', 'Active Embeddings')} ({embeddings.length})
+              <span>{t('model.activeEmbeddings', 'Active Embeddings')} ({embeddings.length})</span>
+              <Tooltip text={t('model.embeddingTooltip', 'Textual Inversions that define custom trigger words or enhance prompt quality (e.g. negative embeddings).')}>
+                <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-blue-400 cursor-help transition-colors" />
+              </Tooltip>
             </span>
             {onClearEmbeddings && (
               <button
                 onClick={onClearEmbeddings}
-                className="text-[10px] text-red-400 hover:text-red-300 transition-colors"
+                className="text-[11px] font-medium text-red-400 hover:text-red-300 transition-colors"
               >
                 {t('common.clearAll', 'Clear All')}
               </button>

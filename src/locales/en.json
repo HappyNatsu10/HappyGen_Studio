@@ -330,6 +330,8 @@
     "change": "Change",
     "activeLoras": "Active LoRAs",
     "loraTooltip": "Low-Rank Adaptations. Mini-models that sit on top of the base model to add specific characters, concepts, or styles.",
+    "activeEmbeddings": "Active Embeddings",
+    "embeddingTooltip": "Textual Inversions that define custom trigger words or enhance prompt quality (e.g. negative embeddings).",
     "clearAll": "Clear All",
     "selectBase": "Select a Base Model",
     "addLora": "Add LoRA",
