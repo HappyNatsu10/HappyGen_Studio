@@ -84,7 +84,7 @@ export default function ActiveModelBar({
 
       {/* Active Base Model Card */}
       <div 
-        className="card card-interactive p-3 flex items-center justify-between gap-3 group relative overflow-hidden"
+        className="card card-interactive p-3 flex items-center justify-between gap-3 group relative"
         style={{ background: 'var(--surface-1)', border: '1px solid var(--border-subtle)' }}
       >
         <div className="flex items-center gap-3 min-w-0">
