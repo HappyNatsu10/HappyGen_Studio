@@ -133,65 +133,16 @@ Date: ${dateText}`.trim();
       const blob = await response.blob();
       
       if (isNativeApp) {
-        // Read blob as base64 for Capacitor
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64data = reader.result;
-          const fileName = `happygen-${currentImage.seed || Date.now()}.png`;
-          try {
-            let pureBase64 = base64data;
-            if (base64data.includes(',')) {
-              pureBase64 = base64data.split(',')[1];
-            }
-            
-            // First ensure permissions
-            try {
-              const perm = await Media.checkPermissions();
-              if (perm.publicStorage !== 'granted') {
-                await Media.requestPermissions();
-              }
-            } catch (permErr) {
-              console.log("Permission check error (expected on some OS versions):", permErr);
-              // Fallback to directly requesting
-              await Media.requestPermissions().catch(e => console.log(e));
-            }
-
-            // 1. Write to cache directory first
-            const cacheFile = await Filesystem.writeFile({
-              path: fileName,
-              data: pureBase64,
-              directory: Directory.Cache
-            });
-            
-            // 2. Save to gallery using Media plugin
-            await saveImageToGallery(cacheFile.uri);
-            
-            showToast('Image successfully saved to your gallery!');
-          } catch (err) {
-            console.error("Capacitor save/share error:", err);
-            // Fallback to share sheet if direct save fails
-            try {
-              // Write to cache directory temporarily for sharing
-              const cacheFile = await Filesystem.writeFile({
-                path: fileName,
-                data: pureBase64,
-                directory: Directory.Cache
-              });
-              
-              await Share.share({
-                title: 'Generated Image',
-                url: cacheFile.uri,
-                dialogTitle: 'Save or Share Image'
-              });
-            } catch (shareErr) {
-              console.error("Share fallback error:", shareErr);
-              showToast('Failed to save image: ' + err.message);
-            }
-          } finally {
-            setIsDownloading(false);
-          }
-        };
+        const fileName = `happygen-${currentImage.seed || Date.now()}.png`;
+        try {
+          await saveImageToGallery(currentImage.url, fileName);
+          showToast('Image successfully saved to your gallery!');
+        } catch (err) {
+          console.error("Capacitor save/share error:", err);
+          showToast('Failed to save image: ' + (err.message || 'Unknown error'));
+        } finally {
+          setIsDownloading(false);
+        }
       } else {
         // Web fallback
         if (navigator.share && /mobile/i.test(navigator.userAgent)) {

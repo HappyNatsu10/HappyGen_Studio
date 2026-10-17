@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush, Trash2, AlertTriangle } from 'lucide-react';
 import ImageViewerModal from '../common/ImageViewerModal';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
-import { Media } from '@capacitor-community/media';
+import { saveImageToGallery } from '../../utils/mediaUtils';
+import useAppStore from '../../store/useAppStore';
+import useWorkspaceStore from '../../store/useWorkspaceStore';
 
 export default function OutputGallery({ results, isGenerating, onSendToCanvas, onCreateVariant, onUpscale, onDelete }) {
   const { t } = useTranslation();
@@ -33,73 +33,17 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
   const handleDownload = async (image) => {
     try {
       const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
-      const response = await fetch(image.url);
-      const blob = await response.blob();
-      
-      if (isNativeApp) {
-        // Read blob as base64 for Capacitor
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64data = reader.result;
-          const fileName = `happygen-${image.seed || Date.now()}.png`;
-          try {
-            let pureBase64 = base64data;
-            if (base64data.includes(',')) {
-              pureBase64 = base64data.split(',')[1];
-            }
-            
-            // First ensure permissions
-            try {
-              const perm = await Media.checkPermissions();
-              if (perm.publicStorage !== 'granted') {
-                await Media.requestPermissions();
-              }
-            } catch (permErr) {
-              console.log("Permission check error (expected on some OS versions):", permErr);
-              // Fallback to directly requesting
-              await Media.requestPermissions().catch(e => console.log(e));
-            }
+      const fileName = `happygen-${image.seed || Date.now()}.png`;
 
-            // 1. Write to cache directory first
-            const cacheFile = await Filesystem.writeFile({
-              path: fileName,
-              data: pureBase64,
-              directory: Directory.Cache
-            });
-            
-            // 2. Save to gallery (Pictures) using Media plugin
-            await Media.savePhoto({
-              path: cacheFile.uri,
-              album: 'HappyGen Studio'
-            });
-            
-            alert('Image successfully saved to your Pictures/Gallery!');
-          } catch (err) {
-            console.error("Capacitor save/share error:", err);
-            // Fallback to share sheet if direct save fails
-            try {
-              // Write to cache directory temporarily for sharing
-              const cacheFile = await Filesystem.writeFile({
-                path: fileName,
-                data: pureBase64,
-                directory: Directory.Cache
-              });
-              
-              await Share.share({
-                title: 'Generated Image',
-                url: cacheFile.uri,
-                dialogTitle: 'Save or Share Image'
-              });
-            } catch (shareErr) {
-              console.error("Share fallback error:", shareErr);
-              alert('Failed to save image: ' + err.message);
-            }
-          }
-        };
+      if (isNativeApp) {
+        await saveImageToGallery(image.url, fileName);
+        alert('Image successfully saved to your Pictures/Gallery!');
       } else {
+        const response = await fetch(image.url);
+        const blob = await response.blob();
+
         if (navigator.share && /mobile/i.test(navigator.userAgent)) {
-          const file = new File([blob], `happygen-${image.seed || Date.now()}.png`, { type: 'image/png' });
+          const file = new File([blob], fileName, { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
               files: [file],
@@ -112,7 +56,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `happygen-${image.seed || Date.now()}.png`;
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -120,11 +64,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
       }
     } catch (e) {
       console.error('Download failed', e);
-      const a = document.createElement('a');
-      a.href = image.url;
-      a.download = `happygen-${image.seed || Date.now()}.png`;
-      a.target = '_blank';
-      a.click();
+      alert('Failed to save image: ' + (e.message || 'Error'));
     }
   };
 
@@ -182,7 +122,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
             />
             {/* Action overlay - Floating Pill */}
             <div 
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 bg-[var(--surface-1)]/80 backdrop-blur-md px-4 py-2 rounded-full border border-[var(--border-subtle)] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 bg-[var(--surface-1)]/80 backdrop-blur-md px-4 py-2 rounded-full border border-[var(--border-subtle)] shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300"
               onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking buttons
             >
               <button
@@ -220,8 +160,6 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
               )}
               <button
                 onClick={() => {
-                  const useAppStore = require('../../store/useAppStore').default;
-                  const useWorkspaceStore = require('../../store/useWorkspaceStore').default;
                   useWorkspaceStore.getState().setInpaintSourceImage(activeImage.url);
                   useAppStore.getState().setActiveTab('inpaint');
                 }}

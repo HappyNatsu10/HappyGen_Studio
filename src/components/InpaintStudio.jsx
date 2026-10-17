@@ -13,6 +13,7 @@ import useWorkspaceStore from '../store/useWorkspaceStore';
 import useGenerateStore from '../store/useGenerateStore';
 import useModelStore from '../store/useModelStore';
 import { useAuth } from '../context/AuthContext';
+import { notifyGenerationDone } from '../services/notificationService';
 export default function InpaintStudio() {
   const { t } = useTranslation();
   const { incrementGeneratedCount } = useAuth();
@@ -78,6 +79,11 @@ export default function InpaintStudio() {
       setResultImage(images[0]);
       addGeneratedAssets(images);
       incrementGeneratedCount(images.length);
+      notifyGenerationDone({
+        title: '✨ Inpainting Complete!',
+        body: 'Your inpainted image is ready in HappyGen Studio.',
+        count: images.length
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -204,7 +210,7 @@ export default function InpaintStudio() {
                 className="max-w-full max-h-full object-contain rounded-lg shadow-xl cursor-pointer"
                 onClick={() => setShowViewer(true)}
               />
-              <button onClick={() => setShowViewer(true)} className="absolute top-6 right-6 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100 shadow-md backdrop-blur-sm">
+              <button onClick={() => setShowViewer(true)} className="absolute top-6 right-6 p-2 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto shadow-md backdrop-blur-sm">
                 <Maximize2 className="w-4 h-4" />
               </button>
               <ImageViewerModal image={resultImage} isOpen={showViewer} onClose={() => setShowViewer(false)} />

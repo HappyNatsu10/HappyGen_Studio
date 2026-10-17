@@ -4,7 +4,8 @@ node_modules/
 .pnp.js
 
 # Large Model weights & checkpoints (Never commit 6GB+ weights to GitHub)
-Models/
+/Models/
+/models/
 *.safetensors
 *.ckpt
 *.bin

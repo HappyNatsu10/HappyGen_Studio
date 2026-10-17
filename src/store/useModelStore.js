@@ -78,7 +78,7 @@ const useModelStore = create(persist((set, get) => ({
       name: lora.name,
       weight: lora.weight ?? 0.8,
       triggerWords: lora.triggerWords || lora.version?.trainedWords || [],
-      thumbnailUrl: lora.thumbnailUrl || null,
+      thumbnailUrl: lora.thumbnailUrl || lora.imageUrl || lora.version?.imageUrl || (lora.images && lora.images[0]?.url) || (lora.version?.images && lora.version.images[0]?.url) || null,
       baseModel: lora.baseModel || lora.version?.baseModel || 'Unknown',
       downloadUrl: lora.downloadUrl || lora.version?.downloadUrl || null,
       fileName: lora.fileName || lora.version?.fileName || null,

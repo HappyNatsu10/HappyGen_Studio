@@ -514,7 +514,7 @@ export default function ModelExplorer(props) {
 
       {/* Results Grid */}
       <div 
-        className="flex-1 overflow-y-auto px-5 pb-5 pt-2"
+        className="flex-1 overflow-y-auto px-2.5 sm:px-5 pb-5 pt-2"
         onScroll={handleScroll}
       >
         {error && (
@@ -524,7 +524,7 @@ export default function ModelExplorer(props) {
         )}
 
         {/* The Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
           {displayResults.map(model => {
             let displayModel = model;
             // Dynamically select the version that matches the forced base model for Favorites
@@ -551,7 +551,7 @@ export default function ModelExplorer(props) {
           })}
 
           {loading && activeTab === 'Search' && Array.from({ length: 8 }).map((_, i) => (
-            <div key={`skel-${i}`} className="skeleton" style={{ aspectRatio: '3/4' }} />
+            <div key={`skel-${i}`} className="skeleton aspect-[4/5] sm:aspect-[3/4]" />
           ))}
         </div>
 
@@ -633,7 +633,7 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
       className="card card-rich text-left overflow-hidden cursor-pointer group flex flex-col h-full relative"
     >
       {/* Thumbnail */}
-      <div className="relative overflow-hidden" style={{ aspectRatio: '3/4', background: 'var(--surface-2)' }}>
+      <div className="relative overflow-hidden aspect-[4/5] sm:aspect-[3/4]" style={{ background: 'var(--surface-2)' }}>
         {model.thumbnailUrl && !imgError ? (
           <img
             src={model.thumbnailUrl}
@@ -643,25 +643,25 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-3xl" style={{ color: 'var(--text-tertiary)' }}>
+          <div className="w-full h-full flex items-center justify-center text-2xl sm:text-3xl" style={{ color: 'var(--text-tertiary)' }}>
             {model.type === 'Checkpoint' ? '🧠' : '🎨'}
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity" />
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
-          <span className={`badge shadow-sm ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`} style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
+        <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex flex-col gap-0.5 sm:gap-1 items-start pointer-events-none">
+          <span className={`badge shadow-sm text-[8px] sm:text-[10px] px-1 sm:px-2 py-0.2 sm:py-0.5 leading-none ${model.type === 'Checkpoint' ? 'badge-warning' : ''}`} style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
             {model.type === 'LORA' ? 'LoRA' : (model.type === 'TextualInversion' ? 'Embedding' : model.type)}
           </span>
           {categoryTag && (
-            <span className="badge shadow-sm capitalize text-[9px] px-1.5 py-0.5" style={{ background: 'rgba(168,85,247,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
+            <span className="badge shadow-sm capitalize text-[7.5px] sm:text-[9px] px-1 sm:px-1.5 py-0.2 sm:py-0.5 leading-none" style={{ background: 'rgba(168,85,247,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
               {categoryTag}
             </span>
           )}
           {styleTag && (
-            <span className="badge shadow-sm capitalize text-[9px] px-1.5 py-0.5" style={{ background: 'rgba(59,130,246,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
+            <span className="badge shadow-sm capitalize text-[7.5px] sm:text-[9px] px-1 sm:px-1.5 py-0.2 sm:py-0.5 leading-none" style={{ background: 'rgba(59,130,246,0.8)', backdropFilter: 'blur(4px)', border: 'none', color: 'white' }}>
               {styleTag}
             </span>
           )}
@@ -670,37 +670,37 @@ function ModelCard({ model, onClick, isFav, onToggleFav }) {
         {/* Heart Icon Overlay */}
         <button
           onClick={onToggleFav}
-          className={`absolute top-2 right-2 p-1.5 rounded-full shadow-sm transition-all transform hover:scale-110 ${isFav ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+          className={`absolute top-1.5 sm:top-2 right-1.5 sm:right-2 p-1 sm:p-1.5 rounded-full shadow-sm transition-all transform hover:scale-110 ${isFav ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
         >
-          <Heart className={`w-4 h-4 ${isFav ? 'fill-pink-500 text-pink-500' : 'text-white'}`} />
+          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isFav ? 'fill-pink-500 text-pink-500' : 'text-white'}`} />
         </button>
       </div>
 
       {/* Info */}
-      <div className="p-3 flex flex-col flex-1">
-        <h3 className="text-[13px] font-semibold leading-tight line-clamp-2 mb-1" style={{ color: 'var(--text-primary)' }}>
+      <div className="p-1.5 sm:p-3 flex flex-col flex-1">
+        <h3 className="text-[11px] sm:text-[13px] font-semibold leading-tight line-clamp-1 sm:line-clamp-2 mb-0.5 sm:mb-1" style={{ color: 'var(--text-primary)' }}>
           {model.name}
         </h3>
-        <p className="text-[11px] mt-auto truncate" style={{ color: 'var(--text-tertiary)' }}>
+        <p className="text-[9px] sm:text-[11px] mt-auto truncate" style={{ color: 'var(--text-tertiary)' }}>
           by {model.creator}
         </p>
       </div>
 
       {/* Stats strip */}
-      <div className="px-3 py-2 flex items-center justify-between border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-2)' }}>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
-            <Download className="w-3 h-3" />
+      <div className="px-1.5 sm:px-3 py-1 sm:py-2 flex items-center justify-between border-t" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-2)' }}>
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <span className="flex items-center gap-0.5 sm:gap-1 text-[8px] sm:text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+            <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             {formatCount(model.stats?.downloads || 0)}
           </span>
-          <span className="flex items-center gap-1 text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
-            <ThumbsUp className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 sm:gap-1 text-[8px] sm:text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+            <ThumbsUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             {formatCount(model.stats?.thumbsUp || 0)}
           </span>
         </div>
         {model.version?.baseModel && (
-          <span className="text-[9px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+          <span className="text-[7.5px] sm:text-[9px] font-mono" style={{ color: 'var(--text-secondary)' }}>
             {model.version.baseModel.replace('SDXL 1.0', 'SDXL').replace('SD 1.5', 'SD1.5')}
           </span>
         )}

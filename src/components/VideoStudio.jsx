@@ -19,6 +19,7 @@ const VIDEO_CAMERA_MOTIONS = [
 import useAppStore from '../store/useAppStore';
 import useModelStore from '../store/useModelStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
+import { notifyGenerationDone } from '../services/notificationService';
 
 export default function VideoStudio({ onAddSafetyLog = () => {} }) {
   const { t } = useTranslation();
@@ -77,6 +78,11 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
       });
 
       setGeneratedVideos(prev => [newVid, ...prev]);
+      notifyGenerationDone({
+        title: '🎬 Video Render Complete!',
+        body: 'Your AI video has finished generating!',
+        count: 1
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -301,7 +307,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
                   <div className="badge absolute top-2 left-2">
                     {vid.fps} FPS • {vid.duration}s
                   </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity flex items-center justify-center gap-3">
                     <button className="btn btn-secondary px-4 py-2 text-sm">{t('common.download', 'Download')}</button>
                   </div>
                 </div>

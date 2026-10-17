@@ -126,34 +126,15 @@ export default function GalleryProjects() {
     const blob = await response.blob();
     
     if (isNativeApp) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64data = reader.result;
-          const fileName = `happygen-${image.seed || Date.now()}-${Math.floor(Math.random()*1000)}.png`;
-          try {
-            let pureBase64 = base64data;
-            if (base64data.includes(',')) {
-              pureBase64 = base64data.split(',')[1];
-            }
-            
-            try {
-              const perm = await Media.checkPermissions();
-              if (perm.publicStorage !== 'granted') {
-                await Media.requestPermissions();
-              }
-            } catch (permErr) {
-              await Media.requestPermissions().catch(e => console.log(e));
-            }
-
-            await saveImageToGallery(pureBase64, fileName);
-            resolve();
-          } catch (err) {
-            console.error("Download failed:", err);
-            resolve();
-          }
-        };
+      return new Promise(async (resolve) => {
+        const fileName = `happygen-${image.seed || Date.now()}-${Math.floor(Math.random()*1000)}.png`;
+        try {
+          await saveImageToGallery(image.url, fileName);
+          resolve();
+        } catch (err) {
+          console.error("Download failed:", err);
+          resolve();
+        }
       });
     } else {
       const blobUrl = URL.createObjectURL(blob);
@@ -405,7 +386,7 @@ export default function GalleryProjects() {
                       )}
 
                       {!isSelectionMode && (
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                        <div className="hidden sm:flex pointer-events-none group-hover:pointer-events-auto absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex-col items-center justify-center gap-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
                           <div className="flex gap-2">
                             <button 
                               className="btn btn-primary p-2"

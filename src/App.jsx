@@ -27,6 +27,7 @@ import ThemeSelectorModal from './components/common/ThemeSelectorModal';
 import VaultSecurityModal from './components/common/VaultSecurityModal';
 import useAppStore from './store/useAppStore';
 import useModelStore from './store/useModelStore';
+import { initNotifications } from './services/notificationService';
 
 function MainApp() {
   const { t } = useTranslation();
@@ -52,6 +53,10 @@ function MainApp() {
   const [showBanner, setShowBanner] = useState(true);
 
   const { syncModelProfiles } = useModelStore();
+
+  useEffect(() => {
+    initNotifications();
+  }, []);
 
   useEffect(() => {
     if (currentUser?.modelProfiles) {

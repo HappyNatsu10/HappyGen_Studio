@@ -23,6 +23,7 @@ import useModelStore from '../../store/useModelStore';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useGenerateStore from '../../store/useGenerateStore';
 import QueueAlertModal from './QueueAlertModal';
+import { notifyGenerationDone } from '../../services/notificationService';
 
 const DEFAULT_NEGATIVE = 'bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality';
 
@@ -282,7 +283,14 @@ export default function GeneratePage() {
       const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));
       setResults(timestampedImages);
       addGeneratedAssets(timestampedImages);
-      if (timestampedImages && timestampedImages.length) incrementGeneratedCount(timestampedImages.length);
+      if (timestampedImages && timestampedImages.length) {
+        incrementGeneratedCount(timestampedImages.length);
+        notifyGenerationDone({
+          title: '✨ Image Generated!',
+          body: `Successfully generated ${timestampedImages.length} image${timestampedImages.length > 1 ? 's' : ''}!`,
+          count: timestampedImages.length
+        });
+      }
       
       const warnedImage = timestampedImages.find(img => img.hasWarning);
       if (warnedImage) {
@@ -312,7 +320,14 @@ export default function GeneratePage() {
       const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));
       setResults(timestampedImages);
       addGeneratedAssets(timestampedImages);
-      if (timestampedImages && timestampedImages.length) incrementGeneratedCount(timestampedImages.length);
+      if (timestampedImages && timestampedImages.length) {
+        incrementGeneratedCount(timestampedImages.length);
+        notifyGenerationDone({
+          title: '✨ Upscale Complete!',
+          body: 'Your upscaled image is ready!',
+          count: timestampedImages.length
+        });
+      }
     } catch (err) {
       setError(err.message);
     } finally {

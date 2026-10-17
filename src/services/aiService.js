@@ -5,23 +5,37 @@
 
 import useGenerateStore from '../store/useGenerateStore';
 import { App } from '@capacitor/app';
-import { BackgroundTask } from '@capacitor/background-task';
+import { BackgroundTask } from '@capawesome/capacitor-background-task';
+import { Capacitor } from '@capacitor/core';
 
 let activeGenerations = 0;
+let currentBgTaskId = null;
 
-try {
-  App.addListener('appStateChange', async ({ isActive }) => {
-    if (isActive || activeGenerations === 0) return;
-    
-    const taskId = await BackgroundTask.beforeExit(async () => {
-      while (activeGenerations > 0) {
-        await new Promise(r => setTimeout(r, 1000));
+if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+  try {
+    App.addListener('appStateChange', async ({ isActive }) => {
+      if (!isActive && activeGenerations > 0) {
+        try {
+          currentBgTaskId = await BackgroundTask.beforeExit(async () => {
+            while (activeGenerations > 0) {
+              await new Promise(r => setTimeout(r, 1000));
+            }
+            if (currentBgTaskId) {
+              BackgroundTask.finish({ taskId: currentBgTaskId });
+              currentBgTaskId = null;
+            }
+          });
+        } catch (bgErr) {
+          console.warn("Background task registration notice:", bgErr);
+        }
+      } else if (isActive && currentBgTaskId) {
+        BackgroundTask.finish({ taskId: currentBgTaskId });
+        currentBgTaskId = null;
       }
-      BackgroundTask.finish({ taskId });
     });
-  });
-} catch (e) {
-  console.warn("Capacitor background tasks not available:", e);
+  } catch (e) {
+    console.warn("Capacitor background tasks not available:", e);
+  }
 }
 
 const resolveBackendUrl = (baseModel = null) => {
