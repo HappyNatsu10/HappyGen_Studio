@@ -35,17 +35,28 @@ const MarketingNavbar = () => {
           </div>
 
           {/* Desktop Nav - Center */}
-          <div className="hidden md:flex items-center justify-center gap-8 absolute left-1/2 -translate-x-1/2">
-            <Link to="/walkthrough" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Walkthrough</Link>
-            <Link to="/faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">FAQ</Link>
-            <Link to="/download" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Download</Link>
+          <div className="hidden md:flex items-center justify-center gap-7 absolute left-1/2 -translate-x-1/2">
+            <a href="#demo" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Interactive Demo</a>
+            <a href="#features" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
+            <a href="#colab" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
+              <span>Free Colab GPU</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            </a>
+            <Link to="/walkthrough" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Walkthrough</Link>
+            <Link to="/faq" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">FAQ</Link>
           </div>
 
-          {/* Contact - Right */}
-          <div className="hidden md:flex items-center justify-end gap-4 flex-1">
-            <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-5 h-5" /></a>
-            <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors mr-2"><DiscordIcon className="w-[22px] h-[22px]" /></a>
-            <Link to="/contact" className="btn-primary btn-primary-glow px-4 py-2 rounded-lg font-medium text-slate-300 hover:text-white transition-colors">Contact</Link>
+          {/* Download & Socials - Right */}
+          <div className="hidden md:flex items-center justify-end gap-3 flex-1">
+            <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-4 h-4" /></a>
+            <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors mr-1"><DiscordIcon className="w-[18px] h-[18px]" /></a>
+            <a 
+              href="#download" 
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download Workstation</span>
+            </a>
           </div>
 
           {/* Mobile Menu Button - Right */}
@@ -69,12 +80,25 @@ const MarketingNavbar = () => {
             exit={{ opacity: 0, y: -20 }}
             className="fixed inset-0 z-40 bg-[var(--surface-0)]/95 backdrop-blur-3xl pt-24 px-6 md:hidden"
           >
-            <div className="flex flex-col gap-6 text-lg">
+            <div className="flex flex-col gap-4 text-base">
+              <a href="#demo" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Interactive Demo</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Features</a>
+              <a href="#colab" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white flex items-center justify-between">
+                <span>Free Colab Cloud GPU</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">Free</span>
+              </a>
               <Link to="/walkthrough" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Walkthrough</Link>
               <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">FAQ</Link>
-              <Link to="/download" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Download</Link>
-              <div className="pt-4 mt-2 border-t border-[var(--border-subtle)] flex gap-6">
-                <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-6 h-6" /></a>
+              <a 
+                href="#download" 
+                onClick={() => setMobileMenuOpen(false)} 
+                className="mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-center text-sm shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download App (APK & Desktop)</span>
+              </a>
+              <div className="pt-4 mt-2 border-t border-[var(--border-subtle)] flex gap-6 items-center">
+                <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-5 h-5" /></a>
                 <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><DiscordIcon className="w-6 h-6" /></a>
               </div>
             </div>
