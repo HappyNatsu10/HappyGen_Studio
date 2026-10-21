@@ -55,8 +55,8 @@ export function BeforeAfterSlider() {
       badge: 'RealESRGAN 4K'
     },
     face: {
-      before: '/styles/face_raw.jpg',
-      after: '/styles/face_restored.jpg',
+      before: '/studio/adetailer-before.jpg',
+      after: '/studio/adetailer-after.jpg',
       beforeLabel: 'Raw SDXL Output',
       afterLabel: 'ADetailer + GFPGAN 4K Restore',
       title: 'Neural Face Restoration',
@@ -64,8 +64,8 @@ export function BeforeAfterSlider() {
       badge: 'ADetailer Engine'
     },
     inpaint: {
-      before: '/styles/inpaint_before.jpg',
-      after: '/styles/inpaint_after.jpg',
+      before: '/studio/inpaint-before.jpg',
+      after: '/studio/inpaint-after.jpg',
       beforeLabel: 'Original Composition',
       afterLabel: 'Inpainted & Styled Output',
       title: 'Precision Inpainting Studio',
@@ -148,7 +148,7 @@ export function BeforeAfterSlider() {
         <img
           src={current.after}
           alt={current.afterLabel}
-          className="absolute inset-0 w-full h-full object-contain object-top pointer-events-none"
+          className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
           loading="lazy"
         />
 
@@ -160,7 +160,7 @@ export function BeforeAfterSlider() {
           <img
             src={current.before}
             alt={current.beforeLabel}
-            className="absolute inset-0 w-full h-full object-contain object-top"
+            className="absolute inset-0 w-full h-full object-contain object-center"
             loading="lazy"
           />
         </div>
