@@ -47,7 +47,7 @@ const MarketingNavbar = () => {
         animate={{ y: 0 }}
         className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/85 backdrop-blur-xl border-b border-[var(--border-subtle)]"
       >
-        <div className="w-full max-w-[1500px] px-3.5 sm:px-6 lg:px-12 mx-auto flex items-center justify-between h-16 sm:h-20">
+        <div className="w-full max-w-[1700px] px-3.5 sm:px-6 lg:px-12 mx-auto flex items-center justify-between h-16 sm:h-20">
           {/* Logo - Left */}
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
             <img src="/logo.png" alt="HappyGen Studio Logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform flex-shrink-0" />

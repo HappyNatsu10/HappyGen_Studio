@@ -148,7 +148,7 @@ export function BeforeAfterSlider() {
         <img
           src={current.after}
           alt={current.afterLabel}
-          className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none"
           loading="lazy"
         />
 
@@ -160,7 +160,7 @@ export function BeforeAfterSlider() {
           <img
             src={current.before}
             alt={current.beforeLabel}
-            className="absolute inset-0 w-full h-full object-contain object-center"
+            className="absolute inset-0 w-full h-full object-cover object-center"
             loading="lazy"
           />
         </div>

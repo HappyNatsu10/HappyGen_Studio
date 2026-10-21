@@ -7,9 +7,6 @@ import {
   updateProfile as firebaseUpdateProfile,
   updatePassword,
   deleteUser,
-  GoogleAuthProvider,
-  TwitterAuthProvider,
-  signInWithPopup,
   EmailAuthProvider,
   reauthenticateWithCredential
 } from 'firebase/auth';
@@ -210,178 +207,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Login with Google
+  // Social logins (browser popups are disabled in native app context)
   const loginWithGoogle = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      // Inherit guest state if present
-      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
-      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
-
-      let finalData = {};
-      
-      try {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-           finalData = docSnap.data();
-        } else {
-           // New user from Google
-           finalData = {
-             name: user.displayName || 'Creator',
-             email: user.email,
-             avatar: user.photoURL || DEFAULT_AVATARS[0],
-             tier: 'Pro Studio Creator',
-             createdAt: new Date().toISOString(),
-             generatedCount: 0,
-             savedPrompts: [],
-             favoriteImages: [],
-             favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
-             favouriteModels: guestModels,
-             customSettings: {
-               preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
-               defaultSteps: 20,
-               defaultCfg: 6.5,
-               defaultResolution: '512x768'
-             }
-           };
-        }
-      } catch (err) {
-        console.error("Failed to fetch user data during Google login:", err);
-        finalData = {
-           name: user.displayName || 'Creator',
-           email: user.email,
-           avatar: user.photoURL || DEFAULT_AVATARS[0]
-        };
-      }
-      
-      if (guestModels.length > 0 || guestFolders.length > 0) {
-          const existingModels = finalData.favouriteModels || [];
-          const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
-          
-          const mergedModels = [...existingModels];
-          for (const gm of guestModels) {
-            if (!mergedModels.find(m => m.id === gm.id)) {
-              mergedModels.push(gm);
-            }
-          }
-          
-          const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
-          
-          finalData.favouriteModels = mergedModels;
-          finalData.favouriteFolders = mergedFolders;
-          
-          try {
-             await setDoc(doc(db, 'users', user.uid), {
-               favouriteModels: mergedModels,
-               favouriteFolders: mergedFolders
-             }, { merge: true });
-          } catch (e) {
-             console.error("Could not merge guest data on login", e);
-          }
-      } else {
-         try {
-            await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
-         } catch (e) {
-            console.error("Could not set user doc", e);
-         }
-      }
-      
-      setCurrentUser({ id: user.uid, email: user.email, ...finalData });
-      return user;
-    } catch (error) {
-      console.error("Google Login Error:", error);
-      throw new Error(error.message || 'An error occurred during Google sign in.');
-    }
+    throw new Error('Social browser popup authentication is not supported in the native app. Please sign in with Email or Continue as Guest.');
   };
 
-  // Login with Twitter
   const loginWithTwitter = async () => {
-    try {
-      const provider = new TwitterAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
-      const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
-
-      let finalData = {};
-      
-      try {
-        const docRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-           finalData = docSnap.data();
-        } else {
-           finalData = {
-             name: user.displayName || 'Creator',
-             email: user.email,
-             avatar: user.photoURL || DEFAULT_AVATARS[0],
-             tier: 'Pro Studio Creator',
-             createdAt: new Date().toISOString(),
-             generatedCount: 0,
-             savedPrompts: [],
-             favoriteImages: [],
-             favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
-             favouriteModels: guestModels,
-             customSettings: {
-               preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
-               defaultSteps: 20,
-               defaultCfg: 6.5,
-               defaultResolution: '512x768'
-             }
-           };
-        }
-      } catch (err) {
-        console.error("Failed to fetch user data during Twitter login:", err);
-        finalData = {
-           name: user.displayName || 'Creator',
-           email: user.email,
-           avatar: user.photoURL || DEFAULT_AVATARS[0]
-        };
-      }
-      
-      if (guestModels.length > 0 || guestFolders.length > 0) {
-          const existingModels = finalData.favouriteModels || [];
-          const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
-          
-          const mergedModels = [...existingModels];
-          for (const gm of guestModels) {
-            if (!mergedModels.find(m => m.id === gm.id)) {
-              mergedModels.push(gm);
-            }
-          }
-          
-          const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
-          
-          finalData.favouriteModels = mergedModels;
-          finalData.favouriteFolders = mergedFolders;
-          
-          try {
-             await setDoc(doc(db, 'users', user.uid), {
-               favouriteModels: mergedModels,
-               favouriteFolders: mergedFolders
-             }, { merge: true });
-          } catch (e) {
-             console.error("Could not merge guest data on login", e);
-          }
-      } else {
-         try {
-            await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
-         } catch (e) {
-            console.error("Could not set user doc", e);
-         }
-      }
-      
-      setCurrentUser({ id: user.uid, email: user.email, ...finalData });
-      return user;
-    } catch (error) {
-      console.error("Twitter Login Error:", error);
-      throw new Error(error.message || 'An error occurred during Twitter sign in.');
-    }
+    throw new Error('Social browser popup authentication is not supported in the native app. Please sign in with Email or Continue as Guest.');
   };
 
   // Quick Demo Guest Account

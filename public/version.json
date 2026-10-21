@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "releaseName": "HappyGen Studio 2.0 — Workstation Launch",
+  "releaseDate": "2026-10-21",
+  "minAppVersion": "2.0.0",
+  "downloadUrl": "/downloads/happygen-studio-android.apk",
+  "downloadSize": "27.6 MB",
+  "whatsNew": {
+    "summary": "Welcome to HappyGen Studio 2.0 — the ultimate AI workstation featuring direct CivitAI model discovery, Turbo Inpainting, and full offline persistence.",
+    "highlights": [
+      "Turbo Inpainting & Adetailer v2 with real-time brush control",
+      "4K Super-Resolution image upscaling and restoration",
+      "Native Android app support with background generation",
+      "Full offline-first Guest Mode for instant creations",
+      "Direct Gallery Save on Android without black frame artifacts"
+    ],
+    "sections": [
+      {
+        "title": "🎨 Creative Workstation",
+        "items": [
+          "CivitAI Model Discovery: browse and load thousands of checkpoints, LoRAs, and embeddings",
+          "Canvas & Inpaint Studio: feathering brush and smart edge preservation",
+          "Advanced Prompt Studio with style presets and negative prompt vault"
+        ]
+      },
+      {
+        "title": "⚡ Mobile & Performance",
+        "items": [
+          "Optimized GPU memory handling and fast preview generation",
+          "IndexedDB local persistence for uninterrupted offline workflows",
+          "Native biometrics and background task execution"
+        ]
+      },
+      {
+        "title": "🛠️ Bug Fixes & Improvements",
+        "items": [
+          "Resolved Android gallery save issue that created empty black files",
+          "Optimized notification permissions on Android 13+",
+          "Removed web popups to ensure seamless mobile WebView authentication"
+        ]
+      }
+    ]
+  }
+}

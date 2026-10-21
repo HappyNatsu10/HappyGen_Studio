@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Download, Monitor, Smartphone, Apple, CheckCircle2, 
+  Download, CheckCircle2, 
   QrCode, HardDrive, Cpu, Shield, ArrowDownToLine, ExternalLink 
 } from 'lucide-react';
+
+const AndroidIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    <path d="M17.523 15.341c-.551 0-.999-.448-.999-1 0-.551.448-1 .999-1s1 .449 1 1c0 .552-.448 1-1 1m-11.046 0c-.551 0-.999-.448-.999-1 0-.551.448-1 .999-1s1 .449 1 1c0 .552-.448 1-1 1m11.405-6.02 1.997-3.46a.416.416 0 0 0-.152-.567.416.416 0 0 0-.568.152l-2.022 3.503c-1.554-.537-3.28-.824-5.137-.824-1.857 0-3.583.287-5.137.825L4.841 5.446a.416.416 0 0 0-.568-.152.416.416 0 0 0-.152.568l1.997 3.459C2.689 11.187.343 14.659 0 18.785h24c-.343-4.126-2.689-7.598-6.118-9.464" />
+  </svg>
+);
+
+const WindowsIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    <path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z" />
+  </svg>
+);
+
+const AppleIcon = ({ className = "w-6 h-6", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 1.01-2.87-.96.04-2.15.65-2.78 1.4-.55.65-1.04 1.72-.92 2.76 1.07.08 2.18-.54 2.69-1.29" />
+  </svg>
+);
 
 export function DownloadHub() {
   const [detectedOS, setDetectedOS] = useState('windows');
@@ -55,8 +73,8 @@ export function DownloadHub() {
         }`}>
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl">
-                🤖
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <AndroidIcon className="w-6 h-6" />
               </div>
               <div className="flex items-center gap-1.5">
                 {detectedOS === 'android' && (
@@ -133,8 +151,8 @@ export function DownloadHub() {
         }`}>
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 text-xl">
-                🪟
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                <WindowsIcon className="w-5 h-5" />
               </div>
               <div className="flex items-center gap-1.5">
                 {detectedOS === 'windows' && (
@@ -189,8 +207,8 @@ export function DownloadHub() {
         }`}>
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl">
-                🍎
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                <AppleIcon className="w-6 h-6" />
               </div>
               <div className="flex items-center gap-1.5">
                 {detectedOS === 'ios' && (
@@ -244,8 +262,8 @@ export function DownloadHub() {
         }`}>
           <div>
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-500/15 border border-slate-500/30 flex items-center justify-center text-slate-300 text-xl">
-                💻
+              <div className="w-12 h-12 rounded-2xl bg-slate-500/15 border border-slate-500/30 flex items-center justify-center text-slate-300">
+                <AppleIcon className="w-6 h-6" />
               </div>
               <div className="flex items-center gap-1.5">
                 {detectedOS === 'macos' && (

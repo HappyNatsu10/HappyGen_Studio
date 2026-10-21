@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Palette, Globe, MessageSquare, X } from 'lucide-react';
+import { Palette, Globe, MessageSquare, X, DownloadCloud, RotateCw, Sparkles } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import GeneratePage from './components/generate/GeneratePage';
@@ -25,8 +25,10 @@ import LanguageSwitcher from './components/common/LanguageSwitcher';
 import ThemeManager from './components/common/ThemeManager';
 import ThemeSelectorModal from './components/common/ThemeSelectorModal';
 import VaultSecurityModal from './components/common/VaultSecurityModal';
+import UpdateModal from './components/modals/UpdateModal';
 import useAppStore from './store/useAppStore';
 import useModelStore from './store/useModelStore';
+import { useUpdateStore } from './store/useUpdateStore';
 import { initNotifications } from './services/notificationService';
 
 function MainApp() {
@@ -53,6 +55,7 @@ function MainApp() {
   const [showBanner, setShowBanner] = useState(true);
 
   const { syncModelProfiles } = useModelStore();
+  const { checkPendingWhatsNew } = useUpdateStore();
 
   useEffect(() => {
     // Delay slightly so native window and splash are fully attached before permission request
@@ -61,6 +64,11 @@ function MainApp() {
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    // Check if app was recently updated and has pending What's New to display
+    checkPendingWhatsNew();
+  }, [checkPendingWhatsNew]);
 
   useEffect(() => {
     if (currentUser?.modelProfiles) {
@@ -187,6 +195,7 @@ function MainApp() {
       <ThemeSelectorModal isOpen={showThemeModal} onClose={() => setShowThemeModal(false)} />
       <FeedbackModal isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
       <BackendConfigModal isOpen={showBackendModal} onClose={() => setShowBackendModal(false)} />
+      <UpdateModal />
       
       {!hasSelectedLanguage && <LanguageSelectorModal />}
       {hasSelectedLanguage && !hasSeenTutorial && <OnboardingTutorial />}
@@ -199,10 +208,26 @@ function MainApp() {
 function SettingsPage() {
   const { t } = useTranslation();
   const { isAdultMode, setIsAdultMode, setShowBackendModal, setHasSeenTutorial, setHasSeenInteractiveTour, setShowThemeModal, setShowFeedbackModal, adultVaultPin } = useAppStore();
+  const { 
+    currentVersion, 
+    latestVersion, 
+    lastChecked, 
+    isChecking, 
+    updateAvailable, 
+    releaseInfo, 
+    checkUpdates, 
+    openWhatsNew
+  } = useUpdateStore();
   const [showDocs, setShowDocs] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinMode, setPinMode] = useState('verify'); // verify | setup | remove
   const [pendingAction, setPendingAction] = useState(null);
+  const [manualCheckDone, setManualCheckDone] = useState(false);
+
+  const handleCheckUpdateClick = async () => {
+    await checkUpdates(true);
+    setManualCheckDone(true);
+  };
 
   const handleToggleAdultMode = () => {
     if (!adultVaultPin) {
@@ -352,11 +377,101 @@ function SettingsPage() {
         </div>
       </div>
 
+      {/* Software Updates */}
+      <div className="card p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-medium flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <DownloadCloud className="w-4 h-4 text-indigo-400" />
+              {t('settings.softwareUpdates', 'Software Updates')}
+            </div>
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+              {t('settings.currentVersion', 'Current Version')}: <span className="font-semibold text-slate-300">v{currentVersion}</span>
+              {lastChecked && (
+                <span className="ml-2 text-slate-500">• {t('settings.lastChecked', 'Checked')} {lastChecked}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {updateAvailable && (
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleCheckUpdateClick}
+              disabled={isChecking}
+              className="btn btn-secondary text-[12px] flex items-center gap-1.5 cursor-pointer hover:bg-white/10"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin text-indigo-400' : ''}`} />
+              {isChecking 
+                ? t('settings.checkingUpdates', 'Checking...') 
+                : t('settings.checkForUpdates', 'Check for Update')}
+            </button>
+          </div>
+        </div>
+
+        {/* Update Available Banner */}
+        {updateAvailable && releaseInfo ? (
+          <div className="p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-indigo-400 shrink-0" />
+              <div>
+                <div className="text-[12px] font-semibold text-white">
+                  {t('settings.newVersionAvailable', 'New version available')}: v{latestVersion}
+                </div>
+                <div className="text-[11px] text-indigo-200/70">
+                  {t('updates.releaseTitle', releaseInfo.releaseName || t('settings.updateDescription', 'Performance improvements & new creative tools'))}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => openWhatsNew('available')}
+              className="btn btn-primary text-[11px] px-3 py-1.5 font-semibold shrink-0 cursor-pointer"
+            >
+              {t('settings.viewWhatsNewInstall', "What's New & Install")}
+            </button>
+          </div>
+        ) : manualCheckDone && !isChecking ? (
+          <div className="p-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 flex items-center gap-2 text-[11px] text-emerald-400 animate-in fade-in">
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('settings.upToDateNotice', 'HappyGen Studio is up to date')} (v{currentVersion})</span>
+          </div>
+        ) : null}
+
+        {/* View What's New trigger */}
+        <div className="pt-2 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
+          <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+            {updateAvailable 
+              ? t('settings.updateReadyNotice', 'Update is ready to install in-app') 
+              : t('settings.upToDateNotice', 'HappyGen Studio is up to date')}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (releaseInfo) {
+                openWhatsNew(updateAvailable ? 'available' : 'post-install');
+              } else {
+                handleCheckUpdateClick();
+              }
+            }}
+            className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <Sparkles className="w-3 h-3" />
+            {t('settings.viewWhatsNew', "What's New")}
+          </button>
+        </div>
+      </div>
+
       {/* About */}
       <div className="card p-4">
         <div className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>{t('settings.about', 'About')}</div>
         <div className="text-[11px] space-y-0.5" style={{ color: 'var(--text-tertiary)' }}>
-          <p>HappyGen Studio v2.0</p>
+          <p>HappyGen Studio v{currentVersion}</p>
           <p>Built by HappyNatsu10</p>
           <p>Powered by CivitAI API & Stable Diffusion</p>
         </div>

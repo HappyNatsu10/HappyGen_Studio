@@ -7,7 +7,12 @@ if (!fs.existsSync(configPath)) {
   fs.writeFileSync(
     configPath,
     `import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { 
+  initializeAuth, 
+  indexedDBLocalPersistence, 
+  browserLocalPersistence, 
+  getAuth 
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -26,7 +31,13 @@ let db = null;
 
 try {
   app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
+  try {
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence]
+    });
+  } catch (authInitErr) {
+    auth = getAuth(app);
+  }
   db = getFirestore(app);
 } catch (e) {
   console.warn("Firebase initialization notice:", e);
