@@ -45,19 +45,17 @@ const MarketingNavbar = () => {
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/70 backdrop-blur-xl border-b border-[var(--border-subtle)]"
+        className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/85 backdrop-blur-xl border-b border-[var(--border-subtle)]"
       >
-        <div className="w-full max-w-[1500px] px-4 sm:px-6 lg:px-12 mx-auto flex items-center justify-between h-16 sm:h-20 relative">
+        <div className="w-full max-w-[1500px] px-3.5 sm:px-6 lg:px-12 mx-auto flex items-center justify-between h-16 sm:h-20">
           {/* Logo - Left */}
-          <div className="flex-1 flex justify-start">
-            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
-              <img src="/logo.png" alt="HappyGen Studio Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain group-hover:scale-105 transition-transform flex-shrink-0" />
-              <span className="font-bold text-lg sm:text-xl tracking-tight text-white truncate">HappyGen Studio</span>
-            </Link>
-          </div>
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
+            <img src="/logo.png" alt="HappyGen Studio Logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain group-hover:scale-105 transition-transform flex-shrink-0" />
+            <span className="font-bold text-base sm:text-lg lg:text-xl tracking-tight text-white truncate">HappyGen Studio</span>
+          </Link>
 
-          {/* Desktop Nav - Center */}
-          <div className="hidden md:flex items-center justify-center gap-7 absolute left-1/2 -translate-x-1/2">
+          {/* Desktop Nav - Center (Visible on xl+ screens only to avoid any overlap) */}
+          <div className="hidden xl:flex items-center justify-center gap-6 2xl:gap-8">
             <button onClick={(e) => scrollTo(e, 'demo')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
               Interactive Demo
             </button>
@@ -72,23 +70,25 @@ const MarketingNavbar = () => {
             <Link to="/faq" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">FAQ</Link>
           </div>
 
-          {/* Download & Socials - Right */}
-          <div className="hidden md:flex items-center justify-end gap-3 flex-1">
-            <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-4 h-4" /></a>
-            <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors mr-1"><DiscordIcon className="w-[18px] h-[18px]" /></a>
+          {/* Right Action Bar: Socials + Download + Hamburger (All Viewports) */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="hidden lg:flex items-center gap-2 mr-1">
+              <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors p-1"><XIcon className="w-4 h-4" /></a>
+              <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors p-1"><DiscordIcon className="w-[18px] h-[18px]" /></a>
+            </div>
+
             <Link 
               to="/download" 
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center gap-1.5 flex-shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download Workstation</span>
+              <span className="hidden sm:inline">Download Workstation</span>
+              <span className="sm:hidden">Download</span>
             </Link>
-          </div>
 
-          {/* Mobile Menu Button - Right */}
-          <div className="md:hidden flex flex-1 justify-end">
+            {/* Mobile/Tablet Menu Button (Visible on screens below xl) */}
             <button 
-              className="p-2 -mr-2 text-slate-300 hover:text-white cursor-pointer rounded-lg hover:bg-white/5 transition-colors"
+              className="xl:hidden p-2 text-slate-300 hover:text-white cursor-pointer rounded-lg hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle navigation menu"
             >
@@ -98,7 +98,7 @@ const MarketingNavbar = () => {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay (Visible on screens below xl) */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -106,7 +106,7 @@ const MarketingNavbar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-[var(--surface-0)]/98 backdrop-blur-2xl pt-20 px-5 pb-8 md:hidden overflow-y-auto max-h-[100dvh]"
+            className="fixed inset-0 z-40 bg-[var(--surface-0)]/98 backdrop-blur-2xl pt-20 px-5 pb-8 xl:hidden overflow-y-auto max-h-[100dvh]"
           >
             <div className="flex flex-col gap-2.5 text-base pt-4">
               <button 
