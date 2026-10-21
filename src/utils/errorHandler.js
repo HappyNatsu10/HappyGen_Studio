@@ -170,17 +170,25 @@ export function parseAppError(rawError) {
     };
   }
 
-  // 7. Missing Input Image or Mask
+  // 7. Missing Input (Prompt, Image, or Mask)
   if (
+    lowerMsg.includes('prompt') && (lowerMsg.includes('enter') || lowerMsg.includes('empty') || lowerMsg.includes('provide') || lowerMsg.includes('describe') || lowerMsg.includes('missing') || lowerMsg.includes('required')) ||
     lowerMsg.includes('please upload a source image') || 
     lowerMsg.includes('please draw a mask') || 
-    lowerMsg.includes('please provide a prompt')
+    lowerMsg.includes('upload a base image') ||
+    lowerMsg.includes('no image selected')
   ) {
+    const isPrompt = lowerMsg.includes('prompt');
+    const isMask = lowerMsg.includes('mask');
     return {
       type: 'missing_input',
-      title: 'Missing Required Input',
+      title: isPrompt ? 'Prompt Required' : (isMask ? 'Mask Required' : 'Image Required'),
       message: rawMessage,
-      solution: 'Upload a base image or draw a mask over the area you want the AI to transform.',
+      solution: isPrompt 
+        ? 'Type a description of the image you want to generate in the prompt box above, or choose from the quick tag suggestions.'
+        : (isMask 
+          ? 'Use the brush tool to highlight the area you want to edit or replace.' 
+          : 'Upload a source image from your device before continuing.'),
       canUserFix: true,
       actionType: 'none',
       rawError: rawMessage,
