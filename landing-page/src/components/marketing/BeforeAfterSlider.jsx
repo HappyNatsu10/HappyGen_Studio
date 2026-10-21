@@ -46,8 +46,8 @@ export function BeforeAfterSlider() {
 
   const demoData = {
     anime: {
-      before: '/studio/anime-schoolgirl-raw.jpg',
-      after: '/studio/anime-schoolgirl.jpg',
+      before: '/studio/superres-before.jpg',
+      after: '/studio/superres-after.jpg',
       beforeLabel: 'Standard 512px Draft',
       afterLabel: 'HappyGen 4K Neural Super-Resolution',
       title: 'Anime RealESRGAN & High-Res Fix',
