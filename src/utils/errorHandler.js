@@ -26,13 +26,30 @@ export function isDevEnvironment() {
 export function parseAppError(rawError) {
   if (!rawError) return null;
 
-  const rawMessage = typeof rawError === 'string' 
-    ? rawError 
-    : (rawError?.message || rawError?.error || (typeof rawError === 'object' ? JSON.stringify(rawError) : String(rawError)));
+  let rawMessage = '';
+  if (typeof rawError === 'string') {
+    rawMessage = rawError;
+  } else if (typeof rawError?.message === 'string') {
+    rawMessage = rawError.message;
+  } else if (typeof rawError?.error === 'string') {
+    rawMessage = rawError.error;
+  } else if (typeof rawError?.detail === 'string') {
+    rawMessage = rawError.detail;
+  } else {
+    try {
+      rawMessage = JSON.stringify(rawError) || String(rawError);
+    } catch {
+      rawMessage = String(rawError);
+    }
+  }
+
+  if (!rawMessage || rawMessage.trim() === '' || rawMessage === '{}') {
+    rawMessage = 'Inference or connection error. Please verify backend server and settings.';
+  }
     
-  const rawStack = rawError?.stack || '';
+  const rawStack = typeof rawError?.stack === 'string' ? rawError.stack : '';
   const isDev = isDevEnvironment();
-  const lowerMsg = (rawMessage || '').toLowerCase();
+  const lowerMsg = rawMessage.toLowerCase();
 
   // 1. GPU Out of Memory (OOM)
   if (

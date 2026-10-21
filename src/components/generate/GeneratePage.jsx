@@ -161,7 +161,10 @@ export default function GeneratePage() {
   };
 
   const handleGenerate = async () => {
-    if ((generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate') && !prompt.trim()) return;
+    if ((generationMode !== 'upscale' && generationMode !== 'facefix' && generationMode !== 'interrogate') && !prompt.trim()) {
+      setError('Please enter a prompt describing what you want to create.');
+      return;
+    }
     if (['variations', 'img2img', 'upscale', 'facefix', 'interrogate'].includes(generationMode) && !sourceImage) {
       setError('Please upload a source image for this mode.');
       return;
@@ -558,11 +561,13 @@ export default function GeneratePage() {
 
         {/* Error */}
         {error && (
-          <ErrorCard 
-            error={error} 
-            onDismiss={() => setError(null)} 
-            onRetry={handleGenerate} 
-          />
+          <motion.div variants={itemVariants} className="w-full shrink-0">
+            <ErrorCard 
+              error={error} 
+              onDismiss={() => setError(null)} 
+              onRetry={handleGenerate} 
+            />
+          </motion.div>
         )}
 
         {/* Generate Button */}
