@@ -24,6 +24,7 @@ import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useGenerateStore from '../../store/useGenerateStore';
 import QueueAlertModal from './QueueAlertModal';
 import { notifyGenerationDone, requestNotificationPermission } from '../../services/notificationService';
+import ErrorCard from '../common/ErrorCard';
 
 const DEFAULT_NEGATIVE = 'bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality';
 
@@ -187,7 +188,7 @@ export default function GeneratePage() {
         setPrompt(caption);
         setError(null);
       } catch (err) {
-        setError(err.message);
+        setError(err);
       } finally {
         setIsGenerating(false);
       }
@@ -299,7 +300,7 @@ export default function GeneratePage() {
       }
       
     } catch (err) {
-      setError(err.message);
+      setError(err);
     } finally {
       setIsGenerating(false);
     }
@@ -331,7 +332,7 @@ export default function GeneratePage() {
         });
       }
     } catch (err) {
-      setError(err.message);
+      setError(err);
     } finally {
       setIsGenerating(false);
     }
@@ -557,11 +558,11 @@ export default function GeneratePage() {
 
         {/* Error */}
         {error && (
-          <div className="flex items-start gap-2 rounded-lg p-3 text-[12px]"
-            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)', color: 'var(--error)' }}>
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
+          <ErrorCard 
+            error={error} 
+            onDismiss={() => setError(null)} 
+            onRetry={handleGenerate} 
+          />
         )}
 
         {/* Generate Button */}

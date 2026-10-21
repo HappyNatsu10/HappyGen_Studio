@@ -2,14 +2,20 @@ import React, { useState, useRef } from 'react';
 import { MessageSquare, X, Send, CheckCircle2, AlertCircle, ImagePlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export default function FeedbackModal({ isOpen, onClose }) {
+export default function FeedbackModal({ isOpen, onClose, initialMessage = '' }) {
   const { t } = useTranslation();
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState(initialMessage || '');
   const [email, setEmail] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
   const [errorMessage, setErrorMessage] = useState('');
   const fileInputRef = useRef(null);
+
+  React.useEffect(() => {
+    if (initialMessage && isOpen) {
+      setFeedback(initialMessage);
+    }
+  }, [initialMessage, isOpen]);
 
   if (!isOpen) return null;
 

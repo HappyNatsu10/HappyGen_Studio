@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import useAppStore from '../../store/useAppStore';
 import useModelStore from '../../store/useModelStore';
 import CustomSelect from '../common/CustomSelect';
+import ErrorCard from '../common/ErrorCard';
 
 const BASE_MODEL_FILTERS = [
   'All', 'SD 1.4', 'SD 1.5', 'SD 1.5 LCM', 'SD 1.5 Hyper', 'SD 2.0', 'SD 2.1', 'SD 2.1 768',
@@ -132,7 +133,7 @@ export default function ModelExplorer(props) {
       setCursor(data.metadata?.nextCursor || null);
       setHasMore(!!data.metadata?.nextCursor);
     } catch (err) {
-      setError(err.message);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -518,8 +519,12 @@ export default function ModelExplorer(props) {
         onScroll={handleScroll}
       >
         {error && (
-          <div className="rounded-lg p-4 text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: 'var(--error)' }}>
-            {error}
+          <div className="mb-4">
+            <ErrorCard 
+              error={error} 
+              onDismiss={() => setError(null)} 
+              onRetry={() => doSearch(false)} 
+            />
           </div>
         )}
 

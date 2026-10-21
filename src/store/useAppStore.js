@@ -12,7 +12,9 @@ const useAppStore = create(persist((set) => ({
   
   showThemeModal: false,
   showFeedbackModal: false,
-  setShowFeedbackModal: (val) => set({ showFeedbackModal: val }),
+  feedbackInitialMessage: '',
+  setShowFeedbackModal: (val, initialMsg = '') => set({ showFeedbackModal: val, feedbackInitialMessage: initialMsg }),
+  openFeedbackModal: (initialMsg = '') => set({ showFeedbackModal: true, feedbackInitialMessage: initialMsg }),
   setShowThemeModal: (val) => set({ showThemeModal: val }),
   
   // App Settings

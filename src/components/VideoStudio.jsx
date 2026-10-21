@@ -6,6 +6,7 @@ import { checkPromptSafety, createSafetyAuditLog } from '../services/safetyServi
 import EngineSelector from './common/EngineSelector';
 import { VIDEO_ENGINES, isEngineClosed } from '../config/engines';
 import ModelSelector from './generate/ModelSelector';
+import ErrorCard from './common/ErrorCard';
 
 const VIDEO_CAMERA_MOTIONS = [
   { id: 'pan_right', name: 'Pan Right', description: 'Smooth horizontal movement to the right' },
@@ -38,10 +39,12 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState([]);
   const [safetyError, setSafetyError] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleGenerateVideo = async () => {
     if (!prompt.trim() && activeSubTab === 'text-to-video') return;
     setSafetyError(null);
+    setError(null);
 
     // 1. Safety Check (Elevated video risk per PRD Section 6.1 & 8)
     const safetyCheck = checkPromptSafety(prompt, isAdultMode);
@@ -86,6 +89,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
       });
     } catch (err) {
       console.error(err);
+      setError(err);
     } finally {
       setIsGenerating(false);
     }
@@ -262,6 +266,14 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
             </div>
           </div>
         </div>
+
+        {error && (
+          <ErrorCard 
+            error={error} 
+            onDismiss={() => setError(null)} 
+            onRetry={handleGenerateVideo} 
+          />
+        )}
 
         {/* Generate Action */}
         <button

@@ -26,6 +26,7 @@ import ThemeManager from './components/common/ThemeManager';
 import ThemeSelectorModal from './components/common/ThemeSelectorModal';
 import VaultSecurityModal from './components/common/VaultSecurityModal';
 import UpdateModal from './components/modals/UpdateModal';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import useAppStore from './store/useAppStore';
 import useModelStore from './store/useModelStore';
 import { useUpdateStore } from './store/useUpdateStore';
@@ -50,6 +51,7 @@ function MainApp() {
     setShowThemeModal,
     showFeedbackModal,
     setShowFeedbackModal,
+    feedbackInitialMessage,
   } = useAppStore();
 
   const [showBanner, setShowBanner] = useState(true);
@@ -193,7 +195,11 @@ function MainApp() {
       <AuthModal />
       <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
       <ThemeSelectorModal isOpen={showThemeModal} onClose={() => setShowThemeModal(false)} />
-      <FeedbackModal isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} />
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
+        initialMessage={feedbackInitialMessage}
+      />
       <BackendConfigModal isOpen={showBackendModal} onClose={() => setShowBackendModal(false)} />
       <UpdateModal />
       
@@ -505,8 +511,10 @@ function SettingsPage() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

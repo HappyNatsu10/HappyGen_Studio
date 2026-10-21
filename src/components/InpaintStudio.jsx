@@ -7,6 +7,7 @@ import { inpaintImage } from '../services/aiService';
 import ImageUploadZone from './generate/ImageUploadZone';
 import ImageViewerModal from './common/ImageViewerModal';
 import { Maximize2 } from 'lucide-react';
+import ErrorCard from './common/ErrorCard';
 
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
@@ -86,7 +87,7 @@ export default function InpaintStudio() {
         count: images.length
       });
     } catch (err) {
-      setError(err.message);
+      setError(err);
     } finally {
       setIsGenerating(false);
     }
@@ -171,11 +172,11 @@ export default function InpaintStudio() {
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 rounded-lg p-3 text-[12px]"
-            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)', color: 'var(--error)' }}>
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
+          <ErrorCard 
+            error={error} 
+            onDismiss={() => setError(null)} 
+            onRetry={handleGenerate} 
+          />
         )}
 
         {/* Generate Button */}
