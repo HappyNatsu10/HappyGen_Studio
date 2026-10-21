@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush, Trash2, AlertTriangle } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import ImageViewerModal from '../common/ImageViewerModal';
 import { saveImageToGallery } from '../../utils/mediaUtils';
 import useAppStore from '../../store/useAppStore';
@@ -32,7 +33,7 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
 
   const handleDownload = async (image) => {
     try {
-      const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+      const isNativeApp = Capacitor.isNativePlatform();
       const fileName = `happygen-${image.seed || Date.now()}.png`;
 
       if (isNativeApp) {

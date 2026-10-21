@@ -1,304 +1,711 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Sparkles, Layers, Sliders, Copy, Check, Terminal, 
-  Cpu, Zap, Smartphone, Monitor, Shield, ArrowUpRight 
+  Image as ImageIcon, Video, Brush, Layers, FolderOpen, Settings,
+  Sparkles, Download, Copy, Check, Server, Maximize2, ImagePlus,
+  RefreshCw, Plus, X, ChevronDown, User, ChevronLeft, Sliders,
+  HelpCircle, Sun, Moon
 } from 'lucide-react';
 
-const PRESETS = [
+/* ──────────────────────────────────────────────────────────────
+   Real Studio Presets matching UI-white.png & actual HappyGen
+────────────────────────────────────────────────────────────── */
+const STUDIO_PRESETS = [
   {
-    id: 'photo',
-    name: 'Cinematic Portrait',
-    badge: 'SDXL Realistic',
-    image: '/styles/photorealistic.png',
-    baseModel: 'Realistic Vision XL v6.0',
-    loras: [
-      { name: 'CinematicRimLight_v2', weight: 0.8 },
-      { name: 'SubsurfaceGlow_v1', weight: 0.55 }
-    ],
-    prompt: 'masterpiece, 8k portrait of young woman, soft golden hour rim light, 85mm f/1.4 lens, hyperdetailed skin texture, subsurface scattering, cinematic color grading',
-    negative: 'bad hands, lowres, distorted anatomy, blurry, plastic skin, oversaturated',
-    steps: 32,
-    cfg: 6.5,
-    sampler: 'DPM++ 2M Karras',
-    seed: '849102847',
-    speed: '3.4s'
+    id: 'schoolgirl',
+    label: 'Anime High-Res',
+    loraName: 'xipa Style - ANI/SchoolLife_v2',
+    loraThumb: '/studio/anime-schoolgirl.jpg',
+    defaultWeight: 0.80,
+    image: '/studio/anime-schoolgirl.jpg',
+    prompt: 'breasts, collared shirt, indoors, medium hair, grin, sweater, open jacket, blue skirt, black pantyhose, window, chair, blazer, blue jacket, side braid, desk, sweater vest, waving, classroom, school desk, green necktie, school chair, side view',
+    negative: 'lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark',
+    dimensions: '896×1152',
+    seed: '1907752235',
+    backend: 'Google Colab Cloud GPU (NVIDIA Tesla T4)'
   },
   {
-    id: 'cyber',
-    name: 'Cyberpunk Mecha',
-    badge: 'Sci-Fi Action',
-    image: '/styles/cyberpunk.png',
-    baseModel: 'Cyberpunk Odyssey XL',
-    loras: [
-      { name: 'NeonCityReflections_v3', weight: 0.85 },
-      { name: 'ExosuitArmorDetails_v2', weight: 0.70 }
-    ],
-    prompt: 'cyberpunk street samurai in neon rain, volumetric holographic reflections, matte titanium plating, vibrant blue and magenta neon, rain droplets on visor, unreal engine 5 render',
-    negative: 'lowres, cartoon, muddy colors, bad proportions, watermark',
-    steps: 30,
-    cfg: 7.0,
-    sampler: 'Euler a',
-    seed: '912448102',
-    speed: '3.1s'
-  },
-  {
-    id: 'anime',
-    name: 'Dark Fantasy Anime',
-    badge: 'Animagine XL',
-    image: '/styles/anime.png',
-    baseModel: 'Animagine XL 3.1',
-    loras: [
-      { name: 'EtherealAstralGlow_v2', weight: 0.75 },
-      { name: 'CrispLineartDetail_v1', weight: 0.50 }
-    ],
-    prompt: '1girl, celestial sorceress, glowing runic circles, flowing astral hair, ornate gold embroidery, masterpiece anime aesthetic, vivid eyes, ethereal lighting',
-    negative: 'worst quality, bad hands, extra limbs, dull colors, jpeg artifacts',
-    steps: 28,
-    cfg: 6.0,
-    sampler: 'DPM++ SDE Karras',
-    seed: '571930284',
-    speed: '2.9s'
-  },
-  {
-    id: 'fantasy',
-    name: 'Concept World',
-    badge: 'Juggernaut XL',
-    image: '/styles/fantasy.png',
-    baseModel: 'Juggernaut XL v9',
-    loras: [
-      { name: 'EpicScaleAtmosphere', weight: 0.80 }
-    ],
-    prompt: 'floating crystal monoliths over enchanted ancient valley, bioluminescent waterfalls, misty twilight, cinematic concept art, breathtaking scale, 8k resolution',
-    negative: 'foggy blur, bad composition, pixelated, flat lighting',
-    steps: 35,
-    cfg: 7.5,
-    sampler: 'DPM++ 2M Karras',
-    seed: '301948211',
-    speed: '3.8s'
+    id: 'cheongsam',
+    label: 'Silk Cheongsam',
+    loraName: 'Traditional Silk Cheongsam v3',
+    loraThumb: '/studio/anime-cheongsam.jpg',
+    defaultWeight: 0.85,
+    image: '/studio/anime-cheongsam.jpg',
+    prompt: 'masterpiece, ultra-detailed, 1girl, elegant young woman, white silk cheongsam qipao with crimson floral embroidery, natural courtyard window lighting, vintage carved rosewood armchair',
+    negative: 'lowres, bad anatomy, bad hands, text, error, missing fingers, cropped, worst quality, low quality',
+    dimensions: '896×1152',
+    seed: '918274019',
+    backend: 'Kaggle Dual Cloud GPU (2x Tesla T4 • 30GB)'
   }
 ];
 
 export function InteractiveStudioHero() {
-  const [selectedId, setSelectedId] = useState('photo');
-  const [copied, setCopied] = useState(false);
+  const [isDark, setIsDark] = useState(false); // Default to White Theme as requested!
+  const [selectedPresetId, setSelectedPresetId] = useState('schoolgirl');
+  const [loraWeight, setLoraWeight] = useState(0.80);
+  const [batchSize, setBatchSize] = useState(2);
+  const [activeNav, setActiveNav] = useState('generate');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copiedSeed, setCopiedSeed] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
 
-  const current = PRESETS.find(p => p.id === selectedId) || PRESETS[0];
+  const current = STUDIO_PRESETS.find(p => p.id === selectedPresetId) || STUDIO_PRESETS[0];
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(current.prompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(customPrompt || current.prompt);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 1800);
+  };
+
+  const handleCopySeed = () => {
+    navigator.clipboard.writeText(current.seed);
+    setCopiedSeed(true);
+    setTimeout(() => setCopiedSeed(false), 1800);
+  };
+
+  const handleGenerate = () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    setTimeout(() => setIsGenerating(false), 1200);
+  };
+
+  const addTag = (tag) => {
+    const base = customPrompt || current.prompt;
+    if (!base.includes(tag)) {
+      setCustomPrompt(`${base}, ${tag}`);
+    }
+  };
+
+  // Color tokens based on theme
+  const theme = isDark ? {
+    windowBg: '#0B0B1A',
+    topBarBg: '#0e1022',
+    sidebarBg: '#0B0B1A',
+    workspaceBg: '#050511',
+    cardBg: '#0B0B1A',
+    cardInner: '#14142B',
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderSubtle: 'rgba(255, 255, 255, 0.05)',
+    textPrimary: '#ffffff',
+    textSecondary: '#94a3b8',
+    textMuted: '#64748b',
+    inputBg: '#050511',
+    tagBg: '#14142B',
+    tagText: '#94a3b8',
+    activeNavBg: '#1F1F3D',
+    activeNavText: '#a855f7',
+    canvasBg: '#05060f'
+  } : {
+    windowBg: '#ffffff',
+    topBarBg: '#ffffff',
+    sidebarBg: '#ffffff',
+    workspaceBg: '#f8fafc',
+    cardBg: '#ffffff',
+    cardInner: '#f8fafc',
+    border: '#e2e8f0',
+    borderSubtle: '#f1f5f9',
+    textPrimary: '#0f172a',
+    textSecondary: '#475569',
+    textMuted: '#94a3b8',
+    inputBg: '#f8fafc',
+    tagBg: '#f1f5f9',
+    tagText: '#475569',
+    activeNavBg: '#f3f0ff',
+    activeNavText: '#7c3aed',
+    canvasBg: '#f8fafc'
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto my-12">
-      {/* Studio Workstation Window Mockup */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-950/90 backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,0.8)] overflow-hidden">
-        
-        {/* Workstation Window Top Bar */}
-        <div className="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block border border-red-600/40"></span>
-              <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block border border-yellow-600/40"></span>
-              <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block border border-green-600/40"></span>
+    <div className="relative w-full max-w-[1560px] mx-auto px-2 sm:px-4">
+      
+      {/* ── Main Workstation Window Frame (Matches UI-white.png) ─────────── */}
+      <div 
+        className="w-full rounded-[18px] sm:rounded-[24px] overflow-hidden select-none text-left transition-colors duration-200 shadow-2xl"
+        style={{
+          background: theme.windowBg,
+          border: `1px solid ${theme.border}`,
+          boxShadow: isDark 
+            ? '0 30px 100px -15px rgba(0, 0, 0, 0.95), 0 0 40px -10px rgba(99, 102, 241, 0.12)' 
+            : '0 25px 70px -12px rgba(15, 23, 42, 0.12), 0 0 30px -5px rgba(124, 58, 237, 0.06)'
+        }}
+      >
+        {/* ── Studio TopBar (Exact match to UI-white.png) ──────────────── */}
+        <div 
+          className="h-11 sm:h-14 px-2.5 sm:px-5 flex items-center justify-between border-b transition-colors gap-2"
+          style={{
+            background: theme.topBarBg,
+            borderColor: theme.border
+          }}
+        >
+          {/* Left: Window Controls, Logo & Breadcrumb */}
+          <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
+            <div className="flex items-center gap-1 sm:gap-2 mr-0.5 sm:mr-1 flex-shrink-0">
+              <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#ff5f56]" />
+              <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#ffbd2e]" />
+              <span className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#27c93f]" />
             </div>
-            <span className="ml-3 font-semibold text-slate-300 hidden sm:inline">HappyGen Studio Workstation v2.0</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              Desktop & Mobile Native
+
+            <div className="flex items-center gap-1 sm:gap-2 truncate">
+              <img src="/logo.png" alt="HappyGen" className="w-4 h-4 sm:w-6 sm:h-6 object-contain flex-shrink-0" onError={e => e.target.style.display='none'} />
+              <span className="text-[11px] sm:text-sm font-bold tracking-tight truncate" style={{ color: theme.textPrimary }}>
+                HappyGen <span className="font-normal text-slate-400 text-[9px] sm:text-xs">v2</span>
+              </span>
+            </div>
+
+            <div className="h-3.5 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block flex-shrink-0" />
+
+            <span className="text-xs sm:text-sm font-bold hidden sm:inline flex-shrink-0" style={{ color: theme.textPrimary }}>
+              Create
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span>Backend: Connected (Nvidia CUDA / Colab T4)</span>
+          {/* Center Announcement Banner (Exact copy from UI-white.png) */}
+          <div className="hidden xl:flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 border border-pink-200/60 text-slate-700">
+            <span>🚀 More base models and the advanced Video Suite are coming soon! Stay tuned.</span>
+          </div>
+
+          {/* Right: Theme Toggle, Connection & Profile */}
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+            {/* Theme Toggle (Light / Dark) */}
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className="p-1 sm:p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+              style={{
+                background: theme.cardInner,
+                borderColor: theme.border,
+                color: theme.textSecondary
+              }}
+              title={isDark ? "Switch to White Theme" : "Switch to Dark Theme"}
+            >
+              {isDark ? <Sun className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" /> : <Moon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />}
+              <span className="hidden sm:inline text-[11px]">{isDark ? 'Dark' : 'White'}</span>
+            </button>
+
+            {/* Connection Status Pill (Green dot + Connected) */}
+            <div 
+              className="flex items-center gap-1 sm:gap-2 px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium"
+              style={{
+                background: isDark ? 'rgba(52, 211, 153, 0.1)' : '#f0fdf4',
+                border: isDark ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid #bbf7d0',
+                color: '#16a34a'
+              }}
+            >
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] flex-shrink-0" />
+              <Server className="w-3.5 h-3.5 text-emerald-600 hidden sm:inline" />
+              <span className="font-semibold text-[9px] min-[380px]:text-[10px] sm:text-[11px]">Connected</span>
+            </div>
+
+            {/* User Profile Avatar (HappyNatsu from UI-white.png) */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div 
+                className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden border flex items-center justify-center font-bold text-[9px] sm:text-xs"
+                style={{
+                  background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+                  color: '#ffffff',
+                  borderColor: theme.border
+                }}
+              >
+                HN
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Preset Selector Tabs */}
-        <div className="px-4 py-2.5 bg-slate-900/50 border-b border-slate-800/80 flex items-center gap-2 overflow-x-auto scrollbar-none">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-2 hidden md:inline">
-            Aesthetic Styles:
-          </span>
-          {PRESETS.map((preset) => {
-            const isActive = preset.id === selectedId;
-            return (
-              <button
-                key={preset.id}
-                onClick={() => setSelectedId(preset.id)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 scale-[1.02]'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                }`}
-              >
-                <span>{preset.name}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded font-normal ${isActive ? 'bg-indigo-700/60 text-indigo-100' : 'bg-slate-800 text-slate-400'}`}>
-                  {preset.badge}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Main Workstation Body: 2 Columns */}
-        <div className="grid lg:grid-cols-12 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+        {/* ── Studio Body: Sidebar + Workbench + Canvas ──────────────── */}
+        <div className="flex flex-col md:flex-row w-full min-h-[580px] lg:min-h-[660px]">
           
-          {/* Left Canvas: Generated Image Preview */}
-          <div className="lg:col-span-7 relative bg-slate-950 flex items-center justify-center p-4 sm:p-6 overflow-hidden min-h-[380px] sm:min-h-[440px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={current.id}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.02 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 shadow-2xl group"
-              >
-                <img
-                  src={current.image}
-                  alt={current.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="eager"
-                />
-
-                {/* Live Model Badge on Canvas */}
-                <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10 pointer-events-none">
-                  <span className="px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-semibold text-white shadow-lg">
-                    🧠 {current.baseModel}
-                  </span>
-                  {current.loras.map(lora => (
-                    <span key={lora.name} className="px-2 py-0.5 rounded-md bg-purple-950/80 backdrop-blur-md border border-purple-500/30 text-[10px] font-medium text-purple-200 shadow-lg">
-                      🎨 {lora.name} ({lora.weight})
-                    </span>
-                  ))}
+          {/* ══════════════════════════════════════════════════
+              LEFT SIDEBAR (Matches UI-white.png)
+          ══════════════════════════════════════════════════ */}
+          <div 
+            className="hidden md:flex flex-col w-[190px] border-r flex-shrink-0 py-4 px-2.5 justify-between"
+            style={{
+              background: theme.sidebarBg,
+              borderColor: theme.border
+            }}
+          >
+            {/* Navigation Groups */}
+            <div className="space-y-4">
+              {/* CREATE group */}
+              <div className="space-y-1">
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                  CREATE
                 </div>
+                
+                <button
+                  onClick={() => setActiveNav('generate')}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  style={{
+                    background: activeNav === 'generate' ? theme.activeNavBg : 'transparent',
+                    color: activeNav === 'generate' ? theme.activeNavText : theme.textSecondary
+                  }}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Generate</span>
+                </button>
 
-                {/* Render Stats Strip */}
-                <div className="absolute bottom-3 right-3 z-10 pointer-events-none">
-                  <div className="px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-emerald-400 flex items-center gap-2 shadow-lg">
-                    <Zap className="w-3 h-3 text-emerald-400" />
-                    <span>Rendered in {current.speed}</span>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                <button
+                  onClick={() => setActiveNav('video')}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer"
+                  style={{
+                    background: activeNav === 'video' ? theme.activeNavBg : 'transparent',
+                    color: activeNav === 'video' ? theme.activeNavText : theme.textSecondary
+                  }}
+                >
+                  <Video className="w-4 h-4" />
+                  <span>Video Suite</span>
+                </button>
 
-          {/* Right Panel: Active Model Bar & Prompt Inspection */}
-          <div className="lg:col-span-5 p-5 sm:p-6 flex flex-col justify-between bg-slate-900/40 text-left">
-            <div>
-              {/* Active Model Stack */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Active Base Model
-                  </span>
-                  <span className="text-[11px] font-mono text-indigo-400">CivitAI Verified</span>
+                <button
+                  onClick={() => setActiveNav('inpaint')}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-all cursor-pointer"
+                  style={{
+                    background: activeNav === 'inpaint' ? theme.activeNavBg : 'transparent',
+                    color: activeNav === 'inpaint' ? theme.activeNavText : theme.textSecondary
+                  }}
+                >
+                  <Brush className="w-4 h-4" />
+                  <span>Inpaint Studio</span>
+                </button>
+              </div>
+
+              {/* DISCOVER group */}
+              <div className="space-y-1">
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                  DISCOVER
                 </div>
-                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 truncate">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm">
-                      🧠
-                    </div>
-                    <div className="truncate">
-                      <div className="text-xs font-bold text-white truncate">{current.baseModel}</div>
-                      <div className="text-[10px] text-slate-400">SDXL 1.0 • 6.46 GB Checkpoint</div>
-                    </div>
-                  </div>
+                <div 
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer"
+                  style={{ color: theme.textSecondary }}
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Model Explorer</span>
                 </div>
               </div>
 
-              {/* Stacked LoRAs */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Stacked LoRAs ({current.loras.length})
-                  </span>
-                  <span className="text-[10px] text-purple-400 font-mono">Dynamic Weights</span>
+              {/* LIBRARY group */}
+              <div className="space-y-1">
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                  LIBRARY
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  {current.loras.map(lora => (
-                    <div key={lora.name} className="px-3 py-2 rounded-lg bg-slate-900/70 border border-slate-800 flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-medium truncate max-w-[160px]">{lora.name}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-purple-500 rounded-full" style={{ width: `${lora.weight * 100}%` }}></div>
-                        </div>
-                        <span className="font-mono text-[11px] text-purple-300">{lora.weight}</span>
+                <div 
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer"
+                  style={{ color: theme.textSecondary }}
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  <span>Gallery</span>
+                </div>
+              </div>
+
+              {/* SYSTEM group */}
+              <div className="space-y-1">
+                <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                  SYSTEM
+                </div>
+                <div 
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium hover:bg-slate-50 dark:hover:bg-white/[0.03] cursor-pointer"
+                  style={{ color: theme.textSecondary }}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom User Account Pill (HappyNatsu - Free User from UI-white.png) */}
+            <div 
+              className="p-2.5 rounded-xl border flex items-center justify-between"
+              style={{
+                background: theme.cardInner,
+                borderColor: theme.border
+              }}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-purple-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                  HN
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold truncate" style={{ color: theme.textPrimary }}>
+                    HappyNatsu
+                  </div>
+                  <div className="text-[9px] text-slate-400">
+                    Free User
+                  </div>
+                </div>
+              </div>
+              <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+          </div>
+
+          {/* ══════════════════════════════════════════════════
+              MAIN WORKSPACE: Left Control Card + Right Canvas
+          ══════════════════════════════════════════════════ */}
+          <div 
+            className="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-5 p-2.5 sm:p-5 overflow-hidden transition-colors"
+            style={{ background: theme.workspaceBg }}
+          >
+            
+            {/* ── LEFT CARD: Generator Controls (Exact UI-white.png) ── */}
+            <div 
+              className="w-full lg:w-[410px] flex-shrink-0 flex flex-col gap-3.5 sm:gap-4 p-3 sm:p-5 rounded-[18px] sm:rounded-[22px] border shadow-sm"
+              style={{
+                background: theme.cardBg,
+                borderColor: theme.border
+              }}
+            >
+              {/* 1. Active LoRAs (1) Card with weight slider */}
+              <div className="space-y-2">
+                <div 
+                  className="p-3 rounded-xl border space-y-2"
+                  style={{
+                    background: theme.cardInner,
+                    borderColor: theme.border
+                  }}
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+                      <Layers className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Active LoRAs (1)</span>
+                      <HelpCircle className="w-3 h-3 text-slate-400" />
+                    </div>
+                  </div>
+
+                  <div 
+                    className="p-2.5 rounded-lg border flex items-center gap-3 bg-white dark:bg-[#0B0B1A]"
+                    style={{ borderColor: theme.border }}
+                  >
+                    <img 
+                      src={current.loraThumb} 
+                      alt="" 
+                      className="w-8 h-8 rounded-md object-cover flex-shrink-0 border"
+                      style={{ borderColor: theme.border }}
+                    />
+                    
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-bold truncate" style={{ color: theme.textPrimary }}>
+                        {current.loraName}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="range"
+                          min="0"
+                          max="1.5"
+                          step="0.05"
+                          value={loraWeight}
+                          onChange={e => setLoraWeight(parseFloat(e.target.value))}
+                          className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                        />
+                        <span className="font-mono text-[10px] font-bold text-purple-600 w-7 text-right">
+                          {loraWeight.toFixed(2)}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Prompt Inspection */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Prompt Input
-                  </span>
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-indigo-400 transition-colors"
+                    <button className="text-slate-400 hover:text-slate-600 p-1">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add LoRA / Add Embedding buttons */}
+                <div className="flex items-center gap-2">
+                  <button 
+                    className="flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                    style={{ borderColor: theme.border }}
                   >
-                    {copied ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-emerald-400">Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy Prompt</span>
-                      </>
-                    )}
+                    <Plus className="w-3 h-3" />
+                    <span>Add LoRA</span>
                   </button>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 leading-relaxed max-h-24 overflow-y-auto scrollbar-thin">
-                  {current.prompt}
+                  <button 
+                    className="flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                    style={{ borderColor: theme.border }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add Embedding</span>
+                  </button>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                 </div>
               </div>
 
-              {/* Technical Parameters Pill Grid */}
-              <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-                  <span className="text-slate-500 block text-[9px] uppercase">Sampler</span>
-                  <span className="text-slate-200 font-semibold">{current.sampler}</span>
+              {/* 2. Prompt Editor (Prompt + Image to Prompt + Chars Count) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold" style={{ color: theme.textPrimary }}>
+                      Prompt
+                    </label>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      Image To Prompt
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] font-mono text-slate-400">
+                    {(customPrompt || current.prompt).length} chars
+                  </span>
                 </div>
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-                  <span className="text-slate-500 block text-[9px] uppercase">Steps / CFG</span>
-                  <span className="text-slate-200 font-semibold">{current.steps} / {current.cfg}</span>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-                  <span className="text-slate-500 block text-[9px] uppercase">Seed</span>
-                  <span className="text-slate-200 font-semibold truncate block">{current.seed}</span>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
-                  <span className="text-slate-500 block text-[9px] uppercase">Resolution</span>
-                  <span className="text-slate-200 font-semibold">1024 × 1024</span>
+
+                <textarea
+                  rows={3}
+                  value={customPrompt || current.prompt}
+                  onChange={e => setCustomPrompt(e.target.value)}
+                  className="w-full p-3 rounded-xl text-xs font-mono leading-relaxed outline-none resize-none transition-colors"
+                  style={{
+                    background: theme.inputBg,
+                    border: `1px solid ${theme.border}`,
+                    color: theme.textPrimary,
+                    caretColor: '#7c3aed'
+                  }}
+                />
+
+                {/* Quick Tags (Exact pills from UI-white.png) */}
+                <div className="pt-1">
+                  <div className="text-[10px] font-semibold text-slate-400 mb-1 flex items-center justify-between">
+                    <span>💡 Quick Tags</span>
+                    <span className="sm:hidden text-[9px] text-slate-500 font-mono">Swipe →</span>
+                  </div>
+                  <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5 sm:flex-wrap">
+                    {['1girl', 'solo', 'masterpiece', 'best quality', 'detailed eyes', 'long hair', 'smile', 'outdoors', 'school uniform'].map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => addTag(tag)}
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-medium transition-colors cursor-pointer hover:opacity-80 flex-shrink-0"
+                        style={{
+                          background: theme.tagBg,
+                          color: theme.tagText,
+                          border: `1px solid ${theme.borderSubtle}`
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
+
+              {/* 3. Negative Prompt (Exact box from UI-white.png) */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold" style={{ color: theme.textPrimary }}>
+                  Negative Prompt
+                </label>
+                <div 
+                  className="w-full p-2.5 rounded-xl text-[11px] font-mono leading-relaxed max-h-16 overflow-y-auto"
+                  style={{
+                    background: theme.inputBg,
+                    border: `1px solid ${theme.border}`,
+                    color: theme.textMuted
+                  }}
+                >
+                  {current.negative}
+                </div>
+              </div>
+
+              {/* 4. Batch Size Slider (Exact UI-white.png) */}
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold" style={{ color: theme.textPrimary }}>
+                    Batch Size
+                  </span>
+                  <span className="font-mono text-purple-600 font-bold">{batchSize}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="4"
+                  step="1"
+                  value={batchSize}
+                  onChange={e => setBatchSize(parseInt(e.target.value))}
+                  className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                />
+              </div>
+
+              {/* 5. Advanced Settings Button */}
+              <button 
+                className="w-full py-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer"
+                style={{
+                  background: theme.cardBg,
+                  borderColor: theme.border,
+                  color: theme.textSecondary
+                }}
+              >
+                <Settings className="w-3.5 h-3.5 text-purple-600" />
+                <span>Advanced Settings</span>
+              </button>
+
+              {/* 6. Generate Button (Purple pill button matching UI-white.png) */}
+              <button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full py-3.5 rounded-xl text-sm font-bold tracking-wide text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-600/25 transition-all hover:brightness-105 active:scale-[0.99]"
+                style={{
+                  background: 'linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)'
+                }}
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="w-4 h-4 text-white" />
+                    <span>Generate</span>
+                  </>
+                )}
+              </button>
+
             </div>
 
-            {/* Bottom Workstation Capabilities Footer */}
-            <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-indigo-400" />
-                <span>100% Offline & Private Capability</span>
-              </span>
-              <a href="#download" className="text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1">
-                <span>Download App</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
+            {/* ── RIGHT CANVAS: Generated Artwork (Exact UI-white.png) ── */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div 
+                className="relative flex-1 rounded-[22px] border overflow-hidden flex flex-col justify-between group shadow-sm transition-colors"
+                style={{
+                  background: theme.cardBg,
+                  borderColor: theme.border
+                }}
+              >
+                {/* Artwork Center Stage */}
+                <div 
+                  className="relative flex-1 flex items-center justify-center p-2.5 sm:p-4 overflow-hidden min-h-[300px] sm:min-h-[440px]"
+                  style={{ background: theme.canvasBg }}
+                >
+                  <AnimatePresence mode="wait">
+                    {isGenerating ? (
+                      <motion.div 
+                        key="generating"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center justify-center gap-3 py-16 sm:py-24"
+                      >
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+                          <RefreshCw className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600 animate-spin" />
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold text-center px-2" style={{ color: theme.textPrimary }}>
+                          Rendering Latent Diffusion...
+                        </div>
+                        <div className="text-[11px] sm:text-xs font-mono text-slate-400 text-center px-2">
+                          {current.backend}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.img
+                        key={current.id}
+                        src={current.image}
+                        alt="HappyGen Output"
+                        initial={{ opacity: 0, scale: 0.99 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="max-h-[340px] sm:max-h-[520px] w-auto max-w-full rounded-xl object-contain shadow-md"
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Floating Action Pill Bar on Hover / Mobile */}
+                  {!isGenerating && (
+                    <div 
+                      className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border shadow-xl backdrop-blur-md opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 max-w-[calc(100%-20px)] overflow-x-auto no-scrollbar"
+                      style={{
+                        background: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
+                        borderColor: theme.border
+                      }}
+                    >
+                      <button 
+                        onClick={() => alert(`Full Resolution Preview: ${current.dimensions}`)}
+                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                        title="Full Screen View"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="w-px h-3.5 bg-slate-300 dark:bg-white/15 mx-0.5" />
+                      <button 
+                        onClick={() => alert('Download PNG')}
+                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                        title="Download"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => alert('Upscaling 4K...')}
+                        className="p-1.5 rounded-full hover:bg-purple-50 text-purple-600 transition-colors cursor-pointer"
+                        title="Upscale 4K"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => alert('Create Variant')}
+                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                        title="Create Variant"
+                      >
+                        <ImagePlus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Metadata Bar & Thumbnails (Exact strip from UI-white.png) */}
+                <div 
+                  className="px-3 sm:px-5 py-2.5 sm:py-3 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs"
+                  style={{
+                    background: theme.cardBg,
+                    borderColor: theme.border
+                  }}
+                >
+                  {/* Left: Metadata info */}
+                  <div className="flex flex-wrap items-center gap-1.5 min-[380px]:gap-2 sm:gap-3 font-mono text-[9px] min-[380px]:text-[10px] sm:text-[11px] text-slate-500">
+                    <span className="font-bold text-slate-700 dark:text-slate-200">{current.dimensions}</span>
+                    <span>•</span>
+                    <button 
+                      onClick={handleCopySeed}
+                      className="flex items-center gap-1 hover:text-purple-600 cursor-pointer"
+                    >
+                      <span>Seed: {current.seed}</span>
+                      {copiedSeed ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3 text-slate-400" />}
+                    </button>
+                    <span>•</span>
+                    <span className="text-purple-600 font-semibold truncate max-w-[200px] min-[400px]:max-w-none">{current.backend}</span>
+                  </div>
+
+                  {/* Right: History Thumbnails Switcher */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 self-end sm:self-auto">
+                    {STUDIO_PRESETS.map((preset) => {
+                      const isSelected = preset.id === current.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          onClick={() => {
+                            setSelectedPresetId(preset.id);
+                            setCustomPrompt('');
+                          }}
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                            isSelected 
+                              ? 'border-purple-600 shadow-md scale-105' 
+                              : 'border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <img 
+                            src={preset.image} 
+                            alt={preset.label} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
             </div>
 
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }

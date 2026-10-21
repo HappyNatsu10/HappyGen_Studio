@@ -1,10 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ScanFace, Brush, SlidersHorizontal, ArrowLeftRight } from 'lucide-react';
+import { Sparkles, ScanFace, Brush, SlidersHorizontal, ArrowLeftRight, Wand2 } from 'lucide-react';
 
 export function BeforeAfterSlider() {
   const [sliderPos, setSliderPos] = useState(50);
-  const [activeTab, setActiveTab] = useState('face'); // 'face' | 'inpaint'
+  const [activeTab, setActiveTab] = useState('anime'); // 'anime' | 'face' | 'inpaint'
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
@@ -15,6 +15,13 @@ export function BeforeAfterSlider() {
     const percent = Math.max(5, Math.min(95, (x / rect.width) * 100));
     setSliderPos(percent);
   }, []);
+
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      setIsDragging(true);
+      handleMove(e.touches[0].clientX);
+    }
+  };
 
   const handleTouchMove = (e) => {
     if (e.touches && e.touches[0]) {
@@ -38,6 +45,15 @@ export function BeforeAfterSlider() {
   };
 
   const demoData = {
+    anime: {
+      before: '/studio/anime-schoolgirl-raw.jpg',
+      after: '/studio/anime-schoolgirl.jpg',
+      beforeLabel: 'Standard 512px Draft',
+      afterLabel: 'HappyGen 4K Neural Super-Resolution',
+      title: 'Anime RealESRGAN & High-Res Fix',
+      subtitle: 'Instantly enhance line art crispness, fine hair textures, and lighting speculars from quick low-res drafts up to print-ready 4K with zero artifacting.',
+      badge: 'RealESRGAN 4K'
+    },
     face: {
       before: '/styles/face_raw.jpg',
       after: '/styles/face_restored.jpg',
@@ -61,45 +77,56 @@ export function BeforeAfterSlider() {
   const current = demoData[activeTab];
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-12">
+    <div className="w-full max-w-5xl lg:max-w-[1240px] mx-auto my-8 sm:my-14 px-3 sm:px-6">
       {/* Header & Mode Switcher */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-6 sm:mb-7 text-left">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 mb-2">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Interactive Split-Screen</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">
             {current.title}
           </h3>
-          <p className="text-sm text-slate-400 max-w-xl mt-1">
+          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mt-1 leading-relaxed">
             {current.subtitle}
           </p>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex items-center p-1 rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner">
+        {/* 3-Tab Toggle */}
+        <div className="flex items-center p-1 sm:p-1.5 rounded-xl sm:rounded-2xl bg-[#090c20] border border-[#1e2345] shadow-inner w-full sm:w-auto justify-between sm:justify-start gap-1 overflow-x-auto no-scrollbar flex-shrink-0">
           <button
-            onClick={() => { setActiveTab('face'); setSliderPos(50); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'face'
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+            onClick={() => { setActiveTab('anime'); setSliderPos(50); }}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] min-[380px]:text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'anime'
+                ? 'bg-[#4f46e5] text-white shadow-md shadow-indigo-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <ScanFace className="w-4 h-4" />
-            <span>Face Fix (ADetailer)</span>
+            <Wand2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span>4K Super-Res</span>
+          </button>
+          <button
+            onClick={() => { setActiveTab('face'); setSliderPos(50); }}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] min-[380px]:text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'face'
+                ? 'bg-[#4f46e5] text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <ScanFace className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span>ADetailer Fix</span>
           </button>
           <button
             onClick={() => { setActiveTab('inpaint'); setSliderPos(50); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] min-[380px]:text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'inpaint'
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                ? 'bg-[#4f46e5] text-white shadow-md shadow-indigo-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Brush className="w-4 h-4" />
-            <span>Inpainting Studio</span>
+            <Brush className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            <span>Inpainting</span>
           </button>
         </div>
       </div>
@@ -111,14 +138,17 @@ export function BeforeAfterSlider() {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className="relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl select-none cursor-ew-resize group"
+        onTouchEnd={handleMouseUp}
+        style={{ touchAction: 'none' }}
+        className="relative w-full h-[280px] min-[400px]:h-[340px] sm:h-[480px] md:h-[560px] rounded-[18px] sm:rounded-[24px] overflow-hidden border border-[#1e2345] bg-[#05060f] shadow-[0_25px_60px_rgba(0,0,0,0.85)] select-none cursor-ew-resize group"
       >
         {/* Layer 1: Restored / After (Full Background) */}
         <img
           src={current.after}
           alt={current.afterLabel}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className="absolute inset-0 w-full h-full object-contain object-top pointer-events-none"
           loading="lazy"
         />
 
@@ -130,41 +160,41 @@ export function BeforeAfterSlider() {
           <img
             src={current.before}
             alt={current.beforeLabel}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain object-top"
             loading="lazy"
           />
         </div>
 
         {/* Divider Line & Handle */}
         <div
-          className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-400 via-white to-indigo-400 pointer-events-none z-20 shadow-[0_0_15px_rgba(99,102,241,0.8)]"
+          className="absolute top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-400 via-white to-indigo-400 pointer-events-none z-20 shadow-[0_0_12px_rgba(99,102,241,0.9)]"
           style={{ left: `${sliderPos}%` }}
         >
-          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-950/90 border-2 border-white shadow-xl flex items-center justify-center text-white backdrop-blur-md transition-transform duration-150 group-hover:scale-110">
-            <ArrowLeftRight className="w-4 h-4 text-indigo-300" />
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#070914] border-2 border-white shadow-xl flex items-center justify-center text-white backdrop-blur-md transition-transform duration-150 group-hover:scale-110">
+            <ArrowLeftRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-indigo-300" />
           </div>
         </div>
 
         {/* Left Badge: Before */}
-        <div className="absolute bottom-4 left-4 z-10 pointer-events-none">
-          <div className="px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-amber-400/80"></span>
+        <div className="absolute bottom-2 sm:bottom-3.5 left-2 sm:left-3.5 z-10 pointer-events-none">
+          <div className="px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-black/85 backdrop-blur-md border border-white/10 text-[9px] min-[380px]:text-[10px] sm:text-[11px] font-semibold text-slate-300 flex items-center gap-1.5 shadow-xl">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400"></span>
             <span>{current.beforeLabel}</span>
           </div>
         </div>
 
         {/* Right Badge: After */}
-        <div className="absolute bottom-4 right-4 z-10 pointer-events-none">
-          <div className="px-3 py-1.5 rounded-lg bg-indigo-950/80 backdrop-blur-md border border-indigo-500/30 text-xs font-bold text-indigo-200 flex items-center gap-2 shadow-lg">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="absolute bottom-2 sm:bottom-3.5 right-2 sm:right-3.5 z-10 pointer-events-none">
+          <div className="px-2 py-0.5 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-[#1e1338]/90 backdrop-blur-md border border-purple-500/30 text-[9px] min-[380px]:text-[10px] sm:text-[11px] font-bold text-purple-200 flex items-center gap-1.5 shadow-xl">
+            <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400" />
             <span>{current.afterLabel}</span>
           </div>
         </div>
 
         {/* Top Hint Bar */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity">
-          <div className="px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/10 text-[11px] font-medium text-slate-300">
-            ← Drag slider to inspect details →
+        <div className="absolute top-2.5 sm:top-3.5 left-1/2 -translate-x-1/2 z-10 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity">
+          <div className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/15 text-[9px] sm:text-[10px] font-medium text-slate-300 shadow-lg whitespace-nowrap">
+            ← Drag slider to compare →
           </div>
         </div>
       </div>

@@ -120,6 +120,15 @@ export const saveImageToGallery = async (input, fileName = `happygen-${Date.now(
     }
 
     await Media.savePhoto(options);
+
+    // Clean up temporary cache file so no duplicate files remain in the internal Android cache folder
+    try {
+      await Filesystem.deleteFile({
+        path: fileName,
+        directory: Directory.Cache
+      });
+    } catch (_) {}
+
     return true;
   } catch (err) {
     console.warn('Media.savePhoto failed, attempting fallback via Share sheet:', err);

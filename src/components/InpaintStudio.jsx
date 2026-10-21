@@ -13,7 +13,7 @@ import useWorkspaceStore from '../store/useWorkspaceStore';
 import useGenerateStore from '../store/useGenerateStore';
 import useModelStore from '../store/useModelStore';
 import { useAuth } from '../context/AuthContext';
-import { notifyGenerationDone } from '../services/notificationService';
+import { notifyGenerationDone, requestNotificationPermission } from '../services/notificationService';
 export default function InpaintStudio() {
   const { t } = useTranslation();
   const { incrementGeneratedCount } = useAuth();
@@ -44,6 +44,7 @@ export default function InpaintStudio() {
     }
 
     setIsGenerating(true);
+    requestNotificationPermission().catch(() => {});
     setError(null);
     setResultImage(null);
 

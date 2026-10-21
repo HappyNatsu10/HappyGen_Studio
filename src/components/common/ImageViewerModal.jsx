@@ -7,6 +7,7 @@ import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useModelStore from '../../store/useModelStore';
 import useAppStore from '../../store/useAppStore';
 
+import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Media } from '@capacitor-community/media';
@@ -127,7 +128,7 @@ Date: ${dateText}`.trim();
   const handleDownload = async () => {
     try {
       setIsDownloading(true);
-      const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+      const isNativeApp = Capacitor.isNativePlatform();
       
       const response = await fetch(currentImage.url);
       const blob = await response.blob();

@@ -23,7 +23,7 @@ import useModelStore from '../../store/useModelStore';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
 import useGenerateStore from '../../store/useGenerateStore';
 import QueueAlertModal from './QueueAlertModal';
-import { notifyGenerationDone } from '../../services/notificationService';
+import { notifyGenerationDone, requestNotificationPermission } from '../../services/notificationService';
 
 const DEFAULT_NEGATIVE = 'bad quality, low quality, blurry, bad anatomy, bad hands, extra fingers, missing fingers, deformed, watermark, text, worst quality';
 
@@ -178,6 +178,7 @@ export default function GeneratePage() {
     initGeneration();
     setIsGenerating(true);
     setError(null);
+    requestNotificationPermission().catch(() => {});
 
     // Handle interrogate separately — it returns a prompt string, not images
     if (generationMode === 'interrogate') {
@@ -315,6 +316,7 @@ export default function GeneratePage() {
   const handleDirectUpscale = async (imageUrl) => {
     setIsGenerating(true);
     setError(null);
+    requestNotificationPermission().catch(() => {});
     try {
       const images = await upscaleImage({ sourceImage: imageUrl, scale: upscaleScale, upscalerName: upscaleModel });
       const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));

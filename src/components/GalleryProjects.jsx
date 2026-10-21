@@ -5,6 +5,7 @@ import ImageViewerModal from './common/ImageViewerModal';
 import useAppStore from '../store/useAppStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
 import { useAuth } from '../context/AuthContext';
+import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Media } from '@capacitor-community/media';
 import { saveImageToGallery } from '../utils/mediaUtils';
@@ -121,7 +122,7 @@ export default function GalleryProjects() {
   };
 
   const handleDownloadImage = async (image) => {
-    const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+    const isNativeApp = Capacitor.isNativePlatform();
     const response = await fetch(image.url);
     const blob = await response.blob();
     

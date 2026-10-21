@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sliders, Layers, Sparkles, Copy, Check, Download, Zap } from 'lucide-react';
 
+const LORA_OPTIONS = {
+  cheongsam: {
+    id: 'cheongsam',
+    name: 'Traditional Silk Cheongsam v3',
+    creator: 'EleganceAI',
+    downloads: '68.2k',
+    size: '182 MB',
+    civitaiId: '#319204',
+    image: '/studio/anime-cheongsam.jpg',
+    triggers: ['silk_cheongsam', 'crimson_embroidery', 'wooden_armchair', 'side_braid'],
+    desc: 'Bespoke high-precision embroidery and fabric folds LoRA trained on high-res historical and modern Qipao aesthetics with rich silk luster.'
+  },
+  cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Mecha Exosuit v3',
+    creator: 'ArtStationPro',
+    downloads: '42.5k',
+    size: '144 MB',
+    civitaiId: '#184920',
+    image: '/styles/cyberpunk.png',
+    triggers: ['cybernetic_armor', 'neon_highlights', 'matte_carbon_fiber'],
+    desc: 'Dense sci-fi mechanical plating, fiber-optic conduits, and neon emissive rim reflections tuned for SDXL realism.'
+  }
+};
+
 export function LoraWeightSimulator() {
-  const [weight, setWeight] = useState(0.75);
+  const [selectedLora, setSelectedLora] = useState('cheongsam');
+  const [weight, setWeight] = useState(0.85);
   const [copiedTrigger, setCopiedTrigger] = useState(null);
 
-  const triggers = ['cybernetic_armor', 'neon_highlights', 'matte_carbon_fiber'];
+  const current = LORA_OPTIONS[selectedLora];
 
   const handleCopyTrigger = (tag) => {
     navigator.clipboard.writeText(tag);
@@ -16,25 +42,50 @@ export function LoraWeightSimulator() {
 
   // Compute CSS filter or styling based on weight to show immediate feedback without lag
   const getSimulatedStyle = () => {
-    // 0.0 -> subtle neutral base
-    // 1.0 -> intense contrast, vibrant glow
-    const contrast = 100 + (weight * 25);
-    const saturate = 95 + (weight * 45);
+    const contrast = 98 + (weight * 28);
+    const saturate = 94 + (weight * 40);
+    const brightness = 98 + (weight * 6);
     return {
-      filter: `contrast(${contrast}%) saturate(${saturate}%)`,
+      filter: `contrast(${contrast}%) saturate(${saturate}%) brightness(${brightness}%)`,
       transition: 'filter 0.15s ease-out'
     };
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-12 p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-950/70 backdrop-blur-xl shadow-2xl">
+    <div className="w-full max-w-5xl lg:max-w-[1240px] mx-auto my-14 p-6 sm:p-8 rounded-[28px] border border-[#1e2345] bg-[#0c0f24]/90 backdrop-blur-xl shadow-2xl">
       <div className="flex flex-col lg:flex-row gap-8 items-center">
         
         {/* Left Interactive Control Box */}
         <div className="w-full lg:w-1/2 flex flex-col text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 border border-purple-500/20 mb-3 w-fit">
-            <Layers className="w-3.5 h-3.5" />
-            <span>CivitAI LoRA Engine</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c084fc] bg-[#28153b] border border-[#7e22ce]/50">
+              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <span>CivitAI LoRA Engine</span>
+            </div>
+
+            {/* Model Toggle */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#060815] border border-[#1a1f3c]">
+              <button
+                onClick={() => { setSelectedLora('cheongsam'); setWeight(0.85); }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  selectedLora === 'cheongsam'
+                    ? 'bg-[#4f46e5] text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Silk Art
+              </button>
+              <button
+                onClick={() => { setSelectedLora('cyberpunk'); setWeight(0.75); }}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  selectedLora === 'cyberpunk'
+                    ? 'bg-[#4f46e5] text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Mecha
+              </button>
+            </div>
           </div>
 
           <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
@@ -45,19 +96,19 @@ export function LoraWeightSimulator() {
           </p>
 
           {/* Active Model Stack Card */}
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 mb-6">
+          <div className="p-4 rounded-2xl bg-[#060815] border border-[#1a1f3c] mb-6">
             <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
               <span className="font-semibold uppercase tracking-wider">Active LoRA Model</span>
-              <span className="font-mono text-purple-400">144 MB • CivitAI #184920</span>
+              <span className="font-mono text-purple-400">{current.size} • CivitAI {current.civitaiId}</span>
             </div>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg flex-shrink-0">
                 🎨
               </div>
-              <div className="flex-1">
-                <div className="text-sm font-bold text-white">Cyberpunk Mecha Exosuit v3</div>
-                <div className="text-xs text-slate-400">by ArtStationPro • 42.5k Downloads</div>
+              <div className="flex-1 truncate">
+                <div className="text-sm font-bold text-white truncate">{current.name}</div>
+                <div className="text-xs text-slate-400">by {current.creator} • {current.downloads} Downloads</div>
               </div>
             </div>
 
@@ -70,16 +121,16 @@ export function LoraWeightSimulator() {
               <input
                 type="range"
                 min="0.0"
-                max="1.0"
+                max="1.2"
                 step="0.05"
                 value={weight}
                 onChange={(e) => setWeight(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#a855f7]"
               />
               <div className="flex justify-between text-[10px] font-mono text-slate-500">
                 <span>0.00 (Base Model)</span>
-                <span>0.50 (Subtle Blend)</span>
-                <span>1.00 (Full Style)</span>
+                <span>0.60 (Subtle Blend)</span>
+                <span>1.20 (High Influence)</span>
               </div>
             </div>
           </div>
@@ -88,11 +139,11 @@ export function LoraWeightSimulator() {
           <div>
             <div className="text-xs font-semibold text-slate-400 mb-2">Trained Trigger Words (Click to copy):</div>
             <div className="flex flex-wrap gap-2">
-              {triggers.map(tag => (
+              {current.triggers.map(tag => (
                 <button
                   key={tag}
                   onClick={() => handleCopyTrigger(tag)}
-                  className="px-2.5 py-1 rounded-lg text-xs font-mono bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-300 hover:text-purple-300 transition-colors flex items-center gap-1.5"
+                  className="px-2.5 py-1 rounded-lg text-xs font-mono bg-[#060815] border border-[#1a1f3c] hover:border-purple-500/40 text-slate-300 hover:text-purple-300 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>{tag}</span>
                   {copiedTrigger === tag ? (
@@ -108,22 +159,29 @@ export function LoraWeightSimulator() {
 
         {/* Right Preview Display */}
         <div className="w-full lg:w-1/2 relative">
-          <div className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl aspect-[4/3] group">
-            <img
-              src="/styles/cyberpunk.png"
-              alt="Cyberpunk LoRA Preview"
-              style={getSimulatedStyle()}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+          <div className="relative rounded-[22px] overflow-hidden border border-[#1e2345] bg-[#05060f] shadow-2xl aspect-[4/3] group">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={current.id}
+                src={current.image}
+                alt={current.name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={getSimulatedStyle()}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                loading="lazy"
+              />
+            </AnimatePresence>
 
             {/* Dynamic Overlay readout */}
             <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 pointer-events-none">
-              <span className="px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 text-xs font-bold text-white shadow-lg">
+              <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/10 text-xs font-bold text-white shadow-lg">
                 LoRA Weight: <span className="text-purple-400 font-mono">{weight.toFixed(2)}</span>
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-purple-950/80 backdrop-blur-md border border-purple-500/30 text-[10px] text-purple-200">
-                {weight < 0.3 ? 'Mild Accent' : weight < 0.7 ? 'Harmonious Style' : 'Maximum Stylization'}
+              <span className="px-2.5 py-0.5 rounded-full bg-[#24113e]/85 backdrop-blur-md border border-purple-500/30 text-[10px] text-purple-200">
+                {weight < 0.3 ? 'Mild Accent' : weight < 0.8 ? 'Harmonious Style' : 'Maximum Stylization'}
               </span>
             </div>
 

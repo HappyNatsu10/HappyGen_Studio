@@ -13,11 +13,19 @@ let currentBgTaskId = null;
 
 if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
   try {
+    const isBusy = () => {
+      try {
+        return activeGenerations > 0 || !!useGenerateStore.getState().isGenerating;
+      } catch (e) {
+        return activeGenerations > 0;
+      }
+    };
+
     App.addListener('appStateChange', async ({ isActive }) => {
-      if (!isActive && activeGenerations > 0) {
+      if (!isActive && isBusy()) {
         try {
           currentBgTaskId = await BackgroundTask.beforeExit(async () => {
-            while (activeGenerations > 0) {
+            while (isBusy()) {
               await new Promise(r => setTimeout(r, 1000));
             }
             if (currentBgTaskId) {

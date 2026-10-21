@@ -29,13 +29,13 @@ const PLATFORMS = [
   {
     name: 'Windows Desktop',
     subtitle: 'Windows 10/11 (64-bit)',
-    description: 'High-performance desktop workstation with native Nvidia CUDA, TensorRT, and 1-click Google Colab tunnel linking.',
+    description: 'High-performance desktop workstation with native Nvidia CUDA, TensorRT, and 1-click Colab & Kaggle cloud GPU linking.',
     icon: Monitor,
     color: 'blue',
     downloadLabel: 'Download for Windows (.exe)',
     href: 'https://github.com/HappyNatsu10/HappyGen_Studio/releases',
     badge: 'ELECTRON',
-    features: ['Nvidia GPU Acceleration', 'System Tray & Native Shortcuts', 'Local Offline & Colab Cloud Modes'],
+    features: ['Nvidia GPU Acceleration', 'System Tray & Native Shortcuts', 'Local Offline & Colab / Kaggle Cloud Modes'],
   },
   {
     name: 'iOS Package',
@@ -52,63 +52,63 @@ const PLATFORMS = [
   {
     name: 'macOS Desktop',
     subtitle: 'Apple Silicon (M1 / M2 / M3 / M4)',
-    description: 'Optimized for Apple Silicon with native window styling, Metal acceleration, and Colab Cloud GPU link.',
+    description: 'Optimized for Apple Silicon with native window styling, Metal acceleration, and Colab & Kaggle Cloud GPU link.',
     icon: Monitor,
     color: 'slate',
     downloadLabel: 'macOS Releases (.dmg)',
     href: 'https://github.com/HappyNatsu10/HappyGen_Studio/releases',
-    features: ['Apple Silicon Optimized', 'Native macOS UI', 'Full Colab Cloud GPU Tunnel Link'],
+    features: ['Apple Silicon Optimized', 'Native macOS UI', 'Full Colab & Kaggle Cloud GPU Tunnel Link'],
     comingSoon: false,
   },
 ];
 
 export default function DownloadPage() {
   return (
-    <div className="relative min-h-screen pt-32 pb-24 overflow-hidden w-full">
+    <div className="relative min-h-screen pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden w-full">
       <BackgroundBeams />
-      <div className="relative z-10 w-full px-6 md:px-12 xl:px-24 mx-auto max-w-6xl">
+      <div className="relative z-10 w-full px-3.5 sm:px-8 lg:px-12 xl:px-24 mx-auto max-w-6xl">
         
         {/* Header */}
         <motion.div 
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-10 sm:mb-16"
           initial="hidden"
           animate="visible"
           variants={stagger}
         >
-          <motion.p variants={fadeInUp} className="text-xs font-bold tracking-[0.25em] text-purple-400 uppercase mb-4">Download</motion.p>
-          <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl font-extrabold mb-6 text-white">
+          <motion.p variants={fadeInUp} className="text-xs font-bold tracking-[0.25em] text-purple-400 uppercase mb-3 sm:mb-4">Download</motion.p>
+          <motion.h1 variants={fadeInUp} className="text-3xl sm:text-5xl font-extrabold mb-3 sm:mb-6 text-white">
             Get HappyGen Studio
           </motion.h1>
-          <motion.p variants={fadeInUp} className="text-lg text-slate-400">
+          <motion.p variants={fadeInUp} className="text-sm sm:text-lg text-slate-400 px-1">
             Choose your platform and start generating in minutes. Every version is completely free.
           </motion.p>
         </motion.div>
 
         {/* Platform Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-12">
           {PLATFORMS.map((platform, i) => (
             <motion.div 
               key={platform.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 * i }}
-              className={`p-8 rounded-2xl border ${platform.badge ? 'border-purple-500/25' : 'border-[var(--border-subtle)]'} bg-[var(--surface-1)]/60 backdrop-blur-sm group hover:border-${platform.color}-500/40 transition-all duration-300 relative overflow-hidden`}
+              className={`p-5 sm:p-8 rounded-xl sm:rounded-2xl border ${platform.badge ? 'border-purple-500/25' : 'border-[var(--border-subtle)]'} bg-[var(--surface-1)]/60 backdrop-blur-sm group hover:border-${platform.color}-500/40 transition-all duration-300 relative overflow-hidden`}
             >
               {platform.badge && (
                 <div className="absolute top-4 right-4 bg-purple-500 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full">{platform.badge}</div>
               )}
               
-              <div className="flex items-start gap-5 mb-6">
-                <div className={`w-14 h-14 bg-${platform.color}-500/10 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                  <platform.icon className={`w-7 h-7 text-${platform.color}-400`} />
+              <div className="flex items-start gap-4 sm:gap-5 mb-4 sm:mb-6">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-${platform.color}-500/10 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                  <platform.icon className={`w-6 h-6 sm:w-7 sm:h-7 text-${platform.color}-400`} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">{platform.name}</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-white">{platform.name}</h3>
                   <p className="text-xs text-slate-500 mt-0.5">{platform.subtitle}</p>
                 </div>
               </div>
               
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">{platform.description}</p>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed mb-5 sm:mb-6">{platform.description}</p>
               
               <ul className="space-y-2 mb-6">
                 {platform.features.map(f => (
@@ -120,11 +120,11 @@ export default function DownloadPage() {
               </ul>
               
               {platform.comingSoon ? (
-                <div className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-slate-800/30 border border-slate-700/50 text-slate-500 font-semibold text-sm cursor-not-allowed">
+                <div className="flex items-center justify-center gap-2 w-full py-3 sm:py-3.5 rounded-xl bg-slate-800/30 border border-slate-700/50 text-slate-500 font-semibold text-xs sm:text-sm cursor-not-allowed">
                   Coming soon
                 </div>
               ) : (
-                <a href={platform.href} className={`flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-${platform.color}-500/15 border border-${platform.color}-500/25 text-${platform.color}-300 font-semibold text-sm hover:bg-${platform.color}-500/25 transition-colors`}>
+                <a href={platform.href} className={`flex items-center justify-center gap-2 w-full py-3 sm:py-3.5 rounded-xl bg-${platform.color}-500/15 border border-${platform.color}-500/25 text-${platform.color}-300 font-semibold text-xs sm:text-sm hover:bg-${platform.color}-500/25 transition-colors`}>
                   <Download className="w-4 h-4" />
                   {platform.downloadLabel}
                 </a>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Rocket, Menu, X, Play, FileText, Download, Mail, ChevronRight } from 'lucide-react';
 import { AuroraBackground } from './AuroraBackground';
@@ -17,31 +17,57 @@ const XIcon = (props) => (
 );
 const MarketingNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const scrollTo = (e, id) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 120);
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  };
 
   return (
     <>
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/40 backdrop-blur-xl border-b border-[var(--border-subtle)]"
+        className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/70 backdrop-blur-xl border-b border-[var(--border-subtle)]"
       >
-        <div className="w-full px-6 md:px-12 xl:px-24 mx-auto flex items-center h-20 relative">
+        <div className="w-full max-w-[1500px] px-4 sm:px-6 lg:px-12 mx-auto flex items-center justify-between h-16 sm:h-20 relative">
           {/* Logo - Left */}
           <div className="flex-1 flex justify-start">
-            <Link to="/" className="flex items-center gap-3 group">
-              <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
-              <span className="font-bold text-xl tracking-tight text-white">HappyGen Studio</span>
+            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group">
+              <img src="/logo.png" alt="HappyGen Studio Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain group-hover:scale-105 transition-transform flex-shrink-0" />
+              <span className="font-bold text-lg sm:text-xl tracking-tight text-white truncate">HappyGen Studio</span>
             </Link>
           </div>
 
           {/* Desktop Nav - Center */}
           <div className="hidden md:flex items-center justify-center gap-7 absolute left-1/2 -translate-x-1/2">
-            <a href="#demo" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Interactive Demo</a>
-            <a href="#features" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
-            <a href="#colab" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
-              <span>Free Colab GPU</span>
+            <button onClick={(e) => scrollTo(e, 'demo')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
+              Interactive Demo
+            </button>
+            <button onClick={(e) => scrollTo(e, 'features')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
+              Features
+            </button>
+            <button onClick={(e) => scrollTo(e, 'colab')} className="text-xs font-semibold text-slate-300 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+              <span>Colab & Kaggle GPUs</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            </a>
+            </button>
             <Link to="/walkthrough" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">Walkthrough</Link>
             <Link to="/faq" className="text-xs font-semibold text-slate-300 hover:text-white transition-colors">FAQ</Link>
           </div>
@@ -50,20 +76,21 @@ const MarketingNavbar = () => {
           <div className="hidden md:flex items-center justify-end gap-3 flex-1">
             <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-4 h-4" /></a>
             <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors mr-1"><DiscordIcon className="w-[18px] h-[18px]" /></a>
-            <a 
-              href="#download" 
+            <Link 
+              to="/download" 
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Workstation</span>
-            </a>
+            </Link>
           </div>
 
           {/* Mobile Menu Button - Right */}
           <div className="md:hidden flex flex-1 justify-end">
             <button 
-              className="p-2 text-slate-300 hover:text-white"
+              className="p-2 -mr-2 text-slate-300 hover:text-white cursor-pointer rounded-lg hover:bg-white/5 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -75,31 +102,71 @@ const MarketingNavbar = () => {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-40 bg-[var(--surface-0)]/95 backdrop-blur-3xl pt-24 px-6 md:hidden"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-[var(--surface-0)]/98 backdrop-blur-2xl pt-20 px-5 pb-8 md:hidden overflow-y-auto max-h-[100dvh]"
           >
-            <div className="flex flex-col gap-4 text-base">
-              <a href="#demo" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Interactive Demo</a>
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Features</a>
-              <a href="#colab" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white flex items-center justify-between">
-                <span>Free Colab Cloud GPU</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">Free</span>
-              </a>
-              <Link to="/walkthrough" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">Walkthrough</Link>
-              <Link to="/faq" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-white">FAQ</Link>
-              <a 
-                href="#download" 
-                onClick={() => setMobileMenuOpen(false)} 
-                className="mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-center text-sm shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+            <div className="flex flex-col gap-2.5 text-base pt-4">
+              <button 
+                onClick={(e) => scrollTo(e, 'demo')} 
+                className="w-full py-3 px-4 rounded-xl text-left font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer flex items-center justify-between"
               >
-                <Download className="w-4 h-4" />
-                <span>Download App (APK & Desktop)</span>
-              </a>
-              <div className="pt-4 mt-2 border-t border-[var(--border-subtle)] flex gap-6 items-center">
-                <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><XIcon className="w-5 h-5" /></a>
-                <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors"><DiscordIcon className="w-6 h-6" /></a>
+                <span>Interactive Demo</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </button>
+              <button 
+                onClick={(e) => scrollTo(e, 'features')} 
+                className="w-full py-3 px-4 rounded-xl text-left font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <span>Features</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </button>
+              <button 
+                onClick={(e) => scrollTo(e, 'colab')} 
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <span>Colab & Kaggle Free GPUs</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                </div>
+                <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold font-mono">Free</span>
+              </button>
+              <Link 
+                to="/walkthrough" 
+                onClick={() => setMobileMenuOpen(false)} 
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between"
+              >
+                <span>Walkthrough & Guides</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </Link>
+              <Link 
+                to="/faq" 
+                onClick={() => setMobileMenuOpen(false)} 
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between"
+              >
+                <span>FAQ</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </Link>
+
+              <div className="pt-2">
+                <Link 
+                  to="/download" 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-center text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download App (APK & Desktop)</span>
+                </Link>
+              </div>
+
+              <div className="pt-6 mt-4 border-t border-[var(--border-subtle)] flex items-center justify-between px-2">
+                <span className="text-xs text-slate-400">Connect with us</span>
+                <div className="flex gap-4 items-center">
+                  <a href="https://x.com/happygenstudio" target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-colors"><XIcon className="w-4 h-4" /></a>
+                  <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-colors"><DiscordIcon className="w-[18px] h-[18px]" /></a>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -111,8 +178,8 @@ const MarketingNavbar = () => {
 
 const MarketingFooter = () => {
   return (
-    <footer className="bg-[var(--surface-0)]/50 backdrop-blur-md border-t border-[var(--border-subtle)] pt-20 pb-10 relative z-10">
-      <div className="w-full px-6 md:px-12 xl:px-24 mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+    <footer className="bg-[var(--surface-0)]/50 backdrop-blur-md border-t border-[var(--border-subtle)] pt-12 sm:pt-20 pb-8 sm:pb-10 relative z-10 w-full">
+      <div className="w-full max-w-[1500px] px-6 lg:px-12 mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
         <div className="md:col-span-1">
           <Link to="/" className="flex items-center gap-3 mb-6">
             <img src="/logo.png" alt="HappyGen Studio Logo" className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" />
@@ -153,7 +220,7 @@ const MarketingFooter = () => {
         </div>
       </div>
       
-      <div className="w-full px-6 md:px-12 xl:px-24 mx-auto border-t border-[var(--border-subtle)] pt-8 flex flex-col md:flex-row items-center justify-between">
+      <div className="w-full max-w-[1500px] px-6 lg:px-12 mx-auto border-t border-[var(--border-subtle)] pt-8 flex flex-col md:flex-row items-center justify-between">
         <p className="text-slate-500 text-sm">© 2026 HappyGen Studio. All rights reserved.</p>
         <div className="flex gap-4 mt-4 md:mt-0 text-xs text-slate-600">
           Built with ♥ by HappyNatsu10
@@ -164,6 +231,29 @@ const MarketingFooter = () => {
 };
 
 export default function MarketingLayout() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // If the browser URL contains a '#' hash (such as #download or legacy bookmarks)
+    if (window.location.hash) {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'download') {
+        // Cleanly route to /download without '#'
+        navigate('/download', { replace: true });
+      } else {
+        // Strip the hash from the address bar without reloading
+        window.history.replaceState(null, '', window.location.pathname);
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    }
+  }, [location.pathname, navigate]);
+
   return (
     <AuroraBackground>
       <div className="relative font-sans text-slate-200 min-h-screen selection:bg-purple-500/30 w-full flex flex-col">

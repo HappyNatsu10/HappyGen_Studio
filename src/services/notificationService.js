@@ -4,41 +4,73 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 let notificationsInitialized = false;
 
 /**
- * Initializes notification channels and requests permissions on both mobile and desktop.
+ * Ensures the Android high-priority notification channel is created.
+ * Importance 5 (IMPORTANCE_HIGH) is required for heads-up popup banners
+ * when the app is in the background or minimized.
+ */
+export const ensureNotificationChannel = async () => {
+  if (typeof window === 'undefined') return;
+
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+    try {
+      await LocalNotifications.createChannel({
+        id: 'happygen_generations',
+        name: 'Generation Alerts',
+        description: 'Notifications when AI image generation finishes',
+        importance: 5, // High importance (heads-up popup banner)
+        visibility: 1, // NotificationCompat.VISIBILITY_PUBLIC (shows on lockscreen)
+        vibration: true,
+        lights: true,
+        lightColor: '#6366F1'
+      });
+    } catch (chanErr) {
+      console.warn('Notification channel setup notice:', chanErr);
+    }
+  }
+};
+
+/**
+ * Requests runtime notification permission across Android (POST_NOTIFICATIONS), iOS, and Web/Desktop.
+ * Returns true if granted.
+ */
+export const requestNotificationPermission = async () => {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    if (Capacitor.isNativePlatform()) {
+      // 1. Android / iOS native permissions via Capacitor LocalNotifications
+      let check = await LocalNotifications.checkPermissions();
+      if (check.display !== 'granted') {
+        const req = await LocalNotifications.requestPermissions();
+        check = req;
+      }
+      await ensureNotificationChannel();
+      return check.display === 'granted';
+    } else {
+      // 2. Desktop (Electron) and Web Notification API
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') return true;
+        if (Notification.permission !== 'denied') {
+          const perm = await Notification.requestPermission();
+          return perm === 'granted';
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error requesting notification permissions:', err);
+  }
+  return false;
+};
+
+/**
+ * Initializes notification channels and requests permissions on app launch.
  */
 export const initNotifications = async () => {
   if (typeof window === 'undefined') return;
 
   try {
-    if (Capacitor.isNativePlatform()) {
-      // 1. Android / iOS native permissions via Capacitor LocalNotifications
-      const check = await LocalNotifications.checkPermissions();
-      if (check.display !== 'granted') {
-        await LocalNotifications.requestPermissions();
-      }
-
-      // Create high-priority channel on Android for heads-up notifications
-      if (Capacitor.getPlatform() === 'android') {
-        try {
-          await LocalNotifications.createChannel({
-            id: 'happygen_generations',
-            name: 'Generation Alerts',
-            description: 'Notifications when AI image generation finishes',
-            importance: 5, // High importance (heads-up popup banner)
-            visibility: 1,
-            vibration: true,
-            lights: true
-          });
-        } catch (chanErr) {
-          console.log('Channel creation note:', chanErr);
-        }
-      }
-    } else {
-      // 2. Desktop (Electron) and Web Notification API
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
-    }
+    await ensureNotificationChannel();
+    await requestNotificationPermission();
     notificationsInitialized = true;
   } catch (err) {
     console.warn('Notification initialization notice:', err);
@@ -99,7 +131,23 @@ export const notifyGenerationDone = async ({
 
   try {
     if (Capacitor.isNativePlatform()) {
-      // Mobile native notification (pops up even when app is minimized / backgrounded)
+      // 1. Ensure channel is created with high priority
+      await ensureNotificationChannel();
+
+      // 2. Ensure permission is granted
+      let check = await LocalNotifications.checkPermissions();
+      if (check.display !== 'granted') {
+        const req = await LocalNotifications.requestPermissions();
+        if (req.display !== 'granted') {
+          console.warn('Local notification permission not granted:', req.display);
+          return;
+        }
+      }
+
+      // 3. Immediately display the notification using Capacitor
+      // Note: We deliberately omit 'schedule: { at: ... }' because immediate dispatch
+      // calls Android's NotificationManager directly without relying on AlarmManager
+      // or exact alarm permissions, guaranteeing instant heads-up delivery when backgrounded.
       const notifId = Math.floor(Math.random() * 900000) + 100000;
       await LocalNotifications.schedule({
         notifications: [
@@ -108,8 +156,8 @@ export const notifyGenerationDone = async ({
             title: title,
             body: body,
             channelId: 'happygen_generations',
-            schedule: { at: new Date(Date.now() + 150) },
-            smallIcon: 'ic_launcher',
+            smallIcon: 'ic_stat_happygen',
+            iconColor: '#6366F1',
             actionTypeId: '',
             extra: null
           }

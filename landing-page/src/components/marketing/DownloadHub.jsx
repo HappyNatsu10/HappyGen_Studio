@@ -25,30 +25,30 @@ export function DownloadHub() {
   }, []);
 
   return (
-    <div id="download" className="w-full max-w-6xl mx-auto my-20 px-4 sm:px-6 scroll-mt-24">
+    <div id="download" className="w-full max-w-[1600px] mx-auto my-12 sm:my-20 px-3.5 sm:px-6 lg:px-8 scroll-mt-24">
       
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 mb-4">
+      <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+        <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 mb-3 sm:mb-4">
           <Download className="w-3.5 h-3.5" />
           <span>Official Release Downloads • 100% Free & Open</span>
         </div>
-        <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
+        <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-3 sm:mb-4 leading-tight">
           Download HappyGen Studio. <br />
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400">
             For Your Operating System.
           </span>
         </h2>
-        <p className="text-base sm:text-lg text-slate-400">
+        <p className="text-xs sm:text-base text-slate-400 px-1">
           Native desktop and mobile workstation binaries. Download the installer or direct mobile package below and begin creating without limitations.
         </p>
       </div>
 
       {/* Platform Cards Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10 sm:mb-16">
         
         {/* 1. Android Card */}
-        <div className={`p-6 rounded-3xl border flex flex-col justify-between transition-all duration-300 relative text-left ${
+        <div className={`p-5 sm:p-6 rounded-2xl sm:rounded-3xl border flex flex-col justify-between transition-all duration-300 relative text-left ${
           detectedOS === 'android'
             ? 'bg-slate-900 border-indigo-500/60 shadow-2xl shadow-indigo-500/10 scale-[1.02]'
             : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
@@ -158,7 +158,7 @@ export function DownloadHub() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                <span>1-Click Colab & Local GPU linking</span>
+                <span>1-Click Colab, Kaggle & Local GPU</span>
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -273,7 +273,7 @@ export function DownloadHub() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span>Full Colab Cloud GPU tunnel support</span>
+                <span>Full Colab & Kaggle Cloud GPU tunnel</span>
               </li>
             </ul>
           </div>
@@ -295,16 +295,16 @@ export function DownloadHub() {
       </div>
 
       {/* System Requirements Note */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 text-left flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Cpu className="w-6 h-6 text-indigo-400 flex-shrink-0" />
+      <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-slate-900/60 border border-slate-800 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400 flex-shrink-0 mt-0.5 sm:mt-0" />
           <div className="text-xs">
             <span className="font-bold text-white">Recommended Specs: </span>
-            <span className="text-slate-400">Nvidia RTX 3060+ (8GB VRAM) for local rendering, OR any basic laptop / smartphone when connected to free Google Colab cloud GPUs.</span>
+            <span className="text-slate-400">Nvidia RTX 3060+ (8GB VRAM) for local rendering, OR any basic laptop / smartphone when connected to free Google Colab & Kaggle cloud GPUs.</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 flex-shrink-0">
-          <Shield className="w-4 h-4" />
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono text-emerald-400 flex-shrink-0">
+          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>Open Source & Virus-Checked</span>
         </div>
       </div>

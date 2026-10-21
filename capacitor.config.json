@@ -13,5 +13,14 @@
   },
   "server": {
     "androidScheme": "https"
+  },
+  "plugins": {
+    "Media": {
+      "androidGalleryMode": true
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_happygen",
+      "iconColor": "#6366F1"
+    }
   }
 }

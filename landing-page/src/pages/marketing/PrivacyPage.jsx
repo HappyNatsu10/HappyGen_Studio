@@ -103,23 +103,23 @@ export default function PrivacyPage() {
   ];
 
   return (
-    <div className="relative min-h-screen pt-32 pb-24 w-full bg-[var(--surface-0)] text-slate-300">
-      <div className="w-full max-w-5xl mx-auto px-6 md:px-12 xl:px-24">
+    <div className="relative min-h-screen pt-24 sm:pt-32 pb-16 sm:pb-24 w-full bg-[var(--surface-0)] text-slate-300">
+      <div className="w-full max-w-5xl mx-auto px-3.5 sm:px-8 lg:px-12 xl:px-24">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 mx-auto mb-6">
-            <Rocket className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 mx-auto mb-4 sm:mb-6">
+            <Rocket className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white">Privacy Policy</h1>
-          <p className="text-slate-400 text-lg">Last Updated: October 2026</p>
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-2 sm:mb-4 text-white">Privacy Policy</h1>
+          <p className="text-slate-400 text-sm sm:text-lg">Last Updated: October 2026</p>
         </motion.div>
 
         {/* Content Container */}
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-4 gap-6 sm:gap-8">
           
           {/* Table of Contents - Sidebar */}
           <div className="hidden md:block col-span-1">
@@ -128,12 +128,16 @@ export default function PrivacyPage() {
               <ul className="space-y-3">
                 {sections.map((section) => (
                   <li key={section.id}>
-                    <a 
-                      href={`#${section.id}`} 
-                      className="text-sm text-slate-400 hover:text-purple-400 transition-colors flex items-center gap-2"
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' });
+                        window.history.replaceState(null, '', window.location.pathname);
+                      }}
+                      className="text-sm text-slate-400 hover:text-purple-400 transition-colors flex items-center gap-2 cursor-pointer text-left"
                     >
                       {section.title}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -141,7 +145,7 @@ export default function PrivacyPage() {
           </div>
 
           {/* Main Content */}
-          <div className="col-span-1 md:col-span-3 space-y-8">
+          <div className="col-span-1 md:col-span-3 space-y-4 sm:space-y-8">
             {sections.map((section, idx) => (
               <motion.section 
                 key={section.id}
@@ -149,15 +153,15 @@ export default function PrivacyPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="scroll-mt-24 glass-panel p-8 rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm"
+                className="scroll-mt-24 glass-panel p-4 sm:p-8 rounded-[18px] sm:rounded-[22px] border border-[var(--border-subtle)] bg-[var(--surface-1)]/60 backdrop-blur-sm"
               >
-                <div className="flex items-center gap-3 mb-6 border-b border-[var(--border-subtle)] pb-4">
-                  <div className="p-2 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)]">
+                <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6 border-b border-[var(--border-subtle)] pb-3 sm:pb-4">
+                  <div className="p-1.5 sm:p-2 bg-[var(--surface-2)] rounded-lg border border-[var(--border-subtle)] flex-shrink-0">
                     {section.icon}
                   </div>
-                  <h2 className="text-2xl font-bold text-white m-0">{section.title}</h2>
+                  <h2 className="text-lg sm:text-2xl font-bold text-white m-0">{section.title}</h2>
                 </div>
-                <div className="prose prose-invert max-w-none text-slate-300 prose-p:leading-relaxed prose-strong:text-white">
+                <div className="prose prose-invert max-w-none text-slate-300 text-xs sm:text-base prose-p:leading-relaxed prose-strong:text-white">
                   {section.content}
                 </div>
               </motion.section>

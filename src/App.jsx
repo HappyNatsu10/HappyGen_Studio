@@ -55,7 +55,11 @@ function MainApp() {
   const { syncModelProfiles } = useModelStore();
 
   useEffect(() => {
-    initNotifications();
+    // Delay slightly so native window and splash are fully attached before permission request
+    const timer = setTimeout(() => {
+      initNotifications();
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

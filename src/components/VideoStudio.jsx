@@ -19,7 +19,7 @@ const VIDEO_CAMERA_MOTIONS = [
 import useAppStore from '../store/useAppStore';
 import useModelStore from '../store/useModelStore';
 import useWorkspaceStore from '../store/useWorkspaceStore';
-import { notifyGenerationDone } from '../services/notificationService';
+import { notifyGenerationDone, requestNotificationPermission } from '../services/notificationService';
 
 export default function VideoStudio({ onAddSafetyLog = () => {} }) {
   const { t } = useTranslation();
@@ -60,6 +60,7 @@ export default function VideoStudio({ onAddSafetyLog = () => {} }) {
     }
 
     setIsGenerating(true);
+    requestNotificationPermission().catch(() => {});
 
     try {
       const newVid = await generateVideoAI({
