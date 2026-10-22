@@ -328,7 +328,8 @@
     "continueGuest": "Continuar como invitado",
     "uploadCustom": "Upload Custom Picture",
     "or": "OR",
-    "continueWithGoogle": "Continue with Google"
+    "continueWithGoogle": "Continuar con Google",
+    "continueWithTwitter": "Continuar con X"
   },
   "profile": {
     "passwordLengthError": "La nueva contraseña debe tener al menos 6 caracteres.",

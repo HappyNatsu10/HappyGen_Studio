@@ -12,7 +12,7 @@ const DiscordIcon = (props) => (
 
 const XIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 const MarketingNavbar = () => {
@@ -42,7 +42,7 @@ const MarketingNavbar = () => {
 
   return (
     <>
-      <motion.nav 
+      <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface-0)]/85 backdrop-blur-xl border-b border-[var(--border-subtle)]"
@@ -77,8 +77,8 @@ const MarketingNavbar = () => {
               <a href="https://discord.gg/TNb3XcFaM" target="_blank" rel="noreferrer" className="text-slate-400 hover:text-white transition-colors p-1"><DiscordIcon className="w-[18px] h-[18px]" /></a>
             </div>
 
-            <Link 
-              to="/download" 
+            <Link
+              to="/download"
               className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all flex items-center gap-1.5 flex-shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
@@ -87,7 +87,7 @@ const MarketingNavbar = () => {
             </Link>
 
             {/* Mobile/Tablet Menu Button (Visible on screens below xl) */}
-            <button 
+            <button
               className="xl:hidden p-2 text-slate-300 hover:text-white cursor-pointer rounded-lg hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-center flex-shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle navigation menu"
@@ -109,22 +109,22 @@ const MarketingNavbar = () => {
             className="fixed inset-0 z-40 bg-[var(--surface-0)]/98 backdrop-blur-2xl pt-20 px-5 pb-8 xl:hidden overflow-y-auto max-h-[100dvh]"
           >
             <div className="flex flex-col gap-2.5 text-base pt-4">
-              <button 
-                onClick={(e) => scrollTo(e, 'demo')} 
+              <button
+                onClick={(e) => scrollTo(e, 'demo')}
                 className="w-full py-3 px-4 rounded-xl text-left font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer flex items-center justify-between"
               >
                 <span>Interactive Demo</span>
                 <ChevronRight className="w-4 h-4 text-slate-500" />
               </button>
-              <button 
-                onClick={(e) => scrollTo(e, 'features')} 
+              <button
+                onClick={(e) => scrollTo(e, 'features')}
                 className="w-full py-3 px-4 rounded-xl text-left font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors cursor-pointer flex items-center justify-between"
               >
                 <span>Features</span>
                 <ChevronRight className="w-4 h-4 text-slate-500" />
               </button>
-              <button 
-                onClick={(e) => scrollTo(e, 'colab')} 
+              <button
+                onClick={(e) => scrollTo(e, 'colab')}
                 className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center gap-2">
@@ -133,17 +133,17 @@ const MarketingNavbar = () => {
                 </div>
                 <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold font-mono">Free</span>
               </button>
-              <Link 
-                to="/walkthrough" 
-                onClick={() => setMobileMenuOpen(false)} 
+              <Link
+                to="/walkthrough"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between"
               >
                 <span>Walkthrough & Guides</span>
                 <ChevronRight className="w-4 h-4 text-slate-500" />
               </Link>
-              <Link 
-                to="/faq" 
-                onClick={() => setMobileMenuOpen(false)} 
+              <Link
+                to="/faq"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-3 px-4 rounded-xl font-semibold text-white hover:bg-white/5 active:bg-white/10 transition-colors flex items-center justify-between"
               >
                 <span>FAQ</span>
@@ -151,9 +151,9 @@ const MarketingNavbar = () => {
               </Link>
 
               <div className="pt-2">
-                <Link 
-                  to="/download" 
-                  onClick={() => setMobileMenuOpen(false)} 
+                <Link
+                  to="/download"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-center text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
                 >
                   <Download className="w-4 h-4" />
@@ -189,7 +189,7 @@ const MarketingFooter = () => {
             The ultimate AI generation workstation. Pro-grade tools, infinite canvas, and seamless model management.
           </p>
         </div>
-        
+
         <div>
           <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs text-slate-500">Product</h4>
           <ul className="space-y-4">
@@ -219,7 +219,7 @@ const MarketingFooter = () => {
           </ul>
         </div>
       </div>
-      
+
       <div className="w-full max-w-[1500px] px-6 lg:px-12 mx-auto border-t border-[var(--border-subtle)] pt-8 flex flex-col md:flex-row items-center justify-between">
         <p className="text-slate-500 text-sm">© 2026 HappyGen Studio. All rights reserved.</p>
         <div className="flex gap-4 mt-4 md:mt-0 text-xs text-slate-600">
@@ -258,12 +258,12 @@ export default function MarketingLayout() {
     <AuroraBackground>
       <div className="relative font-sans text-slate-200 min-h-screen selection:bg-purple-500/30 w-full flex flex-col">
         <MarketingNavbar />
-        
+
         {/* Main Content Area */}
         <main className="w-full flex-1 relative z-10 flex flex-col items-center">
           <Outlet />
         </main>
-        
+
         <MarketingFooter />
       </div>
     </AuroraBackground>

@@ -328,7 +328,8 @@
     "continueGuest": "ゲストとして続行",
     "uploadCustom": "Upload Custom Picture",
     "or": "OR",
-    "continueWithGoogle": "Continue with Google"
+    "continueWithGoogle": "Google で続行",
+    "continueWithTwitter": "X で続行"
   },
   "profile": {
     "passwordLengthError": "新しいパスワードは6文字以上である必要があります。",

@@ -328,7 +328,8 @@
     "continueGuest": "以访客身份继续",
     "uploadCustom": "上传自定义头像",
     "or": "OR",
-    "continueWithGoogle": "使用 Google 账号继续"
+    "continueWithGoogle": "使用 Google 账号继续",
+    "continueWithTwitter": "使用 X 账号继续"
   },
   "profile": {
     "passwordLengthError": "新密码必须至少包含6个字符。",

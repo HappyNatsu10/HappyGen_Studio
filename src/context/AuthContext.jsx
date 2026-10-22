@@ -8,7 +8,12 @@ import {
   updatePassword,
   deleteUser,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  GoogleAuthProvider,
+  TwitterAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -31,7 +36,103 @@ export function AuthProvider({ children }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'signup'
 
+  // Helper to sync social user with Firestore and migrate guest data
+  const syncSocialUser = async (user) => {
+    const savedGuestRaw = localStorage.getItem('happygen_guest_user');
+    const guestUser = savedGuestRaw ? JSON.parse(savedGuestRaw) : null;
+    const guestModels = guestUser?.favouriteModels || [];
+    const guestFolders = guestUser?.favouriteFolders ? guestUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
+
+    let finalData = {};
+    
+    try {
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+         finalData = docSnap.data();
+      } else {
+         // New user from Google/Twitter
+         finalData = {
+           name: user.displayName || 'Creator',
+           email: user.email,
+           avatar: user.photoURL || DEFAULT_AVATARS[0],
+           tier: 'Pro Studio Creator',
+           createdAt: new Date().toISOString(),
+           generatedCount: 0,
+           savedPrompts: [],
+           favoriteImages: [],
+           favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
+           favouriteModels: guestModels,
+           customSettings: {
+             preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
+             defaultSteps: 20,
+             defaultCfg: 6.5,
+             defaultResolution: '512x768'
+           }
+         };
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data during social login:", err);
+      finalData = {
+         name: user.displayName || 'Creator',
+         email: user.email,
+         avatar: user.photoURL || DEFAULT_AVATARS[0]
+      };
+    }
+    
+    if (guestModels.length > 0 || guestFolders.length > 0) {
+        const existingModels = finalData.favouriteModels || [];
+        const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
+        
+        const mergedModels = [...existingModels];
+        for (const gm of guestModels) {
+          if (!mergedModels.find(m => m.id === gm.id)) {
+            mergedModels.push(gm);
+          }
+        }
+        
+        const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+        
+        finalData.favouriteModels = mergedModels;
+        finalData.favouriteFolders = mergedFolders;
+        
+        try {
+           await setDoc(doc(db, 'users', user.uid), {
+             favouriteModels: mergedModels,
+             favouriteFolders: mergedFolders
+           }, { merge: true });
+        } catch (e) {
+           console.error("Could not merge guest data on login", e);
+        }
+    } else {
+       try {
+          await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
+       } catch (e) {
+          console.error("Could not set user doc", e);
+       }
+    }
+    
+    localStorage.removeItem('happygen_guest_user');
+    setCurrentUser({ id: user.uid, email: user.email, ...finalData });
+    return user;
+  };
+
   useEffect(() => {
+    // Check if user returned from a redirect sign in flow (mobile web or redirect fallback)
+    if (auth) {
+      getRedirectResult(auth)
+        .then(async (userCredential) => {
+          if (userCredential && userCredential.user) {
+            await syncSocialUser(userCredential.user);
+          }
+        })
+        .catch((err) => {
+          if (err.code !== 'auth/null-user') {
+            console.warn("Redirect auth check notice:", err);
+          }
+        });
+    }
+
     // Check localStorage for a guest session before giving up completely
     const savedGuest = localStorage.getItem('happygen_guest_user');
     if (savedGuest && !auth) {
@@ -207,13 +308,44 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Social logins (browser popups are disabled in native app context)
-  const loginWithGoogle = async () => {
-    throw new Error('Social browser popup authentication is not supported in the native app. Please sign in with Email or Continue as Guest.');
+  // Perform social authentication with cross-platform popup -> redirect fallback
+  const performSocialAuth = async (provider) => {
+    try {
+      try {
+        const userCredential = await signInWithPopup(auth, provider);
+        return await syncSocialUser(userCredential.user);
+      } catch (popupError) {
+        // Fall back to redirect if popup is blocked or unsupported in current environment/webview
+        if (
+          popupError.code === 'auth/popup-blocked' ||
+          popupError.code === 'auth/popup-closed-by-user' ||
+          popupError.code === 'auth/cancelled-popup-request' ||
+          popupError.code === 'auth/operation-not-supported-in-this-environment' ||
+          popupError.message?.toLowerCase().includes('popup')
+        ) {
+          console.warn("Popup authentication unavailable or blocked, falling back to redirect flow:", popupError);
+          await signInWithRedirect(auth, provider);
+          return null;
+        }
+        throw popupError;
+      }
+    } catch (error) {
+      console.error("Social Auth Error:", error);
+      throw new Error(error.message || 'An error occurred during social sign in.');
+    }
   };
 
+  // Login with Google
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    return performSocialAuth(provider);
+  };
+
+  // Login with Twitter / X
   const loginWithTwitter = async () => {
-    throw new Error('Social browser popup authentication is not supported in the native app. Please sign in with Email or Continue as Guest.');
+    const provider = new TwitterAuthProvider();
+    return performSocialAuth(provider);
   };
 
   // Quick Demo Guest Account
