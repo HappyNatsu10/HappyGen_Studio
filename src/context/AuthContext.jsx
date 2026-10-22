@@ -7,13 +7,13 @@ import {
   updateProfile as firebaseUpdateProfile,
   updatePassword,
   deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential,
   GoogleAuthProvider,
   TwitterAuthProvider,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -36,103 +36,7 @@ export function AuthProvider({ children }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'signup'
 
-  // Helper to sync social user with Firestore and migrate guest data
-  const syncSocialUser = async (user) => {
-    const savedGuestRaw = localStorage.getItem('happygen_guest_user');
-    const guestUser = savedGuestRaw ? JSON.parse(savedGuestRaw) : null;
-    const guestModels = guestUser?.favouriteModels || [];
-    const guestFolders = guestUser?.favouriteFolders ? guestUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
-
-    let finalData = {};
-    
-    try {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-         finalData = docSnap.data();
-      } else {
-         // New user from Google/Twitter
-         finalData = {
-           name: user.displayName || 'Creator',
-           email: user.email,
-           avatar: user.photoURL || DEFAULT_AVATARS[0],
-           tier: 'Pro Studio Creator',
-           createdAt: new Date().toISOString(),
-           generatedCount: 0,
-           savedPrompts: [],
-           favoriteImages: [],
-           favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
-           favouriteModels: guestModels,
-           customSettings: {
-             preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
-             defaultSteps: 20,
-             defaultCfg: 6.5,
-             defaultResolution: '512x768'
-           }
-         };
-      }
-    } catch (err) {
-      console.error("Failed to fetch user data during social login:", err);
-      finalData = {
-         name: user.displayName || 'Creator',
-         email: user.email,
-         avatar: user.photoURL || DEFAULT_AVATARS[0]
-      };
-    }
-    
-    if (guestModels.length > 0 || guestFolders.length > 0) {
-        const existingModels = finalData.favouriteModels || [];
-        const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
-        
-        const mergedModels = [...existingModels];
-        for (const gm of guestModels) {
-          if (!mergedModels.find(m => m.id === gm.id)) {
-            mergedModels.push(gm);
-          }
-        }
-        
-        const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
-        
-        finalData.favouriteModels = mergedModels;
-        finalData.favouriteFolders = mergedFolders;
-        
-        try {
-           await setDoc(doc(db, 'users', user.uid), {
-             favouriteModels: mergedModels,
-             favouriteFolders: mergedFolders
-           }, { merge: true });
-        } catch (e) {
-           console.error("Could not merge guest data on login", e);
-        }
-    } else {
-       try {
-          await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
-       } catch (e) {
-          console.error("Could not set user doc", e);
-       }
-    }
-    
-    localStorage.removeItem('happygen_guest_user');
-    setCurrentUser({ id: user.uid, email: user.email, ...finalData });
-    return user;
-  };
-
   useEffect(() => {
-    // Check if user returned from a redirect sign in flow (mobile web or redirect fallback)
-    if (auth) {
-      getRedirectResult(auth)
-        .then(async (userCredential) => {
-          if (userCredential && userCredential.user) {
-            await syncSocialUser(userCredential.user);
-          }
-        })
-        .catch((err) => {
-          if (err.code !== 'auth/null-user') {
-            console.warn("Redirect auth check notice:", err);
-          }
-        });
-    }
-
     // Check localStorage for a guest session before giving up completely
     const savedGuest = localStorage.getItem('happygen_guest_user');
     if (savedGuest && !auth) {
@@ -146,6 +50,22 @@ export function AuthProvider({ children }) {
        console.warn("Firebase Auth not initialized. Using guest mode.");
        setLoadingUser(false);
        return;
+    }
+
+    // Check for returning OAuth redirect results (used by mobile WebViews when popups are blocked)
+    if (auth) {
+      getRedirectResult(auth)
+        .then(async (result) => {
+          if (result && result.user) {
+            await syncSocialUser(result.user);
+          }
+        })
+        .catch((err) => {
+          // Normal if no redirect was pending or user dismissed
+          if (err?.code !== 'auth/null-user') {
+            console.warn("OAuth redirect result notice:", err?.code || err?.message);
+          }
+        });
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -308,27 +228,112 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Perform social authentication with cross-platform popup -> redirect fallback
+  // Helper to sync social user info to Firestore and merge guest data
+  const syncSocialUser = async (user) => {
+    if (!user) return null;
+
+    const guestModels = currentUser?.isGuest && currentUser.favouriteModels ? currentUser.favouriteModels : [];
+    const guestFolders = currentUser?.isGuest && currentUser.favouriteFolders ? currentUser.favouriteFolders.filter(f => f !== 'Uncategorized') : [];
+
+    let finalData = {};
+    try {
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        finalData = docSnap.data();
+      } else {
+        finalData = {
+          name: user.displayName || 'Creator',
+          email: user.email || '',
+          avatar: user.photoURL || DEFAULT_AVATARS[0],
+          tier: 'Pro Studio Creator',
+          createdAt: new Date().toISOString(),
+          generatedCount: 0,
+          savedPrompts: [],
+          favoriteImages: [],
+          favouriteFolders: guestFolders.length ? guestFolders : ['Uncategorized'],
+          favouriteModels: guestModels,
+          customSettings: {
+            preferredModel: 'crucibleRINGPonyxl_v28.safetensors',
+            defaultSteps: 20,
+            defaultCfg: 6.5,
+            defaultResolution: '512x768'
+          }
+        };
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data during social sync:", err);
+      finalData = {
+        name: user.displayName || 'Creator',
+        email: user.email || '',
+        avatar: user.photoURL || DEFAULT_AVATARS[0]
+      };
+    }
+
+    if (guestModels.length > 0 || guestFolders.length > 0) {
+      const existingModels = finalData.favouriteModels || [];
+      const existingFolders = finalData.favouriteFolders || ['Uncategorized'];
+
+      const mergedModels = [...existingModels];
+      for (const gm of guestModels) {
+        if (!mergedModels.find(m => m.id === gm.id)) {
+          mergedModels.push(gm);
+        }
+      }
+
+      const mergedFolders = [...new Set([...existingFolders, ...guestFolders])];
+      finalData.favouriteModels = mergedModels;
+      finalData.favouriteFolders = mergedFolders;
+
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          favouriteModels: mergedModels,
+          favouriteFolders: mergedFolders
+        }, { merge: true });
+      } catch (e) {
+        console.error("Could not merge guest data on social login", e);
+      }
+    } else {
+      try {
+        await setDoc(doc(db, 'users', user.uid), finalData, { merge: true });
+      } catch (e) {
+        console.error("Could not set user doc", e);
+      }
+    }
+
+    localStorage.removeItem('happygen_guest_user');
+    const fullUser = { id: user.uid, email: user.email, ...finalData };
+    setCurrentUser(fullUser);
+    return fullUser;
+  };
+
+  // Cross-platform Social Auth handler: tries popup first, gracefully falls back to redirect
   const performSocialAuth = async (provider) => {
     try {
+      let userCredential;
       try {
-        const userCredential = await signInWithPopup(auth, provider);
-        return await syncSocialUser(userCredential.user);
-      } catch (popupError) {
-        // Fall back to redirect if popup is blocked or unsupported in current environment/webview
+        userCredential = await signInWithPopup(auth, provider);
+      } catch (popupErr) {
+        console.warn("signInWithPopup notice:", popupErr?.code || popupErr?.message);
+        // Fallback to redirect if popup is blocked, unauthorized, or unsupported in WebView
         if (
-          popupError.code === 'auth/popup-blocked' ||
-          popupError.code === 'auth/popup-closed-by-user' ||
-          popupError.code === 'auth/cancelled-popup-request' ||
-          popupError.code === 'auth/operation-not-supported-in-this-environment' ||
-          popupError.message?.toLowerCase().includes('popup')
+          popupErr.code === 'auth/popup-blocked' ||
+          popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
+          popupErr.code === 'auth/unauthorized-domain'
         ) {
-          console.warn("Popup authentication unavailable or blocked, falling back to redirect flow:", popupError);
           await signInWithRedirect(auth, provider);
           return null;
         }
-        throw popupError;
+        if (popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/cancelled-popup-request') {
+          return null;
+        }
+        throw popupErr;
       }
+
+      if (userCredential && userCredential.user) {
+        return await syncSocialUser(userCredential.user);
+      }
+      return null;
     } catch (error) {
       console.error("Social Auth Error:", error);
       throw new Error(error.message || 'An error occurred during social sign in.');
@@ -339,13 +344,13 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    return performSocialAuth(provider);
+    return await performSocialAuth(provider);
   };
 
   // Login with Twitter / X
   const loginWithTwitter = async () => {
     const provider = new TwitterAuthProvider();
-    return performSocialAuth(provider);
+    return await performSocialAuth(provider);
   };
 
   // Quick Demo Guest Account
@@ -407,8 +412,9 @@ export function AuthProvider({ children }) {
 
   // Increment Generation Counter
   const incrementGeneratedCount = async (amount = 1) => {
+    const inc = typeof amount === 'number' && amount > 0 ? amount : 1;
     if (currentUser?.isGuest) {
-      const newCount = (currentUser.generatedCount || 0) + amount;
+      const newCount = (currentUser.generatedCount || 0) + inc;
       const updatedGuest = { ...currentUser, generatedCount: newCount };
       setCurrentUser(updatedGuest);
       localStorage.setItem('happygen_guest_user', JSON.stringify(updatedGuest));
@@ -416,7 +422,7 @@ export function AuthProvider({ children }) {
     }
     
     try {
-       const newCount = (currentUser.generatedCount || 0) + amount;
+       const newCount = (currentUser.generatedCount || 0) + inc;
        setCurrentUser(prev => prev ? { ...prev, generatedCount: newCount } : null);
        const docRef = doc(db, 'users', currentUser.id);
        await setDoc(docRef, { generatedCount: newCount }, { merge: true });
@@ -452,7 +458,7 @@ export function AuthProvider({ children }) {
     try {
       const user = auth.currentUser;
       if (user) {
-        const isPasswordProvider = user.providerData.some(p => p.providerId === 'password');
+        const isPasswordProvider = user.providerData?.some(p => p.providerId === 'password');
         
         if (isPasswordProvider) {
           if (!password) {

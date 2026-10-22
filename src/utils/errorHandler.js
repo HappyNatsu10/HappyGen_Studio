@@ -4,8 +4,34 @@
  * while preserving full technical stack traces for development.
  */
 
+import { Capacitor } from '@capacitor/core';
+
 export function isDevEnvironment() {
-  if (import.meta.env && import.meta.env.DEV) return true;
+  // If explicitly flagged in localStorage (e.g. for testing)
+  if (typeof window !== 'undefined' && localStorage.getItem('happygen_dev_mode') === 'true') {
+    return true;
+  }
+
+  // Native mobile app (Android / iOS APK) is NEVER the laptop dev environment
+  try {
+    if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      return false;
+    }
+  } catch {
+    // ignore
+  }
+
+  // Production build bundle (vite build output)
+  if (import.meta.env && import.meta.env.PROD) {
+    return false;
+  }
+
+  // Active Vite development server on desktop (npm run dev / vite)
+  if (import.meta.env && import.meta.env.DEV) {
+    return true;
+  }
+
+  // Laptop local development server checks (desktop web only)
   if (typeof window !== 'undefined') {
     const hostname = window.location?.hostname || '';
     if (
@@ -14,9 +40,6 @@ export function isDevEnvironment() {
       hostname.startsWith('192.168.') || 
       hostname.endsWith('.local')
     ) {
-      return true;
-    }
-    if (localStorage.getItem('happygen_dev_mode') === 'true') {
       return true;
     }
   }
