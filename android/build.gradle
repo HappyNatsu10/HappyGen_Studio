@@ -22,6 +22,7 @@ allprojects {
         google()
         mavenCentral()
     }
+    buildDir = new File("C:/Users/HappyNastu/.gradle_builds/HappyGenStudio", project.name)
 }
 
 task clean(type: Delete) {

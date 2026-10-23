@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "619040765912",
+    "firebase_url": "https://happygen-studio-default-rtdb.firebaseio.com",
+    "project_id": "happygen-studio",
+    "storage_bucket": "happygen-studio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619040765912:android:90e5b639a9858f9af9e4ad",
+        "android_client_info": {
+          "package_name": "com.happynatsu.happygenstudio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "619040765912-hk3fl07hj8vn66n3c3pgghro476kqmjr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSHLL4v0z8d-HE1zIO5pqMHbUcMFHrF2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "619040765912-hk3fl07hj8vn66n3c3pgghro476kqmjr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
