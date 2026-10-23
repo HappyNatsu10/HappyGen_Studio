@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@capacitor-community/media": "^8.0.1",
+    "@capacitor-firebase/authentication": "7.5.0",
     "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.0.1",
     "@capacitor/filesystem": "^7.1.8",

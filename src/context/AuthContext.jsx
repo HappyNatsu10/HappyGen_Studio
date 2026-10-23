@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -11,6 +13,7 @@ import {
   TwitterAuthProvider,
   signInWithPopup,
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   EmailAuthProvider,
   reauthenticateWithCredential
@@ -342,6 +345,33 @@ export function AuthProvider({ children }) {
 
   // Login with Google
   const loginWithGoogle = async () => {
+    // Native mobile app flow (Android / iOS)
+    if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      try {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const idToken = result.credential?.idToken;
+        if (idToken) {
+          const credential = GoogleAuthProvider.credential(idToken);
+          const userCredential = await signInWithCredential(auth, credential);
+          return await syncSocialUser(userCredential.user);
+        } else if (result.user) {
+          return await syncSocialUser(result.user);
+        }
+        throw new Error('Google sign-in was cancelled or returned no credentials.');
+      } catch (nativeErr) {
+        console.error("Native Google Sign-In Error:", nativeErr);
+        const msg = nativeErr?.message || '';
+        if (msg.includes('10:') || msg.includes('DEVELOPER_ERROR') || msg.includes('google-services')) {
+          throw new Error('Google Sign-In configuration error: Please register the app SHA-1 fingerprint in Firebase Console.');
+        }
+        if (msg.includes('canceled') || msg.includes('cancelled') || nativeErr?.code === '12501') {
+          return null; // User cancelled without error
+        }
+        throw new Error(nativeErr.message || 'Failed to sign in with Google on device.');
+      }
+    }
+
+    // Standard web browser flow
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     return await performSocialAuth(provider);
@@ -349,6 +379,30 @@ export function AuthProvider({ children }) {
 
   // Login with Twitter / X
   const loginWithTwitter = async () => {
+    // Native mobile app flow (Android / iOS)
+    if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      try {
+        const result = await FirebaseAuthentication.signInWithTwitter();
+        const idToken = result.credential?.idToken;
+        const secret = result.credential?.secret;
+        if (idToken && secret) {
+          const credential = TwitterAuthProvider.credential(idToken, secret);
+          const userCredential = await signInWithCredential(auth, credential);
+          return await syncSocialUser(userCredential.user);
+        } else if (result.user) {
+          return await syncSocialUser(result.user);
+        }
+        throw new Error('Twitter sign-in was cancelled or returned no credentials.');
+      } catch (nativeErr) {
+        console.error("Native Twitter Sign-In Error:", nativeErr);
+        if (nativeErr?.message?.includes('canceled') || nativeErr?.message?.includes('cancelled')) {
+          return null;
+        }
+        throw new Error(nativeErr.message || 'Failed to sign in with Twitter on device.');
+      }
+    }
+
+    // Standard web browser flow
     const provider = new TwitterAuthProvider();
     return await performSocialAuth(provider);
   };
@@ -381,6 +435,13 @@ export function AuthProvider({ children }) {
       localStorage.removeItem('happygen_guest_user');
     } else {
       try {
+        if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+          try {
+            await FirebaseAuthentication.signOut();
+          } catch (e) {
+            console.warn("Native signOut error:", e);
+          }
+        }
         await signOut(auth);
         localStorage.removeItem('happygen_guest_user');
       } catch (error) {

@@ -71,8 +71,10 @@ export default function AuthModal() {
     setSuccessMessage('');
     setLoading(true);
     try {
-      await loginWithGoogle();
-      closeAuth();
+      const user = await loginWithGoogle();
+      if (user) {
+        closeAuth();
+      }
     } catch (err) {
       setError(err.message || t('auth.error', 'An error occurred during authentication.'));
     } finally {
@@ -85,8 +87,10 @@ export default function AuthModal() {
     setSuccessMessage('');
     setLoading(true);
     try {
-      await loginWithTwitter();
-      closeAuth();
+      const user = await loginWithTwitter();
+      if (user) {
+        closeAuth();
+      }
     } catch (err) {
       setError(err.message || t('auth.error', 'An error occurred during authentication.'));
     } finally {

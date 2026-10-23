@@ -21,6 +21,10 @@
     "LocalNotifications": {
       "smallIcon": "ic_stat_happygen",
       "iconColor": "#6366F1"
+    },
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com", "twitter.com"]
     }
   }
 }
