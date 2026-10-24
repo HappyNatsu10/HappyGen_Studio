@@ -42,8 +42,10 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
+      "icon": "public/logo_square.png",
       "category": "public.app-category.graphics-design"
     },
     "linux": {
