@@ -37,7 +37,8 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "public/logo_square.png"
     },
     "mac": {
       "target": [

@@ -24,14 +24,36 @@ async function cachedFetch(url, ttlMs = 120000) {
     return cached.data;
   }
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`CivitAI API error: ${res.status} ${res.statusText}`);
-  }
+  try {
+    const headers = {};
+    const civitaiKey = typeof window !== 'undefined' ? (localStorage.getItem('omnigen_civitai_key') || '') : '';
+    if (civitaiKey && civitaiKey.trim()) {
+      headers['Authorization'] = `Bearer ${civitaiKey.trim()}`;
+    }
 
-  const data = await res.json();
-  cache.set(key, { data, ts: Date.now() });
-  return data;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      let detail = '';
+      try {
+        const errJson = await res.json();
+        detail = errJson?.message || errJson?.error || '';
+      } catch {}
+      throw new Error(`CivitAI API error: ${res.status} ${res.statusText}${detail ? ` - ${detail}` : ''}`);
+    }
+
+    const data = await res.json();
+    cache.set(key, { data, ts: Date.now() });
+    return data;
+  } catch (err) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('CivitAI connection error: You appear to be offline. Please check your internet connection.');
+    }
+    const msg = (err?.message || '').toLowerCase();
+    if (msg.includes('failed to fetch') || msg.includes('networkerror') || err?.name === 'TypeError') {
+      throw new Error('CivitAI connection error: Unable to reach CivitAI servers. Please check your internet connection.');
+    }
+    throw err;
+  }
 }
 
 /**

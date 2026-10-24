@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import useAppStore from '../../store/useAppStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import logoImg from '../../assets/logo.png';
 
 export default function TopBar({ title, onOpenBackendModal }) {
   const { t } = useTranslation();
@@ -37,7 +38,7 @@ export default function TopBar({ title, onOpenBackendModal }) {
     >
       <div className="flex items-center gap-2">
         <div className="md:hidden flex items-center gap-1.5">
-          <img src="/logo.png" alt="HappyGen" className="w-5 h-5 object-contain" />
+          <img src={logoImg} alt="HappyGen" className="w-5 h-5 object-contain" />
           <span className="text-[14px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#a855f7] to-[#ec4899]">
             HappyGen
           </span>

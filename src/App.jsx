@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Palette, Globe, MessageSquare, X, DownloadCloud, RotateCw, Sparkles } from 'lucide-react';
+import { Palette, Globe, MessageSquare, X, DownloadCloud, RotateCw, Sparkles, Bell } from 'lucide-react';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import GeneratePage from './components/generate/GeneratePage';
@@ -30,7 +30,12 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import useAppStore from './store/useAppStore';
 import useModelStore from './store/useModelStore';
 import { useUpdateStore } from './store/useUpdateStore';
-import { initNotifications } from './services/notificationService';
+import { 
+  initNotifications, 
+  requestNotificationPermission, 
+  getNotificationPermissionStatus, 
+  sendTestNotification 
+} from './services/notificationService';
 
 function MainApp() {
   const { t } = useTranslation();
@@ -58,7 +63,6 @@ function MainApp() {
 
   const { syncModelProfiles } = useModelStore();
   const { checkPendingWhatsNew } = useUpdateStore();
-
   useEffect(() => {
     // Delay slightly so native window and splash are fully attached before permission request
     const timer = setTimeout(() => {
@@ -229,6 +233,19 @@ function SettingsPage() {
   const [pinMode, setPinMode] = useState('verify'); // verify | setup | remove
   const [pendingAction, setPendingAction] = useState(null);
   const [manualCheckDone, setManualCheckDone] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState(() => getNotificationPermissionStatus());
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    setNotificationStatus(granted ? 'granted' : getNotificationPermissionStatus());
+    if (granted) {
+      await sendTestNotification();
+    }
+  };
+
+  const handleTestNotification = async () => {
+    await sendTestNotification();
+  };
 
   const handleCheckUpdateClick = async () => {
     await checkUpdates(true);
@@ -334,6 +351,52 @@ function SettingsPage() {
               {t('settings.setupPin', 'Setup PIN')}
             </button>
           )}
+        </div>
+
+        {/* Desktop & Laptop Notifications */}
+        <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div>
+            <div className="text-[13px] font-medium flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+              <Bell className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{t('settings.notifications', 'Desktop Notifications & Sound')}</span>
+            </div>
+            <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+              {notificationStatus === 'granted' 
+                ? t('settings.notificationsActive', 'System alerts and sound chimes enabled for generation completion')
+                : notificationStatus === 'denied'
+                ? t('settings.notificationsBlocked', 'Blocked by browser permissions. Allow notifications in site settings.')
+                : t('settings.notificationsEnableDesc', 'Receive alerts on your laptop when generations finish')}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {notificationStatus === 'granted' ? (
+              <>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Active
+                </span>
+                <button
+                  type="button"
+                  onClick={handleTestNotification}
+                  className="btn btn-secondary text-[11px] px-2.5 py-1 hover:bg-white/10"
+                >
+                  Test Alert
+                </button>
+              </>
+            ) : notificationStatus === 'denied' ? (
+              <span className="text-[11px] text-rose-400 font-medium bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md">
+                Blocked in Browser
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleEnableNotifications}
+                className="btn btn-primary text-[12px] px-3 py-1.5"
+              >
+                Enable
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

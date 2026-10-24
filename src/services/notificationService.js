@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import logoSquareImg from '../assets/logo_square.png';
 
 let notificationsInitialized = false;
 
@@ -166,21 +167,33 @@ export const notifyGenerationDone = async ({
     } else {
       // Desktop / Web / Electron notification
       if (typeof window !== 'undefined' && 'Notification' in window) {
+        let notif = null;
         if (Notification.permission === 'granted') {
-          new Notification(title, {
+          notif = new Notification(title, {
             body: body,
-            icon: '/logo.png',
-            tag: 'happygen-generation'
+            icon: logoSquareImg,
+            tag: 'happygen-generation',
+            requireInteraction: false
           });
         } else if (Notification.permission === 'default') {
           const perm = await Notification.requestPermission();
           if (perm === 'granted') {
-            new Notification(title, {
+            notif = new Notification(title, {
               body: body,
-              icon: '/logo.png',
-              tag: 'happygen-generation'
+              icon: logoSquareImg,
+              tag: 'happygen-generation',
+              requireInteraction: false
             });
           }
+        }
+
+        if (notif) {
+          notif.onclick = () => {
+            window.focus();
+            try {
+              window.parent?.focus();
+            } catch {}
+          };
         }
       }
     }
@@ -188,3 +201,27 @@ export const notifyGenerationDone = async ({
     console.warn('Failed to display generation notification:', err);
   }
 };
+
+/**
+ * Returns current notification permission status: 'granted' | 'denied' | 'default' | 'unsupported'
+ */
+export const getNotificationPermissionStatus = () => {
+  if (typeof window === 'undefined') return 'unsupported';
+  if (Capacitor.isNativePlatform()) return 'granted';
+  if ('Notification' in window) {
+    return Notification.permission;
+  }
+  return 'unsupported';
+};
+
+/**
+ * Sends a test notification to verify laptop desktop banners and chime audio
+ */
+export const sendTestNotification = async () => {
+  await notifyGenerationDone({
+    title: '🔔 Desktop Alert Active',
+    body: 'Laptop notifications and audio alerts are working on your device!',
+    count: 1
+  });
+};
+

@@ -54,6 +54,7 @@ export default function ErrorCard({
       case 'gpu_oom':
         return <Cpu className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />;
       case 'backend_offline':
+      case 'offline':
         return <WifiOff className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />;
       default:
         return <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />;
@@ -165,7 +166,7 @@ export default function ErrorCard({
               style={{ background: 'var(--accent, #6366f1)', color: '#ffffff' }}
             >
               <Settings className="w-3.5 h-3.5" />
-              <span>Configure Backend</span>
+              <span>{parsed.type === 'auth_required' ? 'Configure CivitAI Key' : 'Configure Backend'}</span>
             </button>
           )}
 

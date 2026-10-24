@@ -4,13 +4,26 @@ import { get, set, del } from 'idb-keyval';
 
 const idbStorage = {
   getItem: async (name) => {
-    return (await get(name)) || null;
+    try {
+      return (await get(name)) || null;
+    } catch (err) {
+      console.warn('IndexedDB read warning:', err);
+      return null;
+    }
   },
   setItem: async (name, value) => {
-    await set(name, value);
+    try {
+      await set(name, value);
+    } catch (err) {
+      console.warn('IndexedDB quota or write warning:', err);
+    }
   },
   removeItem: async (name) => {
-    await del(name);
+    try {
+      await del(name);
+    } catch (err) {
+      console.warn('IndexedDB delete warning:', err);
+    }
   },
 };
 

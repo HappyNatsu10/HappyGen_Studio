@@ -95,14 +95,39 @@ export function parseAppError(rawError) {
     };
   }
 
-  // 2. Backend Server Disconnected / Unreachable
+  // 2. CivitAI Connection Error / Device Offline
   if (
-    lowerMsg.includes('failed to fetch') || 
-    lowerMsg.includes('networkerror') || 
-    lowerMsg.includes('connection refused') || 
-    lowerMsg.includes('err_connection_refused') ||
-    lowerMsg.includes('econnrefused') ||
-    (lowerMsg.includes('backend error') && (lowerMsg.includes('connection') || lowerMsg.includes('dropped') || lowerMsg.includes('failed')))
+    lowerMsg.includes('civitai') && (
+      lowerMsg.includes('failed to fetch') || 
+      lowerMsg.includes('connection error') ||
+      lowerMsg.includes('network') ||
+      lowerMsg.includes('offline') ||
+      lowerMsg.includes('unable to reach')
+    )
+  ) {
+    return {
+      type: 'offline',
+      title: 'CivitAI Unreachable',
+      message: 'Could not connect to CivitAI. Please check your internet connection.',
+      solution: 'Make sure your device has active Wi-Fi or cellular data, then tap Retry.',
+      canUserFix: true,
+      actionType: 'none',
+      rawError: rawMessage,
+      rawStack,
+      isDev
+    };
+  }
+
+  // 3. Backend Server Disconnected / Unreachable (Inference backend only)
+  if (
+    !lowerMsg.includes('civitai') && (
+      lowerMsg.includes('failed to fetch') || 
+      lowerMsg.includes('networkerror') || 
+      lowerMsg.includes('connection refused') || 
+      lowerMsg.includes('err_connection_refused') ||
+      lowerMsg.includes('econnrefused') ||
+      (lowerMsg.includes('backend error') && (lowerMsg.includes('connection') || lowerMsg.includes('dropped') || lowerMsg.includes('failed')))
+    )
   ) {
     return {
       type: 'backend_offline',
@@ -153,20 +178,27 @@ export function parseAppError(rawError) {
     };
   }
 
-  // 5. CivitAI Authentication Required (401 / 403)
+  // 5. CivitAI Authentication Required (401 / 403 / Expired / Invalid Key)
   if (
     lowerMsg.includes('civitai api error: 401') || 
     lowerMsg.includes('civitai api error: 403') || 
     lowerMsg.includes('civitai_api_key') ||
-    (lowerMsg.includes('unauthorized') && lowerMsg.includes('civitai'))
+    lowerMsg.includes('invalid api key') ||
+    lowerMsg.includes('expired api key') ||
+    lowerMsg.includes('invalid token') ||
+    (lowerMsg.includes('unauthorized') && lowerMsg.includes('civitai')) ||
+    (lowerMsg.includes('forbidden') && lowerMsg.includes('civitai'))
   ) {
+    const isExpiredOrInvalid = lowerMsg.includes('invalid') || lowerMsg.includes('expired') || lowerMsg.includes('401');
     return {
       type: 'auth_required',
-      title: 'CivitAI Key Required',
-      message: 'This checkpoint or LoRA requires an authenticated CivitAI account.',
-      solution: 'Add your free CivitAI API Key in Settings > API Keys to download members-only models.',
+      title: isExpiredOrInvalid ? 'CivitAI Key Invalid or Expired' : 'CivitAI Key Required',
+      message: isExpiredOrInvalid
+        ? 'Your CivitAI API Key is invalid or has expired.'
+        : 'This checkpoint or LoRA requires an authenticated CivitAI account.',
+      solution: 'Go to Settings > Backend Server > CivitAI API Key to enter a valid, active API key.',
       canUserFix: true,
-      actionType: 'settings',
+      actionType: 'backend',
       rawError: rawMessage,
       rawStack,
       isDev

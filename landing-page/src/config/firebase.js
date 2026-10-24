@@ -5,7 +5,7 @@ import { getFirestore } from "firebase/firestore";
 // TODO: Replace with your actual Firebase config object from the Firebase Console
 const firebaseConfig = {
   apiKey: "AIzaSyBGzEqu4lGVCqpot47iG5rTRo6eYkVE9dQ",
-  authDomain: "happygen-studio.firebaseapp.com",
+  authDomain: "happygenstudio.online",
   projectId: "happygen-studio",
   storageBucket: "happygen-studio.firebasestorage.app",
   messagingSenderId: "619040765912",

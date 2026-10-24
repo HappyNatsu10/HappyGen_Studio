@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import useAppStore from '../../store/useAppStore';
-import { useAuth } from '../../context/AuthContext';
 import { Image, Layers, FolderOpen, Settings, ChevronLeft, ChevronRight, Zap, Video, Brush } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 const DiscordIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -78,7 +78,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
         <img
-          src="/logo.png"
+          src={logoImg}
           alt="HappyGen Logo"
           className="w-8 h-8 object-contain"
         />
