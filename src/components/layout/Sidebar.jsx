@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import useAppStore from '../../store/useAppStore';
+import { useAuth } from '../../context/AuthContext';
 import { Image, Layers, FolderOpen, Settings, ChevronLeft, ChevronRight, Zap, Video, Brush } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 
