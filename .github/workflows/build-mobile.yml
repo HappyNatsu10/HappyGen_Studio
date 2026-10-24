@@ -2,9 +2,29 @@ name: Build & Release HappyGen Studio (All Platforms)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
     tags: [ 'v*' ]
   workflow_dispatch:
+    inputs:
+      build_target:
+        description: 'Choose which platform to build'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - 'both'
+          - 'ios'
+          - 'android'
+      publish_release:
+        description: 'Publish builds as a GitHub Release?'
+        required: false
+        default: false
+        type: boolean
+      release_tag:
+        description: 'Release Tag (e.g. v2.0.0) if publishing'
+        required: false
+        default: 'v2.0.0'
+        type: string
 
 permissions:
   contents: write
@@ -12,6 +32,7 @@ permissions:
 jobs:
   build-android:
     name: Build Android APK
+    if: ${{ github.event_name == 'push' || github.event.inputs.build_target == 'android' || github.event.inputs.build_target == 'both' || github.event.inputs.build_target == '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -47,20 +68,17 @@ jobs:
           cd android
           chmod +x ./gradlew
           ./gradlew assembleDebug
-
-      - name: Prepare Android Artifact
-        run: |
-          mkdir -p release-android
-          cp android/app/build/outputs/apk/debug/app-debug.apk release-android/HappyGen-Studio-v2.0.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../HappyGenStudio-Android.apk
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: happygen-studio-android
-          path: release-android/HappyGen-Studio-v2.0.0.apk
+          path: HappyGenStudio-Android.apk
 
   build-ios:
     name: Build iOS App
+    if: ${{ github.event_name == 'push' || github.event.inputs.build_target == 'ios' || github.event.inputs.build_target == 'both' || github.event.inputs.build_target == '' }}
     runs-on: macos-14
     steps:
       - name: Checkout Code
@@ -105,16 +123,16 @@ jobs:
         run: |
           mkdir -p Payload
           cp -r ios/App/build/Build/Products/Debug-iphoneos/App.app Payload/
-          zip -r HappyGen-Studio-iOS-v2.0.0.ipa Payload
-          zip -r HappyGen-Studio-iOS-v2.0.0-App.zip ios/App/build/Build/Products/Debug-iphoneos/App.app
+          zip -r HappyGenStudio-iOS.ipa Payload
+          zip -r HappyGenStudio-iOS-App.zip ios/App/build/Build/Products/Debug-iphoneos/App.app
 
       - name: Upload iOS App Artifact
         uses: actions/upload-artifact@v4
         with:
           name: happygen-studio-ios
           path: |
-            HappyGen-Studio-iOS-v2.0.0.ipa
-            HappyGen-Studio-iOS-v2.0.0-App.zip
+            HappyGenStudio-iOS.ipa
+            HappyGenStudio-iOS-App.zip
 
   build-macos:
     name: Build macOS Desktop (DMG)
@@ -191,7 +209,7 @@ jobs:
   publish-release:
     name: Publish GitHub Release
     needs: [build-android, build-ios, build-macos, build-windows]
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: ${{ always() && (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.publish_release == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -202,17 +220,45 @@ jobs:
         with:
           path: downloaded-artifacts
 
+      - name: Determine Tag
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: HappyGen Studio ${{ steps.vars.outputs.tag }}
+          body: |
+            ## HappyGen Studio — ${{ steps.vars.outputs.tag }}
+
+            ### 📱 Android
+            - Download **`HappyGenStudio-Android.apk`** and tap to install directly on your device.
+
+            ### 🍎 iPad & iPhone (iOS)
+            - Download **`HappyGenStudio-iOS.ipa`**.
+            - **Option 1 (Direct On-Device):** Open the `.ipa` in **SideStore** or **Scarlet** to install directly without a computer.
+            - **Option 2 (Mac/PC):** Drag & drop the `.ipa` into **Sideloadly** or **AltStore**.
+            - **Option 3 (No install needed):** Open the web app in Safari and tap **Share > Add to Home Screen**.
+
+            ### 🖥️ macOS
+            - Download the **`.dmg`** file, open it, and drag **HappyGen Studio** to your Applications folder.
+
+            ### 🪟 Windows
+            - Download the **`.exe`** installer and run it.
+          draft: false
+          prerelease: false
+          generate_release_notes: true
           files: |
             downloaded-artifacts/**/*.apk
             downloaded-artifacts/**/*.exe
             downloaded-artifacts/**/*.dmg
             downloaded-artifacts/**/*.ipa
             downloaded-artifacts/**/*.zip
-          tag_name: ${{ github.ref_name }}
-          name: HappyGen Studio ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
