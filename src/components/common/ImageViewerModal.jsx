@@ -73,8 +73,6 @@ Date: ${dateText}`.trim();
     return { index: idx, total: batch.length };
   }, [currentImage, images]);
 
-  if (!isOpen || !currentImage) return null;
-
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 4000);
@@ -275,6 +273,8 @@ Date: ${dateText}`.trim();
     setActiveTab('video');
     onClose();
   };
+
+  if (!isOpen || !currentImage) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex flex-col bg-black/90 backdrop-blur-md animate-fade-in h-[100dvh]">
