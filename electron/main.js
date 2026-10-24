@@ -87,7 +87,10 @@ function startLocalServer(distDir, preferredPort = 28991) {
 
         res.setHeader('Content-Type', contentType);
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        // Allow popups to communicate back via window.opener for OAuth flows
+        if (ext === '.html' || ext === '') {
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        }
 
         const fileBuffer = fs.readFileSync(safePath);
         res.setHeader('Content-Length', fileBuffer.length);
@@ -197,9 +200,53 @@ async function createWindow() {
   });
 
   mainWindow.webContents.on('did-create-window', (childWindow) => {
+    // Override User-Agent in popup to look like Chrome so Twitter/Google don't block it
+    childWindow.webContents.setUserAgent(
+      childWindow.webContents.getUserAgent()
+        .replace(new RegExp(`Electron/${process.versions.electron}`, 'g'), '')
+        .replace(/HappyGen Studio\/[0-9.]+\s*/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    );
+
+    // Allow OAuth-related navigations inside the popup to stay in-app.
+    // Only send truly external (non-OAuth) links to the system browser.
     childWindow.webContents.setWindowOpenHandler(({ url }) => {
+      const isOAuthRelated =
+        url === 'about:blank' ||
+        url.includes('firebaseapp.com') ||
+        url.includes('happygenstudio.online') ||
+        url.includes('accounts.google.com') ||
+        url.includes('api.twitter.com') ||
+        url.includes('twitter.com') ||
+        url.includes('x.com') ||
+        url.includes('apis.google.com') ||
+        url.includes('googleusercontent.com') ||
+        url.includes('localhost');
+
+      if (isOAuthRelated) {
+        return { action: 'allow' };
+      }
       shell.openExternal(url);
       return { action: 'deny' };
+    });
+
+    // Also intercept will-navigate inside popup to keep OAuth redirects in the popup
+    childWindow.webContents.on('will-navigate', (event, navUrl) => {
+      const isOAuthRelated =
+        navUrl.includes('firebaseapp.com') ||
+        navUrl.includes('happygenstudio.online') ||
+        navUrl.includes('accounts.google.com') ||
+        navUrl.includes('api.twitter.com') ||
+        navUrl.includes('twitter.com') ||
+        navUrl.includes('x.com') ||
+        navUrl.includes('apis.google.com') ||
+        navUrl.includes('localhost');
+
+      if (!isOAuthRelated) {
+        event.preventDefault();
+        shell.openExternal(navUrl);
+      }
     });
   });
 }
