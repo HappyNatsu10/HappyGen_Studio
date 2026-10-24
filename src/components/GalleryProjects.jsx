@@ -448,7 +448,11 @@ export default function GalleryProjects() {
       <ImageViewerModal
         image={activeViewerImage}
         images={activeViewerImages}
-        currentIndex={activeViewerImage ? activeViewerImages.findIndex(a => a.id === activeViewerImage.id) : 0}
+        currentIndex={
+          activeViewerImage && activeViewerImages.length > 0
+            ? Math.max(0, activeViewerImages.findIndex(a => a.id === activeViewerImage.id || (a.url && a.url === activeViewerImage.url)))
+            : 0
+        }
         onIndexChange={(idx) => setActiveViewerImage(activeViewerImages[idx])}
         isOpen={!!activeViewerImage}
         onClose={() => setActiveViewerImage(null)}

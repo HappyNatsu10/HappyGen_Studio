@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video , ChevronDown, Info, Trash2, Layers } from 'lucide-react';
+import { X, Download, Sparkles, Send, Copy, Check, Loader2, ImagePlus, Brush, Video, ChevronLeft, ChevronRight, ChevronDown, Info, Trash2, Layers } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { upscaleImage, faceFixImage } from '../../services/aiService';
 import useWorkspaceStore from '../../store/useWorkspaceStore';
@@ -80,18 +81,71 @@ Date: ${dateText}`.trim();
   };
 
   const hasMultiple = images && images.length > 1;
+  const [slideDirection, setSlideDirection] = useState(0);
 
   const handlePrev = (e) => {
-    e.stopPropagation();
-    if (onIndexChange) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (onIndexChange && hasMultiple) {
+      setSlideDirection(-1);
       onIndexChange(currentIndex > 0 ? currentIndex - 1 : images.length - 1);
     }
   };
+
   const handleNext = (e) => {
-    e.stopPropagation();
-    if (onIndexChange) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (onIndexChange && hasMultiple) {
+      setSlideDirection(1);
       onIndexChange(currentIndex < images.length - 1 ? currentIndex + 1 : 0);
     }
+  };
+
+  // Keyboard navigation: Left/Right arrows to cycle pictures, Escape to close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target?.tagName)) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, hasMultiple, currentIndex, images.length]);
+
+  const slideVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? 280 : dir < 0 ? -280 : 0,
+      opacity: 0,
+      scale: 0.96
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 32 },
+        opacity: { duration: 0.2 },
+        scale: { duration: 0.2 }
+      }
+    },
+    exit: (dir) => ({
+      x: dir > 0 ? -280 : dir < 0 ? 280 : 0,
+      opacity: 0,
+      scale: 0.96,
+      transition: {
+        x: { type: 'spring', stiffness: 350, damping: 32 },
+        opacity: { duration: 0.2 }
+      }
+    })
   };
 
   const handleFaceFix = async (e) => {
@@ -237,6 +291,11 @@ Date: ${dateText}`.trim();
       <div className="shrink-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent z-10">
         <div className="flex items-center gap-3">
           <div className="text-white/80 text-sm font-medium">{t('viewer.imageDetails', 'Image Details')}</div>
+          {hasMultiple && (
+            <div className="bg-white/10 backdrop-blur-md text-white/90 text-xs px-2.5 py-1 rounded-full border border-white/15 font-mono shadow-xs">
+              {currentIndex + 1} / {images.length}
+            </div>
+          )}
           {batchInfo && (
             <div className="bg-black/50 backdrop-blur-md text-white/90 text-xs px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1.5 shadow-sm">
               <Layers className="w-3.5 h-3.5" />
@@ -261,33 +320,104 @@ Date: ${dateText}`.trim();
         </div>
       </div>
 
-      {/* Main Image Area */}
-      <div className="flex-1 relative flex items-center justify-center p-4 min-h-0">
+      {/* Main Image Area with Touch & Drag Swiping */}
+      <div className="flex-1 relative flex items-center justify-center p-4 min-h-0 overflow-hidden select-none">
         {hasMultiple && (
           <button 
             onClick={handlePrev} 
-            className="absolute left-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
+            className="absolute left-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors cursor-pointer shadow-lg backdrop-blur-xs"
+            title="Previous (Left Arrow / Swipe Right)"
           >
-            <ChevronDown className="w-6 h-6 rotate-90" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
         )}
         {isUpscaling && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs rounded-lg pointer-events-auto">
             <Loader2 className="w-10 h-10 text-purple-500 animate-spin mb-4" />
             <div className="text-white font-bold tracking-widest uppercase text-sm">{t('viewer.enhancing', 'Enhancing...')}</div>
           </div>
         )}
         {isFaceFixing && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg">
+          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xs rounded-lg pointer-events-auto">
             <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
             <div className="text-white font-bold tracking-widest uppercase text-sm">{t('viewer.fixingFace', 'Fixing Face...')}</div>
           </div>
         )}
-        <img 
-          src={currentImage.url} 
-          alt={currentImage.prompt || 'Generated image'} 
-          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-        />
+
+        <AnimatePresence initial={false} custom={slideDirection}>
+          <motion.div
+            key={currentImage?.id ? `${currentImage.id}-${currentIndex}` : `${currentImage?.url || ''}-${currentIndex}`}
+            custom={slideDirection}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            drag={hasMultiple && !isUpscaling && !isFaceFixing ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.65}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipeConfidenceThreshold = 40;
+              const swipeVelocityThreshold = 220;
+              if (offset.x < -swipeConfidenceThreshold || velocity.x < -swipeVelocityThreshold) {
+                handleNext();
+              } else if (offset.x > swipeConfidenceThreshold || velocity.x > swipeVelocityThreshold) {
+                handlePrev();
+              }
+            }}
+            className={`absolute inset-0 flex items-center justify-center p-4 ${
+              hasMultiple ? 'cursor-grab active:cursor-grabbing' : ''
+            }`}
+            style={{ touchAction: 'none' }}
+          >
+            <img 
+              src={currentImage.url} 
+              alt={currentImage.prompt || 'Generated image'} 
+              draggable={false}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl pointer-events-none select-none"
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Floating Thumbnail Strip for Multiple Images */}
+        {hasMultiple && (
+          <div 
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 max-w-[90vw] overflow-x-auto p-1.5 rounded-2xl bg-black/60 backdrop-blur-md border border-white/15 shadow-2xl custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {images.map((img, idx) => {
+              const isActive = idx === currentIndex;
+              return (
+                <button
+                  key={img.id ? `${img.id}-${idx}` : `${img.url || ''}-${idx}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onIndexChange) {
+                      setSlideDirection(idx > currentIndex ? 1 : -1);
+                      onIndexChange(idx);
+                    }
+                  }}
+                  className={`relative shrink-0 rounded-lg overflow-hidden transition-all duration-200 cursor-pointer ${
+                    isActive 
+                      ? 'w-11 h-11 ring-2 ring-[#a855f7] scale-105 opacity-100 shadow-md' 
+                      : 'w-9 h-9 opacity-50 hover:opacity-90'
+                  }`}
+                  title={`Picture ${idx + 1} of ${images.length}`}
+                >
+                  <img 
+                    src={img.url} 
+                    alt="" 
+                    draggable={false}
+                    className="w-full h-full object-cover select-none pointer-events-none" 
+                  />
+                  {isActive && (
+                    <div className="absolute inset-0 bg-[#a855f7]/20 pointer-events-none" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
         
         {/* Generation Details Panel */}
         {showDetails && (
@@ -373,9 +503,10 @@ Date: ${dateText}`.trim();
         {hasMultiple && (
           <button 
             onClick={handleNext} 
-            className="absolute right-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
+            className="absolute right-4 z-30 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors cursor-pointer shadow-lg backdrop-blur-xs"
+            title="Next (Right Arrow / Swipe Left)"
           >
-            <ChevronDown className="w-6 h-6 -rotate-90" />
+            <ChevronRight className="w-6 h-6" />
           </button>
         )}
       </div>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush, Trash2, AlertTriangle } from 'lucide-react';
+import { Download, Copy, Check, Send, Sparkles, ImagePlus, Maximize2, Brush, Trash2, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import ImageViewerModal from '../common/ImageViewerModal';
 import { saveImageToGallery } from '../../utils/mediaUtils';
@@ -14,6 +14,55 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
   const [showSuccess, setShowSuccess] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
+
+  const touchStartRef = useRef(null);
+  const isSwipingRef = useRef(false);
+
+  const handleTouchStart = (e) => {
+    if (results.length <= 1) return;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now()
+    };
+    isSwipingRef.current = false;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStartRef.current) return;
+    const dx = e.touches[0].clientX - touchStartRef.current.x;
+    const dy = e.touches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      isSwipingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const threshold = 40;
+
+    if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy)) {
+      isSwipingRef.current = true;
+      if (dx < 0) {
+        // Swiped left -> next
+        setActiveIdx((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+      } else {
+        // Swiped right -> prev
+        setActiveIdx((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+      }
+      setTimeout(() => {
+        isSwipingRef.current = false;
+      }, 250);
+    } else {
+      setTimeout(() => {
+        isSwipingRef.current = false;
+      }, 50);
+    }
+    touchStartRef.current = null;
+  };
 
   useEffect(() => {
     if (results.length > 0 && activeIdx >= results.length) {
@@ -115,12 +164,55 @@ export default function OutputGallery({ results, isGenerating, onSendToCanvas, o
       {/* Main Preview */}
       {activeImage && (
         <div className={`card overflow-hidden transition-all duration-500 ${showSuccess ? 'shadow-[0_0_20px_rgba(52,211,153,0.3)] border-[var(--success)]' : ''}`}>
-          <div className="relative img-overlay group cursor-pointer" style={{ background: 'var(--surface-2)' }} onClick={() => setViewerOpen(true)}>
+          <div 
+            className="relative img-overlay group cursor-pointer select-none" 
+            style={{ background: 'var(--surface-2)', touchAction: results.length > 1 ? 'pan-y' : 'auto' }} 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={() => {
+              if (isSwipingRef.current) return;
+              setViewerOpen(true);
+            }}
+          >
             <img
               src={activeImage.url}
               alt={activeImage.prompt || ''}
-              className="w-full max-h-[500px] object-contain"
+              draggable={false}
+              className="w-full max-h-[500px] object-contain pointer-events-none select-none"
             />
+
+            {/* Inline Navigation Buttons for Batch Results */}
+            {results.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveIdx((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/60 text-white hover:bg-black/85 transition-all shadow-lg opacity-0 group-hover:opacity-100 cursor-pointer backdrop-blur-xs"
+                  title="Previous image (Swipe right)"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveIdx((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-black/60 text-white hover:bg-black/85 transition-all shadow-lg opacity-0 group-hover:opacity-100 cursor-pointer backdrop-blur-xs"
+                  title="Next image (Swipe left)"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+                {/* Batch counter badge */}
+                <div className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full border border-white/15 font-mono shadow-sm">
+                  {activeIdx + 1} / {results.length}
+                </div>
+              </>
+            )}
             {/* Action overlay - Floating Pill */}
             <div 
               className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10 bg-[var(--surface-1)]/80 backdrop-blur-md px-4 py-2 rounded-full border border-[var(--border-subtle)] shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300"
