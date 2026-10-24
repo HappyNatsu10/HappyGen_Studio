@@ -22,7 +22,9 @@ allprojects {
         google()
         mavenCentral()
     }
-    buildDir = new File("C:/Users/HappyNastu/.gradle_builds/HappyGenStudio", project.name)
+    if (System.getProperty("os.name").toLowerCase().contains("windows") && new File("C:/Users/HappyNastu/.gradle_builds").exists()) {
+        buildDir = new File("C:/Users/HappyNastu/.gradle_builds/HappyGenStudio", project.name)
+    }
 }
 
 task clean(type: Delete) {

@@ -1,9 +1,13 @@
-name: Build Mobile Apps (Android & iOS)
+name: Build & Release HappyGen Studio (All Platforms)
 
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-android:
@@ -44,11 +48,16 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleDebug
 
+      - name: Prepare Android Artifact
+        run: |
+          mkdir -p release-android
+          cp android/app/build/outputs/apk/debug/app-debug.apk release-android/HappyGen-Studio-v2.0.0.apk
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: happygen-studio-android-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: happygen-studio-android
+          path: release-android/HappyGen-Studio-v2.0.0.apk
 
   build-ios:
     name: Build iOS App
@@ -96,13 +105,112 @@ jobs:
         run: |
           mkdir -p Payload
           cp -r ios/App/build/Build/Products/Debug-iphoneos/App.app Payload/
-          zip -r HappyGenStudio-iOS-unsigned.ipa Payload
-          zip -r HappyGenStudio-iOS-App.zip ios/App/build/Build/Products/Debug-iphoneos/App.app
+          zip -r HappyGen-Studio-iOS-v2.0.0.ipa Payload
+          zip -r HappyGen-Studio-iOS-v2.0.0-App.zip ios/App/build/Build/Products/Debug-iphoneos/App.app
 
       - name: Upload iOS App Artifact
         uses: actions/upload-artifact@v4
         with:
           name: happygen-studio-ios
           path: |
-            HappyGenStudio-iOS-unsigned.ipa
-            HappyGenStudio-iOS-App.zip
+            HappyGen-Studio-iOS-v2.0.0.ipa
+            HappyGen-Studio-iOS-v2.0.0-App.zip
+
+  build-macos:
+    name: Build macOS Desktop (DMG)
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build Web App
+        run: pnpm run build
+
+      - name: Package macOS App
+        run: pnpm exec electron-builder --mac dmg zip
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: happygen-studio-macos
+          path: |
+            release/*.dmg
+            release/*-mac.zip
+
+  build-windows:
+    name: Build Windows Desktop (EXE)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build Web App
+        run: pnpm run build
+
+      - name: Package Windows App
+        run: pnpm exec electron-builder --win nsis
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: happygen-studio-windows
+          path: release/*.exe
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-android, build-ios, build-macos, build-windows]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            downloaded-artifacts/**/*.apk
+            downloaded-artifacts/**/*.exe
+            downloaded-artifacts/**/*.dmg
+            downloaded-artifacts/**/*.ipa
+            downloaded-artifacts/**/*.zip
+          tag_name: ${{ github.ref_name }}
+          name: HappyGen Studio ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
