@@ -153,6 +153,10 @@ async function createWindow() {
     }
   }
 
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[Renderer] [level ${level}] ${message} (${sourceId}:${line})`);
+  });
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
