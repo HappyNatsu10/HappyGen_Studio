@@ -41,8 +41,11 @@ Date: ${dateText}`.trim();
   };
   
   // If `images` is passed, we use `images[currentIndex]`. Otherwise fallback to `image`.
-  const activeImage = (images && images.length > 0) ? images[currentIndex] : image;
-  const [currentImage, setCurrentImage] = useState(activeImage);
+  const activeImage = (images && images.length > 0 && currentIndex >= 0 && currentIndex < images.length) 
+    ? images[currentIndex] 
+    : (images && images.length > 0 ? images[0] : image);
+
+  const [enhancedState, setEnhancedState] = useState({ index: null, image: null });
   const [toastMessage, setToastMessage] = useState('');
   
   const [isFaceFixing, setIsFaceFixing] = useState(false);
@@ -55,10 +58,9 @@ Date: ${dateText}`.trim();
   const [upscaleModel, setUpscaleModel] = useState("R-ESRGAN 4x+ Anime6B");
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Sync currentImage when activeImage changes
-  React.useEffect(() => {
-    setCurrentImage(activeImage);
-  }, [activeImage]);
+  // Synchronously compute enhanced image only if it matches currentIndex
+  const enhancedImage = (enhancedState.index === currentIndex) ? enhancedState.image : null;
+  const currentImage = enhancedImage || activeImage;
 
   const { addGeneratedAssets, setCanvasTargetImage, setInpaintSourceImage, setVideoSourceImage } = useWorkspaceStore();
   const { setActiveTab } = useAppStore();
@@ -69,8 +71,11 @@ Date: ${dateText}`.trim();
     const batch = images.filter(img => Math.abs((img.timestamp || 0) - currentImage.timestamp) < 2000);
     if (batch.length <= 1) return null;
     batch.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    const idx = batch.findIndex(img => img.id === currentImage.id) + 1;
-    return { index: idx, total: batch.length };
+    const idx = batch.findIndex(img => 
+      (img.id && currentImage.id && img.id === currentImage.id) || 
+      (img.url && currentImage.url && img.url === currentImage.url)
+    ) + 1;
+    return { index: Math.max(1, idx), total: batch.length };
   }, [currentImage, images]);
 
   const showToast = (msg) => {
@@ -80,10 +85,26 @@ Date: ${dateText}`.trim();
 
   const hasMultiple = images && images.length > 1;
   const [slideDirection, setSlideDirection] = useState(0);
+  const isNavigatingRef = React.useRef(false);
+  const activeThumbnailRef = React.useRef(null);
+
+  // Auto-scroll active thumbnail into view
+  useEffect(() => {
+    if (activeThumbnailRef.current) {
+      activeThumbnailRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [currentIndex]);
 
   const handlePrev = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
+    if (isNavigatingRef.current) return;
     if (onIndexChange && hasMultiple) {
+      isNavigatingRef.current = true;
+      setTimeout(() => { isNavigatingRef.current = false; }, 260);
       setSlideDirection(-1);
       onIndexChange(currentIndex > 0 ? currentIndex - 1 : images.length - 1);
     }
@@ -91,9 +112,22 @@ Date: ${dateText}`.trim();
 
   const handleNext = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
+    if (isNavigatingRef.current) return;
     if (onIndexChange && hasMultiple) {
+      isNavigatingRef.current = true;
+      setTimeout(() => { isNavigatingRef.current = false; }, 260);
       setSlideDirection(1);
       onIndexChange(currentIndex < images.length - 1 ? currentIndex + 1 : 0);
+    }
+  };
+
+  const handleSelectIndex = (idx) => {
+    if (isNavigatingRef.current || idx === currentIndex) return;
+    if (onIndexChange && idx >= 0 && idx < images.length) {
+      isNavigatingRef.current = true;
+      setTimeout(() => { isNavigatingRef.current = false; }, 260);
+      setSlideDirection(idx > currentIndex ? 1 : -1);
+      onIndexChange(idx);
     }
   };
 
@@ -139,9 +173,10 @@ Date: ${dateText}`.trim();
       x: dir > 0 ? -280 : dir < 0 ? 280 : 0,
       opacity: 0,
       scale: 0.96,
+      pointerEvents: 'none',
       transition: {
-        x: { type: 'spring', stiffness: 350, damping: 32 },
-        opacity: { duration: 0.2 }
+        x: { duration: 0.22, ease: 'easeOut' },
+        opacity: { duration: 0.18, ease: 'easeOut' }
       }
     })
   };
@@ -166,7 +201,7 @@ Date: ${dateText}`.trim();
           isFaceFixed: true
         };
         addGeneratedAssets([newImage]);
-        setCurrentImage(newImage);
+        setEnhancedState({ index: currentIndex, image: newImage });
         showToast(`Face fixed using ${faceFixEngine}`);
       }
     } catch (err) {
@@ -253,7 +288,7 @@ Date: ${dateText}`.trim();
           isUpscaled: true
         };
         addGeneratedAssets([newImage]);
-        setCurrentImage(newImage); // update view to upscaled version
+        setEnhancedState({ index: currentIndex, image: newImage }); // update view to upscaled version
       }
     } catch (err) {
       console.error('Failed to upscale:', err);
@@ -344,9 +379,9 @@ Date: ${dateText}`.trim();
           </div>
         )}
 
-        <AnimatePresence initial={false} custom={slideDirection}>
+        <AnimatePresence initial={false} custom={slideDirection} mode="popLayout">
           <motion.div
-            key={currentImage?.id ? `${currentImage.id}-${currentIndex}` : `${currentImage?.url || ''}-${currentIndex}`}
+            key={`img-slide-${currentIndex}-${currentImage?.id || currentImage?.url || currentIndex}`}
             custom={slideDirection}
             variants={slideVariants}
             initial="enter"
@@ -356,8 +391,9 @@ Date: ${dateText}`.trim();
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.65}
             onDragEnd={(e, { offset, velocity }) => {
-              const swipeConfidenceThreshold = 40;
-              const swipeVelocityThreshold = 220;
+              if (isNavigatingRef.current) return;
+              const swipeConfidenceThreshold = 50;
+              const swipeVelocityThreshold = 250;
               if (offset.x < -swipeConfidenceThreshold || velocity.x < -swipeVelocityThreshold) {
                 handleNext();
               } else if (offset.x > swipeConfidenceThreshold || velocity.x > swipeVelocityThreshold) {
@@ -389,13 +425,11 @@ Date: ${dateText}`.trim();
               return (
                 <button
                   key={img.id ? `${img.id}-${idx}` : `${img.url || ''}-${idx}`}
+                  ref={isActive ? activeThumbnailRef : null}
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onIndexChange) {
-                      setSlideDirection(idx > currentIndex ? 1 : -1);
-                      onIndexChange(idx);
-                    }
+                    handleSelectIndex(idx);
                   }}
                   className={`relative shrink-0 rounded-lg overflow-hidden transition-all duration-200 cursor-pointer ${
                     isActive 

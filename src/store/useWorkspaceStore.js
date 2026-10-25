@@ -33,9 +33,15 @@ import { db, auth } from '../config/firebase';
 const useWorkspaceStore = create(persist((set, get) => ({
   // Global Assets
   generatedAssets: [],
-  setGeneratedAssets: (assets) => set({ generatedAssets: assets }),
+  setGeneratedAssets: (assets) => set({ 
+    generatedAssets: (assets || []).map((a, idx) => ({
+      id: a.id || `asset_${a.timestamp || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+      ...a
+    })) 
+  }),
   addGeneratedAssets: async (newAssets) => {
-    const assetsWithTime = newAssets.map(a => ({
+    const assetsWithTime = newAssets.map((a, idx) => ({
+      id: a.id || `asset_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
       ...a,
       timestamp: a.timestamp || Date.now()
     }));
@@ -90,6 +96,14 @@ const useWorkspaceStore = create(persist((set, get) => ({
 }), {
   name: 'omnigen-workspace-storage',
   storage: createJSONStorage(() => idbStorage),
+  onRehydrateStorage: () => (state) => {
+    if (state && Array.isArray(state.generatedAssets)) {
+      state.generatedAssets = state.generatedAssets.map((a, idx) => ({
+        id: a.id || `asset_${a.timestamp || Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+        ...a
+      }));
+    }
+  }
 }));
 
 export default useWorkspaceStore;

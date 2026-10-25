@@ -18,8 +18,8 @@ export default function GalleryProjects() {
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'adult_vault'
   const [pinInput, setPinInput] = useState('');
-  const [activeViewerImage, setActiveViewerImage] = useState(null);
-  const [activeViewerImages, setActiveViewerImages] = useState([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -80,6 +80,13 @@ export default function GalleryProjects() {
     activeTab === 'adult_vault' ? asset.isAdult : !asset.isAdult
   );
 
+  // Keep viewer index valid if filteredAssets shrinks
+  useEffect(() => {
+    if (filteredAssets.length > 0 && viewerIndex >= filteredAssets.length) {
+      setViewerIndex(Math.max(0, filteredAssets.length - 1));
+    }
+  }, [filteredAssets.length, viewerIndex]);
+
   // Group assets generated in the same batch (within 2 seconds of each other)
   const groupedAssets = useMemo(() => {
     const groups = [];
@@ -92,7 +99,7 @@ export default function GalleryProjects() {
       } else {
         const prevAsset = filteredAssets[idx - 1];
         // Group if timestamp is within 2000ms
-        if (Math.abs(asset.timestamp - prevAsset.timestamp) < 2000) {
+        if (Math.abs((asset.timestamp || 0) - (prevAsset.timestamp || 0)) < 2000) {
           currentGroup.push(asset);
         } else {
           groups.push([...currentGroup]);
@@ -357,14 +364,18 @@ export default function GalleryProjects() {
 
                 return (
                   <div 
-                    key={representativeAsset.id} 
+                    key={representativeAsset.id || representativeAsset.url} 
                     className={`card card-interactive overflow-hidden group cursor-pointer ${isSelected ? 'ring-2 ring-[#a855f7]' : ''}`}
                     onClick={(e) => {
                       if (isSelectionMode) {
                         toggleSelection(e, group);
                       } else {
-                        setActiveViewerImages(filteredAssets);
-                        setActiveViewerImage(representativeAsset);
+                        const targetIdx = filteredAssets.findIndex(a => 
+                          (a.id && representativeAsset.id && a.id === representativeAsset.id) || 
+                          (a.url && representativeAsset.url && a.url === representativeAsset.url)
+                        );
+                        setViewerIndex(targetIdx >= 0 ? targetIdx : 0);
+                        setIsViewerOpen(true);
                       }
                     }}
                   >
@@ -394,8 +405,12 @@ export default function GalleryProjects() {
                               title={t('projects.viewFullscreen', 'View Fullscreen')}
                               onClick={(e) => { 
                                 e.stopPropagation(); 
-                                setActiveViewerImages(filteredAssets);
-                                setActiveViewerImage(representativeAsset); 
+                                const targetIdx = filteredAssets.findIndex(a => 
+                                  (a.id && representativeAsset.id && a.id === representativeAsset.id) || 
+                                  (a.url && representativeAsset.url && a.url === representativeAsset.url)
+                                );
+                                setViewerIndex(targetIdx >= 0 ? targetIdx : 0);
+                                setIsViewerOpen(true);
                               }}
                             >
                               <Maximize2 className="w-4 h-4" />
@@ -446,19 +461,15 @@ export default function GalleryProjects() {
 
       {/* Image Viewer Modal */}
       <ImageViewerModal
-        image={activeViewerImage}
-        images={activeViewerImages}
-        currentIndex={
-          activeViewerImage && activeViewerImages.length > 0
-            ? Math.max(0, activeViewerImages.findIndex(a => a.id === activeViewerImage.id || (a.url && a.url === activeViewerImage.url)))
-            : 0
-        }
-        onIndexChange={(idx) => setActiveViewerImage(activeViewerImages[idx])}
-        isOpen={!!activeViewerImage}
-        onClose={() => setActiveViewerImage(null)}
+        image={filteredAssets[viewerIndex]}
+        images={filteredAssets}
+        currentIndex={viewerIndex}
+        onIndexChange={setViewerIndex}
+        isOpen={isViewerOpen && filteredAssets.length > 0}
+        onClose={() => setIsViewerOpen(false)}
         onDelete={(img) => {
-          removeGeneratedAsset(img.id);
-          setActiveViewerImage(null);
+          removeGeneratedAsset(img?.id || img?.url);
+          setIsViewerOpen(false);
         }}
       />
 

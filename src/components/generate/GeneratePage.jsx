@@ -285,7 +285,11 @@ export default function GeneratePage() {
         }
       }
       
-      const timestampedImages = images.map(img => ({...img, timestamp: img.timestamp || Date.now()}));
+      const timestampedImages = images.map((img, idx) => ({
+        id: img.id || `asset_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 7)}`,
+        ...img, 
+        timestamp: img.timestamp || Date.now()
+      }));
       setResults(timestampedImages);
       addGeneratedAssets(timestampedImages);
       if (timestampedImages && timestampedImages.length) {
