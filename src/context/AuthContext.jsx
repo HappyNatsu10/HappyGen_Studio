@@ -343,9 +343,65 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Desktop app external browser auth handler (Electron Windows / macOS / Linux)
+  const performDesktopExternalAuth = async (providerType) => {
+    if (!window.electronAPI?.startDesktopAuth) {
+      throw new Error('Desktop browser authentication bridge is unavailable.');
+    }
+
+    return new Promise((resolve, reject) => {
+      let unsubscribeSuccess = null;
+      let unsubscribeError = null;
+      let timeoutId = null;
+
+      const cleanup = () => {
+        if (typeof unsubscribeSuccess === 'function') unsubscribeSuccess();
+        if (typeof unsubscribeError === 'function') unsubscribeError();
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+
+      // 5-minute safety timeout
+      timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error('Sign-in timed out. Please try again.'));
+      }, 5 * 60 * 1000);
+
+      unsubscribeSuccess = window.electronAPI.onDesktopAuthCallback(async (data) => {
+        cleanup();
+        try {
+          let credential;
+          if (data.providerId === 'google.com' || providerType === 'google') {
+            credential = GoogleAuthProvider.credential(data.idToken, data.accessToken);
+          } else if (data.providerId === 'twitter.com' || providerType === 'twitter') {
+            credential = TwitterAuthProvider.credential(data.accessToken, data.secret);
+          } else {
+            throw new Error(`Unsupported provider: ${data.providerId}`);
+          }
+
+          const userCredential = await signInWithCredential(auth, credential);
+          const fullUser = await syncSocialUser(userCredential.user);
+          resolve(fullUser);
+        } catch (authErr) {
+          console.error('Desktop signInWithCredential error:', authErr);
+          reject(new Error(authErr.message || 'Failed to authenticate in desktop app.'));
+        }
+      });
+
+      unsubscribeError = window.electronAPI.onDesktopAuthError((err) => {
+        cleanup();
+        reject(new Error(err?.message || 'Desktop sign-in was cancelled or encountered an error.'));
+      });
+
+      window.electronAPI.startDesktopAuth(providerType).catch((err) => {
+        cleanup();
+        reject(err);
+      });
+    });
+  };
+
   // Login with Google
   const loginWithGoogle = async () => {
-    // Native mobile app flow (Android / iOS)
+    // 1. Native mobile app flow (Android / iOS)
     if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
       try {
         const result = await FirebaseAuthentication.signInWithGoogle();
@@ -371,7 +427,12 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Standard web browser flow
+    // 2. Desktop Electron app flow (Windows / Mac) -> Redirect to default browser and send back
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+      return await performDesktopExternalAuth('google');
+    }
+
+    // 3. Standard web browser flow
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     return await performSocialAuth(provider);
@@ -379,7 +440,7 @@ export function AuthProvider({ children }) {
 
   // Login with Twitter / X
   const loginWithTwitter = async () => {
-    // Native mobile app flow (Android / iOS)
+    // 1. Native mobile app flow (Android / iOS)
     if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
       try {
         const result = await FirebaseAuthentication.signInWithTwitter();
@@ -402,7 +463,12 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Standard web browser flow
+    // 2. Desktop Electron app flow (Windows / Mac) -> Redirect to default browser and send back
+    if (typeof window !== 'undefined' && window.electronAPI?.isElectron) {
+      return await performDesktopExternalAuth('twitter');
+    }
+
+    // 3. Standard web browser flow
     const provider = new TwitterAuthProvider();
     return await performSocialAuth(provider);
   };

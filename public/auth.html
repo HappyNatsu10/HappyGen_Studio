@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HappyGen Studio — Desktop Sign-In</title>
+  <link rel="icon" type="image/png" href="/logo_square.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07070d;
+      --card-bg: rgba(18, 18, 30, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --accent-glow: rgba(139, 92, 246, 0.35);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.3);
+      --error: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient background lighting */
+    .glow-orb-1 {
+      position: absolute;
+      top: -15%;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    .glow-orb-2 {
+      position: absolute;
+      bottom: -15%;
+      right: 10%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px -10px var(--accent-glow);
+      position: relative;
+      z-index: 10;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .logo-container {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .logo-container img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+
+    .btn-auth {
+      width: 100%;
+      padding: 0.9rem 1.25rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-auth:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .btn-auth:active {
+      transform: translateY(0);
+    }
+
+    .btn-auth.primary {
+      background: linear-gradient(135deg, var(--accent), #7028e4);
+      border: none;
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-auth.primary:hover {
+      background: linear-gradient(135deg, var(--accent-hover), #6320d3);
+      box-shadow: 0 10px 28px rgba(139, 92, 246, 0.5);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.12);
+      border: 2px solid var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 0 30px var(--success-glow);
+      color: var(--success);
+    }
+
+    .error-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.12);
+      border: 2px solid var(--error);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      color: var(--error);
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 1.5rem;
+      line-height: 1.4;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--success);
+      border-radius: 9999px;
+      transition: width 2s linear;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <div class="card">
+    <div class="brand">
+      <div class="logo-container">
+        <img src="/logo_square.png" alt="HappyGen Studio Logo" onerror="this.src='/logo.png'">
+      </div>
+      <div style="text-align: left;">
+        <div style="font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;">HappyGen Studio</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);">Desktop Authentication</div>
+      </div>
+    </div>
+
+    <!-- State: Loading / Connecting -->
+    <div id="state-loading">
+      <div class="status-badge">
+        <div class="spinner"></div>
+        <span>Connecting to desktop app...</span>
+      </div>
+      <h1 id="loading-title">Signing in...</h1>
+      <p class="subtitle" id="loading-subtitle">Opening secure authentication session in your browser.</p>
+    </div>
+
+    <!-- State: Action Needed (Button) -->
+    <div id="state-action" class="hidden">
+      <h1 id="action-title">Continue to HappyGen Studio</h1>
+      <p class="subtitle">Click below to authorize your account in your browser and automatically return to the desktop app.</p>
+      
+      <button id="btn-login-action" class="btn-auth primary">
+        <span id="btn-icon"></span>
+        <span id="btn-text">Sign In with Google</span>
+      </button>
+
+      <p class="hint">Your login is securely transferred back to your desktop workstation.</p>
+    </div>
+
+    <!-- State: Success -->
+    <div id="state-success" class="hidden">
+      <div class="success-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h1>Authentication Successful!</h1>
+      <p class="subtitle" id="success-user-text">You are signed in. Returning to HappyGen Studio...</p>
+      
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <p class="hint">You can safely close this browser tab now.</p>
+    </div>
+
+    <!-- State: Error -->
+    <div id="state-error" class="hidden">
+      <div class="error-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h1 style="color: var(--error);">Sign-In Failed</h1>
+      <p class="subtitle" id="error-message">An error occurred during authentication.</p>
+      
+      <button id="btn-retry" class="btn-auth">
+        <span>Try Again</span>
+      </button>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js';
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      TwitterAuthProvider, 
+      signInWithPopup, 
+      signInWithRedirect, 
+      getRedirectResult 
+    } from 'https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGzEqu4lGVCqpot47iG5rTRo6eYkVE9dQ",
+      authDomain: "happygenstudio.online",
+      projectId: "happygen-studio",
+      storageBucket: "happygen-studio.firebasestorage.app",
+      messagingSenderId: "619040765912",
+      appId: "1:619040765912:web:d7d6394096afa09ff9e4ad",
+      measurementId: "G-VCYV2HRFT1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const providerParam = (urlParams.get('provider') || 'google').toLowerCase();
+    const portParam = parseInt(urlParams.get('port') || '28991', 10);
+
+    const isGoogle = providerParam === 'google';
+    const isTwitter = providerParam === 'twitter' || providerParam === 'x';
+
+    // Elements
+    const stateLoading = document.getElementById('state-loading');
+    const stateAction = document.getElementById('state-action');
+    const stateSuccess = document.getElementById('state-success');
+    const stateError = document.getElementById('state-error');
+    
+    const btnLoginAction = document.getElementById('btn-login-action');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnRetry = document.getElementById('btn-retry');
+    const successUserText = document.getElementById('success-user-text');
+    const errorMessage = document.getElementById('error-message');
+    const progressBar = document.getElementById('progress-bar');
+
+    function showState(state) {
+      stateLoading.classList.add('hidden');
+      stateAction.classList.add('hidden');
+      stateSuccess.classList.add('hidden');
+      stateError.classList.add('hidden');
+
+      if (state === 'loading') stateLoading.classList.remove('hidden');
+      if (state === 'action') stateAction.classList.remove('hidden');
+      if (state === 'success') stateSuccess.classList.remove('hidden');
+      if (state === 'error') stateError.classList.remove('hidden');
+    }
+
+    // Configure Button display
+    if (isGoogle) {
+      btnText.textContent = 'Continue with Google';
+      btnIcon.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+      `;
+    } else {
+      btnText.textContent = 'Continue with X';
+      btnIcon.innerHTML = `
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      `;
+    }
+
+    function createProvider() {
+      if (isGoogle) {
+        const p = new GoogleAuthProvider();
+        p.setCustomParameters({ prompt: 'select_account' });
+        return p;
+      }
+      return new TwitterAuthProvider();
+    }
+
+    async function sendResultToDesktop(user, credential) {
+      const payload = {
+        providerId: isGoogle ? 'google.com' : 'twitter.com',
+        idToken: credential?.idToken || null,
+        accessToken: credential?.accessToken || null,
+        secret: credential?.secret || null,
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        }
+      };
+
+      // 1. Post to local loopback server
+      const callbackEndpoints = [
+        `http://localhost:${portParam}/api/auth-callback`,
+        `http://127.0.0.1:${portParam}/api/auth-callback`
+      ];
+
+      let posted = false;
+      for (const endpoint of callbackEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            posted = true;
+            break;
+          }
+        } catch (e) {
+          console.warn(`Could not reach ${endpoint}:`, e);
+        }
+      }
+
+      // 2. Also invoke OS deep link protocol (brings HappyGen Studio to foreground)
+      try {
+        window.location.href = 'happygen://auth-callback';
+      } catch (e) {}
+
+      // 3. Show Success Screen
+      showState('success');
+      successUserText.textContent = `Signed in as ${user.displayName || user.email || 'Creator'}. Returning to HappyGen Studio...`;
+      
+      setTimeout(() => {
+        if (progressBar) progressBar.style.width = '100%';
+      }, 50);
+
+      // Attempt to close tab automatically after a short delay
+      setTimeout(() => {
+        try { window.close(); } catch (e) {}
+      }, 2500);
+    }
+
+    async function executeSignIn() {
+      showState('loading');
+      const provider = createProvider();
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const credential = isGoogle 
+          ? GoogleAuthProvider.credentialFromResult(result)
+          : TwitterAuthProvider.credentialFromResult(result);
+
+        await sendResultToDesktop(result.user, credential);
+      } catch (err) {
+        console.error('Sign in error:', err);
+        if (err.code === 'auth/popup-blocked') {
+          // If browser blocked initial popup, give user a direct button
+          showState('action');
+        } else if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          showState('action');
+        } else {
+          showState('error');
+          errorMessage.textContent = err.message || 'Authentication could not be completed.';
+        }
+      }
+    }
+
+    // Check if returning from a redirect first
+    getRedirectResult(auth).then(async (result) => {
+      if (result && result.user) {
+        const credential = isGoogle 
+          ? GoogleAuthProvider.credentialFromResult(result)
+          : TwitterAuthProvider.credentialFromResult(result);
+        await sendResultToDesktop(result.user, credential);
+      } else {
+        // Attempt immediate popup sign-in
+        executeSignIn();
+      }
+    }).catch((err) => {
+      console.warn('Redirect check notice:', err);
+      executeSignIn();
+    });
+
+    btnLoginAction.addEventListener('click', () => {
+      executeSignIn();
+    });
+
+    btnRetry.addEventListener('click', () => {
+      executeSignIn();
+    });
+  </script>
+</body>
+</html>
